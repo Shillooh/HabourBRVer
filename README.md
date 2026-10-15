@@ -2,7 +2,7 @@
 
 **Uma interface cinematográfica premium para Jellyfin, 100% localizada em português e feita para o público brasileiro.**
 
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-1.0.0.0-E50914?style=for-the-badge)](https://github.com/Shillooh/HabourBRVer/releases/tag/v1.0.0.0)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-v1.0.0-E50914?style=for-the-badge)](https://github.com/Shillooh/HabourBRVer)
 [![Jellyfin](https://img.shields.io/badge/Jellyfin-10.10.7%20%7C%2010.11.x%20%7C%2012.x-00A4DC?style=for-the-badge&logo=jellyfin&logoColor=white)](https://jellyfin.org)
 [![Idioma](https://img.shields.io/badge/Idioma-pt--BR-009c3b?style=for-the-badge)](README.md)
 [![Licença](https://img.shields.io/badge/Licen%C3%A7a-MIT-yellow?style=for-the-badge)](LICENSE.md)
@@ -69,7 +69,7 @@ A lista de serviços de streaming foi totalmente reestruturada para o mercado na
 
 ### 2. Instalar os Plugins
 1. Vá até a aba **Catálogo** no Jellyfin.
-2. Localize e instale o **ScreenHarbour Brasil** (Versão `1.0.0.0`).
+2. Localize e instale o **ScreenHarbour Brasil** (o Jellyfin selecionará automaticamente a versão adequada para o seu servidor: `1.0.0.3` para v12, `1.0.0.2` para v10.11 ou `1.0.0.1` para v10.10).
 3. Instale também o plugin **File Transformation**.
 4. **Reinicie o servidor Jellyfin**.
 
@@ -83,15 +83,18 @@ A lista de serviços de streaming foi totalmente reestruturada para o mercado na
 
 ---
 
-## 🛠️ Compatibilidade de Servidor
+## 🛠️ Compatibilidade de Versões
 
-O ScreenHarbour Brasil foi compilado e empacotado para suportar as principais versões ativas do Jellyfin:
+O Jellyfin gerencia a compatibilidade de plugins pelo **Target ABI** e runtime do .NET. O repositório seleciona automaticamente a compilação exata para o seu servidor:
 
-| Versão do Jellyfin | Versão do ScreenHarbour Brasil | Target Framework |
-| :---: | :---: | :---: |
-| **10.10.7** | `1.0.0.0` | .NET 8.0 |
-| **10.11.x** | `1.0.0.0` | .NET 9.0 |
-| **12.x** | `1.0.0.0` | .NET 10.0 |
+| Versão do Jellyfin | Versão do Plugin | Target ABI | Target Framework | Pacote Gerado |
+| :---: | :---: | :---: | :---: | :---: |
+| **12.x / 12.0.0+** | `1.0.0.3` | `12.0.0` | .NET 10.0 | `TvItemLayout_1.0.0.3_jellyfin-12.0.0.zip` |
+| **10.11.x** | `1.0.0.2` | `10.11.0` | .NET 9.0 | `TvItemLayout_1.0.0.2_jellyfin-10.11.0.zip` |
+| **10.10.x / 10.10.7** | `1.0.0.1` | `10.10.7` | .NET 8.0 | `TvItemLayout_1.0.0.1_jellyfin-10.10.7.zip` |
+
+> [!NOTE]
+> Ao instalar pelo catálogo oficial do repositório, o Jellyfin detecta a versão do seu servidor e seleciona automaticamente o pacote correspondente (`1.0.0.3` para v12, `1.0.0.2` para v10.11 ou `1.0.0.1` para v10.10), garantindo compatibilidade total sem erros de `NotSupported`.
 
 ---
 
