@@ -1,9 +1,9 @@
 [
   {
-    "guid": "1a06b74f-7609-4af9-899d-430c9b5a52b1",
+    "guid": "c985bcfd-992f-4a16-a583-258014d98d75",
     "name": "ScreenHarbour Brasil",
     "overview": "Interface cinematográfica premium para Jellyfin (Edição Brasil), com integração TMDB dinâmica e navegação in-player.",
-    "description": "Interface cinematográfica para Jellyfin em modos TV e Desktop, totalmente localizada para o Brasil (pt-BR). Conta com fileiras dinâmicas 'Em Alta' que consultam a API do TMDB diariamente e cruzam com o acervo da sua biblioteca local, presets nacionais de streaming (Globoplay, Max, Prime Video, Netflix, Brasil Paralelo, Disney+, Paramount+, etc.), guia de TV ao vivo horizontal, tela de pausa estilizada e navegação in-player fluida. Mantido por Shillooh.",
+    "description": "Interface cinematográfica para Jellyfin em modos TV e Desktop, totalmente localizada para o Brasil (pt-BR). Conta com fileiras dinâmicas \"Em Alta\" que consultam a API do TMDB diariamente e cruzam com o acervo da sua biblioteca local, presets nacionais de streaming (Globoplay, Max, Prime Video, Netflix, Brasil Paralelo, Disney+, Paramount+, etc.), guia de TV ao vivo horizontal, tela de pausa estilizada e navegação in-player fluida. Mantido por Shillooh.",
     "owner": "Shillooh",
     "category": "General",
     "imageUrl": "https://raw.githubusercontent.com/Shillooh/HabourBRVer/main/assets/catalogue/screenharbour.png",
@@ -11,9 +11,9 @@
       {
         "version": "1.0.0.0",
         "changelog": "Lançamento inicial do ScreenHarbour Brasil 1.0.0.0. Hard fork independente com interface cinematográfica totalmente em português (pt-BR), fileiras dinâmicas de filmes e séries Em Alta via TMDB cruzadas com o catálogo local, novos presets de streaming brasileiros e melhorias de navegação.",
-        "targetAbi": "12.0.0",
-        "sourceUrl": "https://github.com/Shillooh/HabourBRVer/releases/download/v1.0.0.0/TvItemLayout_1.0.0.0_jellyfin-12.0.0.zip",
-        "checksum": "61e96091e89179134f92b0789d4bd548",
+        "targetAbi": "10.10.7",
+        "sourceUrl": "https://github.com/Shillooh/HabourBRVer/releases/download/v1.0.0.0/TvItemLayout_1.0.0.0_jellyfin-10.10.7.zip",
+        "checksum": "93e2c096eafbe08131f8a038e6f70a4c",
         "timestamp": "2026-10-15T12:00:00Z"
       },
       {
@@ -21,15 +21,15 @@
         "changelog": "Lançamento inicial do ScreenHarbour Brasil 1.0.0.0. Hard fork independente com interface cinematográfica totalmente em português (pt-BR), fileiras dinâmicas de filmes e séries Em Alta via TMDB cruzadas com o catálogo local, novos presets de streaming brasileiros e melhorias de navegação.",
         "targetAbi": "10.11.0",
         "sourceUrl": "https://github.com/Shillooh/HabourBRVer/releases/download/v1.0.0.0/TvItemLayout_1.0.0.0_jellyfin-10.11.0.zip",
-        "checksum": "dd70020a1cb3f3e345a8342b5e141e91",
+        "checksum": "3048196f9ea246136c86c08289a58327",
         "timestamp": "2026-10-15T12:00:00Z"
       },
       {
         "version": "1.0.0.0",
         "changelog": "Lançamento inicial do ScreenHarbour Brasil 1.0.0.0. Hard fork independente com interface cinematográfica totalmente em português (pt-BR), fileiras dinâmicas de filmes e séries Em Alta via TMDB cruzadas com o catálogo local, novos presets de streaming brasileiros e melhorias de navegação.",
-        "targetAbi": "10.10.7",
-        "sourceUrl": "https://github.com/Shillooh/HabourBRVer/releases/download/v1.0.0.0/TvItemLayout_1.0.0.0_jellyfin-10.10.7.zip",
-        "checksum": "f58347e2db59d1b3e813ffd6420f4400",
+        "targetAbi": "12.0.0",
+        "sourceUrl": "https://github.com/Shillooh/HabourBRVer/releases/download/v1.0.0.0/TvItemLayout_1.0.0.0_jellyfin-12.0.0.zip",
+        "checksum": "de4151d7633bea6ce3fa01bf582acb95",
         "timestamp": "2026-10-15T12:00:00Z"
       }
     ]

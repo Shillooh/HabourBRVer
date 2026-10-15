@@ -9,7 +9,7 @@ namespace Jellyfin.Plugin.TvItemLayout;
 
 public sealed class Plugin : BasePlugin<BasePluginConfiguration>
 {
-    public const string PluginId = "1a06b74f-7609-4af9-899d-430c9b5a52b1";
+    public const string PluginId = "c985bcfd-992f-4a16-a583-258014d98d75";
 
     public Plugin(
         IApplicationPaths applicationPaths,

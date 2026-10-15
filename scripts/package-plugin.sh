@@ -52,7 +52,7 @@ with ZipFile(output, 'w', ZIP_DEFLATED) as archive:
     archive.write(root / 'docs/server.md', 'INSTALL.md')
     archive.writestr('build-info.json', json.dumps({
         'name': 'ScreenHarbour Brasil',
-        'id': '1a06b74f-7609-4af9-899d-430c9b5a52b1',
+        'id': 'c985bcfd-992f-4a16-a583-258014d98d75',
         'version': plugin_version,
         'jellyfinVersion': jellyfin_version,
         'clientSha256': hashlib.sha256((root / 'dist/jellyfin-tv-layout.js').read_bytes()).hexdigest(),
