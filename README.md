@@ -93,8 +93,6 @@ O Jellyfin gerencia a compatibilidade de plugins pelo **Target ABI** e runtime d
 | **10.11.x** | `1.0.0.2` | `10.11.0` | .NET 9.0 | `TvItemLayout_1.0.0.2_jellyfin-10.11.0.zip` |
 | **10.10.x / 10.10.7** | `1.0.0.1` | `10.10.7` | .NET 8.0 | `TvItemLayout_1.0.0.1_jellyfin-10.10.7.zip` |
 
-> [!NOTE]
-> Ao instalar pelo catálogo oficial do repositório, o Jellyfin detecta a versão do seu servidor e seleciona automaticamente o pacote correspondente (`1.0.0.3` para v12, `1.0.0.2` para v10.11 ou `1.0.0.1` para v10.10), garantindo compatibilidade total sem erros de `NotSupported`.
 
 ---
 
