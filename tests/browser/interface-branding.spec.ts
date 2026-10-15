@@ -98,7 +98,7 @@ test('draft text and Restore defaults never change the interface until saved, an
   await expect(editor(page).locator('.tvl-loading-settings-preview .tvl-home-loading-brand')).toHaveText('Uncommitted title');
   await expect(editorTitle(page)).toHaveText('Family cinema');
   await editor(page).getByRole('button', { name: 'Restore defaults', exact: true }).click();
-  await expect(editor(page).getByLabel('Title', { exact: true })).toHaveValue('SCREENHARBOUR');
+  await expect(editor(page).getByLabel('Title', { exact: true })).toHaveValue('HarbourBR');
   await expect(editorTitle(page)).toHaveText('Family cinema');
   await editor(page).getByRole('button', { name: 'Cancel', exact: true }).click();
   await expect(settingsTitle(page)).toHaveText('Family cinema');
@@ -138,12 +138,12 @@ test('the confirmed login title survives sign-out and reload, with route server 
   await navigate(page, '/login?serverId=other-server');
   await expect(loginTitle(page)).toHaveAttribute('data-tvl-title', 'Other cinema');
   await navigate(page, '/login?serverid=unknown-server');
-  await expect(loginTitle(page)).toHaveAttribute('data-tvl-title', 'SCREENHARBOUR');
+  await expect(loginTitle(page)).toHaveAttribute('data-tvl-title', 'HarbourBR');
   await navigate(page, '/login?serverid=fixture-server');
   await expect(loginTitle(page)).toHaveAttribute('data-tvl-title', 'Home cinema');
   await page.screenshot({ path: '/tmp/screenharbour-custom-title-login.png' });
   await navigate(page, '/selectserver');
-  await expect(loginTitle(page)).toHaveAttribute('data-tvl-title', 'SCREENHARBOUR');
+  await expect(loginTitle(page)).toHaveAttribute('data-tvl-title', 'HarbourBR');
 });
 
 test('account switches use the new account cache immediately and discard the outgoing delayed response', async ({ page }) => {

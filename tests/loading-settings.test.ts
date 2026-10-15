@@ -14,7 +14,7 @@ test('loading choices preserve text, blanks and independent defaults', () => {
     assert.deepEqual(parseLoadingScreen(value), value);
   }
   const draft = defaultLoadingScreen(); draft.brandText = 'Changed';
-  assert.equal(defaultLoadingScreen().brandText, 'SCREENHARBOUR');
+  assert.equal(defaultLoadingScreen().brandText, 'HarbourBR');
   assert.deepEqual(parseLoadingScreen({ ...draft, brandText: 'x'.repeat(60), message: 'y'.repeat(120) }).message, 'y'.repeat(120));
 });
 test('loading settings reject malformed snapshots and control characters without silently replacing choices', () => {
@@ -113,9 +113,9 @@ test('interface subscribers receive only confirmed settings and cannot mutate or
     await store.load();
     const draft = { ...defaultLoadingScreen(), brandText: 'Family cinema' };
     await assert.rejects(store.save(draft), /Changed elsewhere/);
-    assert.deepEqual(titles, ['SCREENHARBOUR']);
+    assert.deepEqual(titles, ['HarbourBR']);
     conflict = false; await store.load(); await store.save(draft);
-    assert.deepEqual(titles, ['SCREENHARBOUR', 'SCREENHARBOUR', 'Family cinema']);
+    assert.deepEqual(titles, ['HarbourBR', 'HarbourBR', 'Family cinema']);
     assert.equal(store.cached.brandText, 'Family cinema');
     unsubscribe(); await store.save({ ...draft, brandText: 'Another title' });
     assert.equal(titles.length, 3);

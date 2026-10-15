@@ -10,7 +10,7 @@ export type LoadingAnimation = typeof loadingAnimations[number]['id'];
 export type LoadingScreenSettings = { version: 1; animation: LoadingAnimation; brandText: string; message: string };
 export const maxLoadingSettingsBytes = 7 * 1024;
 export function defaultLoadingScreen(): LoadingScreenSettings {
-  return { version: 1, animation: 'projector', brandText: 'SCREENHARBOUR', message: 'Preparando sua Página Inicial' };
+  return { version: 1, animation: 'projector', brandText: 'HarbourBR', message: 'Preparando sua Página Inicial' };
 }
 export function loadingScreenKey(server: string, user: string): string {
   return `jellyfin-cinema.loading-screen.v1:${encodeURIComponent(server)}:${encodeURIComponent(user)}`;

@@ -15,7 +15,7 @@ body.tvl-login-native { color:#f5f5f2; }
   background:transparent;backdrop-filter:none;border-radius:0;transform:none;
 }
 .tvl-login-native #loginPage>.padded-left::before {
-  content:'SCREENHARBOUR';display:block;margin:0 0 2rem;
+  content:'HarbourBR';display:block;margin:0 0 2rem;
   max-width:100%;white-space:normal;overflow-wrap:break-word;word-break:break-word;
   color:#e50914;font-size:.78rem;font-weight:650;letter-spacing:.3em;text-align:center;
 }

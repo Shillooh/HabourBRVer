@@ -24,7 +24,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 public static class LoadingScreenChecks
 {
-    public static JsonElement Settings(string animation = "projector", string brandText = "SCREENHARBOUR", string message = "Preparing your Home…")
+    public static JsonElement Settings(string animation = "projector", string brandText = "HarbourBR", string message = "Preparing your Home…")
         => JsonSerializer.SerializeToElement(new { version = 1, animation, brandText, message });
 
     public static async Task Run(Action<bool, string> assert)
