@@ -5,8 +5,9 @@ server/**/obj/
 test-results/
 playwright-report/
 .DS_Store
-dist-package/
 *.zip
+!packages/*.zip
+!packages/*.zip.sha256
 *.dll
 *.user
 *.suo

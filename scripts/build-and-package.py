@@ -72,11 +72,16 @@ for jellyfin_version in targets:
     md5_hash = hashlib.md5(data).hexdigest()
     archive.with_suffix('.zip.sha256').write_text(f'{sha256_hash}  {archive.name}\n')
 
+    packages_dir = root / 'packages'
+    packages_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(archive, packages_dir / archive.name)
+    shutil.copy2(archive.with_suffix('.zip.sha256'), packages_dir / f"{archive.name}.sha256")
+
     versions_manifest.append({
         'version': release_version,
         'changelog': 'Lançamento inicial do ScreenHarbour Brasil 1.0.0.0. Hard fork independente com interface cinematográfica totalmente em português (pt-BR), fileiras dinâmicas de filmes e séries Em Alta via TMDB cruzadas com o catálogo local, novos presets de streaming brasileiros e melhorias de navegação.',
         'targetAbi': jellyfin_version,
-        'sourceUrl': f'https://github.com/Shillooh/HabourBRVer/releases/download/v{release_version}/{archive.name}',
+        'sourceUrl': f'https://raw.githubusercontent.com/Shillooh/HabourBRVer/main/packages/{archive.name}',
         'checksum': md5_hash,
         'timestamp': '2026-10-15T12:00:00Z',
     })

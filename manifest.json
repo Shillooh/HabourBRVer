@@ -12,24 +12,24 @@
         "version": "1.0.0.0",
         "changelog": "Lançamento inicial do ScreenHarbour Brasil 1.0.0.0. Hard fork independente com interface cinematográfica totalmente em português (pt-BR), fileiras dinâmicas de filmes e séries Em Alta via TMDB cruzadas com o catálogo local, novos presets de streaming brasileiros e melhorias de navegação.",
         "targetAbi": "10.10.7",
-        "sourceUrl": "https://github.com/Shillooh/HabourBRVer/releases/download/v1.0.0.0/TvItemLayout_1.0.0.0_jellyfin-10.10.7.zip",
-        "checksum": "93e2c096eafbe08131f8a038e6f70a4c",
+        "sourceUrl": "https://raw.githubusercontent.com/Shillooh/HabourBRVer/main/packages/TvItemLayout_1.0.0.0_jellyfin-10.10.7.zip",
+        "checksum": "cc5f0c7817055d044a7c0021432a34f9",
         "timestamp": "2026-10-15T12:00:00Z"
       },
       {
         "version": "1.0.0.0",
         "changelog": "Lançamento inicial do ScreenHarbour Brasil 1.0.0.0. Hard fork independente com interface cinematográfica totalmente em português (pt-BR), fileiras dinâmicas de filmes e séries Em Alta via TMDB cruzadas com o catálogo local, novos presets de streaming brasileiros e melhorias de navegação.",
         "targetAbi": "10.11.0",
-        "sourceUrl": "https://github.com/Shillooh/HabourBRVer/releases/download/v1.0.0.0/TvItemLayout_1.0.0.0_jellyfin-10.11.0.zip",
-        "checksum": "3048196f9ea246136c86c08289a58327",
+        "sourceUrl": "https://raw.githubusercontent.com/Shillooh/HabourBRVer/main/packages/TvItemLayout_1.0.0.0_jellyfin-10.11.0.zip",
+        "checksum": "c7f6d7a87bdce2a44daaf5b94e91d607",
         "timestamp": "2026-10-15T12:00:00Z"
       },
       {
         "version": "1.0.0.0",
         "changelog": "Lançamento inicial do ScreenHarbour Brasil 1.0.0.0. Hard fork independente com interface cinematográfica totalmente em português (pt-BR), fileiras dinâmicas de filmes e séries Em Alta via TMDB cruzadas com o catálogo local, novos presets de streaming brasileiros e melhorias de navegação.",
         "targetAbi": "12.0.0",
-        "sourceUrl": "https://github.com/Shillooh/HabourBRVer/releases/download/v1.0.0.0/TvItemLayout_1.0.0.0_jellyfin-12.0.0.zip",
-        "checksum": "de4151d7633bea6ce3fa01bf582acb95",
+        "sourceUrl": "https://raw.githubusercontent.com/Shillooh/HabourBRVer/main/packages/TvItemLayout_1.0.0.0_jellyfin-12.0.0.zip",
+        "checksum": "6f74cc2022889d2e4b8b1a0782832089",
         "timestamp": "2026-10-15T12:00:00Z"
       }
     ]
