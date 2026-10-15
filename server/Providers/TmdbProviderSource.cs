@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Net;
 using System.Reflection;
 using System.Text.Json;
@@ -8,7 +9,8 @@ namespace Jellyfin.Plugin.TvItemLayout.Providers;
 /// <summary>Streaming availability is supplied by TMDB/JustWatch, not studio or network names.</summary>
 public sealed partial class TmdbProviderSource(IHttpClientFactory clients, TimeProvider? directoryClock = null)
 {
-    public const string Region = "GB";
+    public const string Region = "BR";
+    private readonly ConcurrentDictionary<string, (DateTimeOffset Expires, int[] TmdbIds)> trendingCache = new(StringComparer.Ordinal);
     private long rateLimitedUntil;
     public static bool ValidProvider(string id) => ProviderHomesSchema.ValidProvider(id);
     public static bool Includes(string provider, string type, IEnumerable<int> ids)
@@ -111,6 +113,87 @@ public sealed partial class TmdbProviderSource(IHttpClientFactory clients, TimeP
         return ids.Order().ToArray();
     }
 
+    public async Task<int[]> DiscoverTrendingTmdbIdsAsync(string mediaType, int[] providerIds, CancellationToken cancellationToken)
+    {
+        var validIds = providerIds.Where(id => id > 0 && id <= 1000000).Distinct().ToArray();
+        if (validIds.Length == 0) return [];
+        var endpointType = mediaType.Equals("Series", StringComparison.OrdinalIgnoreCase) ? "tv" : "movie";
+        var cacheKey = $"{endpointType}:{Region}:{string.Join("|", validIds.OrderBy(id => id))}";
+
+        if (trendingCache.TryGetValue(cacheKey, out var cached) && DateTimeOffset.UtcNow < cached.Expires)
+        {
+            return cached.TmdbIds;
+        }
+
+        var apiKey = NativeApiKey() ?? throw new ProviderLookupException("TMDB is unavailable.");
+        var providersParam = Uri.EscapeDataString(string.Join("|", validIds));
+        var baseUri = $"https://api.themoviedb.org/3/discover/{endpointType}?watch_region={Region}&with_watch_providers={providersParam}&with_watch_monetization_types=flatrate|free|ads&sort_by=popularity.desc&language=pt-BR&api_key={Uri.EscapeDataString(apiKey)}";
+
+        // Query up to 3 pages in parallel for a rich top 60 sample
+        var pageTasks = Enumerable.Range(1, 3).Select(page => FetchDiscoverPageAsync($"{baseUri}&page={page}", cancellationToken)).ToArray();
+        var pageResults = await Task.WhenAll(pageTasks);
+
+        var orderedIds = new List<int>();
+        var seen = new HashSet<int>();
+        foreach (var page in pageResults)
+        {
+            foreach (var id in page)
+            {
+                if (seen.Add(id)) orderedIds.Add(id);
+            }
+        }
+
+        var result = orderedIds.ToArray();
+        if (result.Length > 0)
+        {
+            trendingCache[cacheKey] = (DateTimeOffset.UtcNow.AddHours(6), result);
+        }
+        return result;
+    }
+
+    private async Task<int[]> FetchDiscoverPageAsync(string url, CancellationToken cancellationToken)
+    {
+        while (true)
+        {
+            var remaining = new DateTimeOffset(Interlocked.Read(ref rateLimitedUntil), TimeSpan.Zero) - DateTimeOffset.UtcNow;
+            if (remaining <= TimeSpan.Zero) break;
+            await Task.Delay(remaining, cancellationToken);
+        }
+
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(TimeSpan.FromSeconds(15));
+        var requestToken = timeout.Token;
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        using var response = await clients.CreateClient("JellyfinCinemaProviders").SendAsync(request, HttpCompletionOption.ResponseHeadersRead, requestToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            if (response.StatusCode == HttpStatusCode.NotFound) return [];
+            var delay = response.Headers.RetryAfter?.Delta ?? (response.Headers.RetryAfter?.Date - DateTimeOffset.UtcNow);
+            if (response.StatusCode == HttpStatusCode.TooManyRequests)
+            {
+                var pause = delay is { } retry && retry > TimeSpan.FromSeconds(30) ? retry : TimeSpan.FromSeconds(30);
+                if (pause > TimeSpan.FromHours(6)) pause = TimeSpan.FromHours(6);
+                ExtendCooldown((DateTimeOffset.UtcNow + pause).Ticks);
+            }
+            return [];
+        }
+
+        await using var stream = await response.Content.ReadAsStreamAsync(requestToken);
+        using var document = await JsonDocument.ParseAsync(stream, cancellationToken: requestToken);
+        if (!document.RootElement.TryGetProperty("results", out var results) || results.ValueKind != JsonValueKind.Array)
+            return [];
+
+        var ids = new List<int>();
+        foreach (var item in results.EnumerateArray())
+        {
+            if (item.TryGetProperty("id", out var idProp) && idProp.TryGetInt32(out var id) && id > 0)
+            {
+                ids.Add(id);
+            }
+        }
+        return ids.ToArray();
+    }
 }
 
 public sealed class ProviderLookupException(string message, TimeSpan? retryAfter = null) : Exception(message)

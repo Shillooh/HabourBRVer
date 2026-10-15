@@ -1,7 +1,14 @@
 /* Retain native layout and programmatic playback controls behind our view. */
 .tvl-native-hidden,
 .tvl-native-hidden * { visibility: hidden !important; pointer-events: none !important; }
+/* When a ScreenHarbour view is open, force native item details hidden */
+body.tvl-open .itemDetailPage,
+body.tvl-open #itemDetailPage {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
 /* Official Jellyfin places this player under body. Keep it visible if a client
    instead nests it in the page: visibility can be restored on a descendant. */
 .tvl-native-hidden .videoPlayerContainer,
 .tvl-native-hidden .videoPlayerContainer * { visibility: visible !important; }
+

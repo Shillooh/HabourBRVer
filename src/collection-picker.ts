@@ -23,12 +23,12 @@ export class CollectionPicker {
   }) {
     this.element.setAttribute('role', 'dialog');
     this.element.setAttribute('aria-modal', 'true');
-    this.element.setAttribute('aria-label', 'Add to collection');
+    this.element.setAttribute('aria-label', 'Adicionar à coleção');
     this.message.setAttribute('role', 'status');
     this.message.setAttribute('aria-live', 'polite');
-    this.cancel = button('Cancel', 'close', '', () => this.options.close());
+    this.cancel = button('Cancelar', 'close', '', () => this.options.close());
     const header = el('header', 'tvl-collection-picker-header');
-    header.append(el('h2', '', 'Add to collection'), this.cancel);
+    header.append(el('h2', '', 'Adicionar à coleção'), this.cancel);
     this.panel.append(header, el('p', 'tvl-collection-picker-title', item.Name), this.body, this.message);
     this.element.append(this.panel);
     this.removeRemote = attachRemote(this.element, () => {
@@ -38,14 +38,14 @@ export class CollectionPicker {
   }
 
   async load(): Promise<void> {
-    replace(this.body, el('p', 'tvl-loading', 'Loading collections…'));
+    replace(this.body, el('p', 'tvl-loading', 'Carregando coleções…'));
     this.message.textContent = '';
     this.cancel.focus({ preventScroll: true });
     try {
       const allowed = await this.api.canManageCollections!();
       if (this.disposed) return;
       if (!allowed) {
-        replace(this.body, el('p', '', 'This account is not allowed to manage collections.'));
+        replace(this.body, el('p', '', 'Esta conta não tem permissão para gerenciar coleções.'));
         return;
       }
       const [collections, membership] = await Promise.all([
@@ -57,8 +57,8 @@ export class CollectionPicker {
       this.renderList();
     } catch (error) {
       if (this.disposed) return;
-      const retry = button('Try again', '', '', () => void this.load());
-      replace(this.body, el('p', '', 'Collections could not be loaded.'), retry);
+      const retry = button('Tentar novamente', '', '', () => void this.load());
+      replace(this.body, el('p', '', 'Não foi possível carregar as coleções.'), retry);
       this.showError(error);
       retry.focus({ preventScroll: true });
     }
@@ -67,10 +67,10 @@ export class CollectionPicker {
   private renderList(): void {
     this.creating = false;
     this.message.textContent = '';
-    const create = button('Create new collection', 'grid', 'tvl-primary', () => this.renderCreate());
+    const create = button('Criar nova coleção', 'grid', 'tvl-primary', () => this.renderCreate());
     const search = el('input', 'tvl-collection-picker-input');
-    search.type = 'search'; search.placeholder = 'Find a collection';
-    search.setAttribute('aria-label', 'Find a collection');
+    search.type = 'search'; search.placeholder = 'Buscar uma coleção';
+    search.setAttribute('aria-label', 'Buscar uma coleção');
     const list = el('div', 'tvl-collection-picker-list');
     const update = () => {
       replace(list);
@@ -80,12 +80,12 @@ export class CollectionPicker {
         const choice = button(collection.Name, added ? 'check' : 'grid', 'tvl-collection-choice', () => {
           void this.save(() => this.api.addToCollection!(collection.Id, this.item.Id).then(() => collection));
         });
-        choice.setAttribute('aria-label', added ? `${collection.Name}, already in collection` : `Add to ${collection.Name}`);
+        choice.setAttribute('aria-label', added ? `${collection.Name}, já está na coleção` : `Adicionar a ${collection.Name}`);
         choice.disabled = added;
-        if (added) choice.append(el('small', '', 'Already added'));
+        if (added) choice.append(el('small', '', 'Já adicionado'));
         list.append(choice);
       }
-      if (!matches.length) list.append(el('p', 'tvl-collection-picker-empty', this.collections.length ? 'No matching collections.' : 'No collections yet. Create one to get started.'));
+      if (!matches.length) list.append(el('p', 'tvl-collection-picker-empty', this.collections.length ? 'Nenhuma coleção encontrada.' : 'Nenhuma coleção ainda. Crie uma para começar.'));
     };
     search.addEventListener('input', update);
     replace(this.body, create, search, list);
@@ -97,19 +97,19 @@ export class CollectionPicker {
     this.creating = true;
     this.message.textContent = '';
     const form = el('form', 'tvl-collection-create-form');
-    const label = el('label', '', 'Collection name');
+    const label = el('label', '', 'Nome da coleção');
     const name = el('input', 'tvl-collection-picker-input');
     name.id = 'tvl-collection-name'; name.name = 'collectionName'; name.required = true;
     name.autocomplete = 'off'; label.htmlFor = name.id;
-    const submit = button('Create collection', '', 'tvl-primary', () => {});
+    const submit = button('Criar coleção', '', 'tvl-primary', () => {});
     submit.type = 'submit';
     form.append(label, name, submit);
     form.addEventListener('submit', event => {
       event.preventDefault();
-      if (!name.value.trim()) { this.message.textContent = 'Enter a collection name.'; name.focus(); return; }
+      if (!name.value.trim()) { this.message.textContent = 'Digite o nome da coleção.'; name.focus(); return; }
       void this.save(() => this.api.createCollection!(name.value.trim(), this.item.Id));
     });
-    replace(this.body, button('Choose an existing collection', 'back', '', () => this.renderList()), form);
+    replace(this.body, button('Escolher uma coleção existente', 'back', '', () => this.renderList()), form);
     name.focus({ preventScroll: true });
   }
 
@@ -121,8 +121,8 @@ export class CollectionPicker {
     const enabled = Array.from(this.body.querySelectorAll<HTMLInputElement | HTMLButtonElement>('input:not(:disabled), button:not(:disabled)'));
     enabled.forEach(node => { node.disabled = true; });
     this.body.setAttribute('aria-busy', 'true');
-    this.message.textContent = this.creating ? 'Creating collection…' : 'Adding to collection…';
-    this.cancel.querySelector('span')!.textContent = 'Close';
+    this.message.textContent = this.creating ? 'Criando coleção…' : 'Adicionando à coleção…';
+    this.cancel.querySelector('span')!.textContent = 'Fechar';
     this.cancel.focus({ preventScroll: true });
     try {
       const collection = await action();
@@ -138,12 +138,12 @@ export class CollectionPicker {
       this.pending = false;
       this.options.pending(false);
       this.body.removeAttribute('aria-busy');
-      this.cancel.querySelector('span')!.textContent = 'Cancel';
+      this.cancel.querySelector('span')!.textContent = 'Cancelar';
     }
   }
 
   private showError(error: unknown): void {
-    this.message.textContent = error instanceof Error ? error.message : 'Could not save the collection. Please try again.';
+    this.message.textContent = error instanceof Error ? error.message : 'Não foi possível salvar a coleção. Tente novamente.';
   }
 
   destroy(): void { this.disposed = true; this.removeRemote(); this.element.remove(); }

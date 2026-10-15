@@ -110,10 +110,10 @@ export class ChannelZapper {
       const channels = (await api.getChannels()).filter(available).filter((item, index, all) => all.findIndex(other => sameMediaId(other.Id, item.Id)) === index);
       if (!this.current(hop, true)) return;
       const index = channels.findIndex(item => sameMediaId(item.Id, hop.channelId));
-      if (index < 0 || channels.length < 2) { this.show('No other available channel.', true); return; }
+      if (index < 0 || channels.length < 2) { this.show('Nenhum outro canal disponível.', true); return; }
       // getChannels returns the permitted guide lineup in channel-number order.
       const target = channels[(index + step + channels.length) % channels.length];
-      this.show(`Tuning ${target.ChannelNumber || target.Number || ''} ${target.Name}…`.replace('Tuning  ', 'Tuning '));
+      this.show(`Sintonizando ${target.ChannelNumber || target.Number || ''} ${target.Name}…`.replace('Sintonizando  ', 'Sintonizando '));
       hop.dispatched = true;
       await api.play(target, 0, () => this.current(hop, true));
       const started = Date.now();
@@ -126,9 +126,9 @@ export class ChannelZapper {
         if (active?.item && active.key !== from.key && !sameMediaId(channelId(active.item), target.Id)) { hop.cancelled = true; return; }
         await delay(100);
       }
-      if (this.current(hop)) this.show('The channel has not started. Try again.', true);
+      if (this.current(hop)) this.show('O canal não iniciou. Tente novamente.', true);
     } catch {
-      if (this.current(hop)) this.show('Unable to change channel. Try again.', true);
+      if (this.current(hop)) this.show('Não foi possível mudar de canal. Tente novamente.', true);
     } finally {
       const stillCurrent = this.current(hop);
       if (this.pending === hop) this.pending = null;

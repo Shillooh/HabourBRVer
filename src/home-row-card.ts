@@ -1,5 +1,5 @@
 import type { Item, MediaApi } from './types';
-import { el, picture } from './dom';
+import { el, picture, isCardAction } from './dom';
 import { decorateSeasonalCard } from './home-seasonal-appearance';
 import type { HomeCollectionRow } from './home-collection-settings';
 import { rankImage } from './home-collection-settings';
@@ -10,9 +10,19 @@ export function homeRowCard(api: MediaApi, item: Item, rank?: number, onSelect?:
   const card = onSelect ? el('button') : el('div');
   card.className = `tvl-home-row-card${rank ? ' tvl-home-ranked' : ''}`;
   card.dataset.itemId = item.Id;
-  card.setAttribute('aria-label', rank ? `Rank ${rank}: ${item.Name}` : item.Name);
+  card.dataset.id = item.Id;
+  card.setAttribute('aria-label', rank ? `Posição ${rank}: ${item.Name}` : item.Name);
   if (card instanceof HTMLButtonElement) {
-    card.type = 'button'; card.addEventListener('click', onSelect!);
+    card.type = 'button';
+    card.addEventListener('click', (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (isCardAction(target, card)) {
+        event.stopPropagation();
+        event.preventDefault();
+        return;
+      }
+      onSelect!();
+    });
   } else card.setAttribute('role', 'img');
   if (rank) {
     const artwork = el('img', 'tvl-home-rank');

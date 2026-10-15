@@ -9,15 +9,17 @@ import { ProviderData, type ProviderRowResult } from './provider-data';
 import { homeRowCard } from './home-row-card';
 import { plainText } from './utils';
 import { subscribeWatchlist } from './watchlist';
+import { attachRowScrollButtons } from './home-row-scroll';
 
 export function providerHomeRow(settings: ProviderHomesSettings, navigate: (id: ProviderId) => void): HTMLElement | null {
   const providers = settings.providers.filter(provider => provider.enabled);
   if (!settings.enabled || !providers.length) return null;
-  const title = settings.title.trim() || 'Streaming services';
+  const title = settings.title.trim() || 'Serviços de Streaming';
   const section = el('section', 'verticalSection tvl-home-provider-row');
   section.style.setProperty('--provider-tile-scale', String(settings.tileScale / 100));
   section.dataset.homeRow = 'provider-homes:brands'; section.setAttribute('aria-label', title);
-  section.append(el('h2', 'tvl-home-row-title', title));
+  const header = el('div', 'tvl-home-row-header');
+  header.append(el('h2', 'tvl-home-row-title', title));
   const cards = el('div', 'tvl-home-row-cards tvl-provider-tiles focuscontainer-x'); cards.setAttribute('role', 'list');
   for (const provider of providers) {
     const brand = providerAppearance(provider);
@@ -30,7 +32,8 @@ export function providerHomeRow(settings: ProviderHomesSettings, navigate: (id: 
     if (settings.showNames) tile.append(el('span', 'tvl-provider-tile-name', brand.name));
     tile.addEventListener('click', () => navigate(provider.id)); entry.append(tile); cards.append(entry);
   }
-  section.append(cards); return section;
+  attachRowScrollButtons(header, cards);
+  section.append(header, cards); return section;
 }
 
 export type ProviderHomeState = { loadedCount: number; scrollTop: number };
@@ -71,17 +74,17 @@ export class ProviderHomeView {
   constructor(private api: MediaApi, private options: Options) {
     this.store = createProviderHomesStore(api); this.data = new ProviderData(api); this.focusPending = options.focusId;
     this.element.setAttribute('role', 'dialog'); this.element.setAttribute('aria-modal', 'true');
-    this.element.setAttribute('aria-label', 'Streaming service'); this.element.dataset.provider = options.provider;
-    const back = button('Back', 'back', 'tvl-back', options.back); back.dataset.focusId = 'provider-back';
+    this.element.setAttribute('aria-label', 'Serviço de streaming'); this.element.dataset.provider = options.provider;
+    const back = button('Voltar', 'back', 'tvl-back', options.back); back.dataset.focusId = 'provider-back';
     const identity = el('div', 'tvl-provider-identity');
     this.header.append(back, identity);
     if (options.edit) {
-      const edit = button('Edit service', '', 'tvl-provider-edit', options.edit);
+      const edit = button('Editar serviço', '', 'tvl-provider-edit', options.edit);
       edit.dataset.focusId = 'provider-edit'; this.header.append(edit); this.header.classList.add('tvl-provider-editable');
     }
     this.content.append(this.hero, this.rowsHost);
     this.element.append(this.header, this.content);
-    this.rowsHost.append(el('p', 'tvl-provider-message', 'Loading…'));
+    this.rowsHost.append(el('p', 'tvl-provider-message', 'Carregando…'));
     window.addEventListener('keydown', this.onInput, true); window.addEventListener('command', this.onInput, true);
     document.addEventListener('pointerdown', this.onInput, true);
     this.detach = attachRemote(this.element, options.back, direction => this.moveRow(direction));
@@ -114,22 +117,23 @@ export class ProviderHomeView {
     replace(this.hero); replace(this.rowsHost);
     this.config = settings.providers.find(provider => provider.id === this.options.provider && provider.enabled);
     if (!this.config) {
-      this.hero.hidden = true; this.rowsHost.append(el('p', 'tvl-provider-message', 'This provider home is turned off.'));
+      this.hero.hidden = true; this.rowsHost.append(el('p', 'tvl-provider-message', 'A página deste serviço está desativada.'));
       this.focusPending = undefined; this.findFocus('provider-back')?.focus({ preventScroll: true }); return;
     }
     const appearance = providerAppearance(this.config);
-    this.element.setAttribute('aria-label', `${appearance.name} home`);
+    this.element.setAttribute('aria-label', `Início de ${appearance.name}`);
     this.element.style.setProperty('--provider-accent', appearance.accent);
-    const label = el('div'); label.append(el('h1', '', appearance.name), el('p', '', 'Your library · United Kingdom'));
+    const subtitleText = 'Sua biblioteca · Brasil';
+    const label = el('div'); label.append(el('h1', '', appearance.name), el('p', '', subtitleText));
     replace(this.header.querySelector<HTMLElement>('.tvl-provider-identity')!, providerLogo(this.config, 'tvl-provider-header-logo'), label);
     const rows = this.config.rows.filter(row => row.enabled && (!this.options.rowId || row.id === this.options.rowId));
     this.element.classList.toggle('tvl-provider-library', !!this.options.rowId);
     this.hero.hidden = !this.config.hero || !!this.options.rowId;
     if (!this.hero.hidden) {
-      replace(this.hero, el('p', 'tvl-provider-eyebrow', 'IN YOUR LIBRARY'), el('h2', 'tvl-provider-welcome', `Explore ${this.config.name}`));
+      replace(this.hero, el('p', 'tvl-provider-eyebrow', 'NA SUA BIBLIOTECA'), el('h2', 'tvl-provider-welcome', `Explore ${this.config.name}`));
     }
-    const nav = el('nav', 'tvl-provider-nav'); nav.setAttribute('aria-label', 'Provider sections');
-    const home = button('Home', '', '', () => this.options.openRow()); home.dataset.focusId = 'provider-home';
+    const nav = el('nav', 'tvl-provider-nav'); nav.setAttribute('aria-label', 'Seções do serviço');
+    const home = button('Início', '', '', () => this.options.openRow()); home.dataset.focusId = 'provider-home';
     home.setAttribute('aria-current', this.options.rowId ? 'false' : 'page'); nav.append(home);
     for (const row of this.config.rows.filter(row => row.enabled)) {
       const link = button(row.title || this.rowTitle(row), '', '', () => this.options.openRow(row.id));
@@ -144,7 +148,7 @@ export class ProviderHomeView {
     // any results. Keep this lightweight read in the normal refresh cycle.
     for (const config of this.config.rows.filter(row => row.enabled && row.source === 'watchlist' && !rows.includes(row)))
       this.states.push(this.buildRow(config, true));
-    if (!rows.length) this.rowsHost.append(el('p', 'tvl-provider-message', this.options.rowId ? 'This row is unavailable.' : 'No rows are enabled for this provider.'));
+    if (!rows.length) this.rowsHost.append(el('p', 'tvl-provider-message', this.options.rowId ? 'Esta fileira está indisponível.' : 'Nenhuma fileira está ativada para este serviço.'));
     this.focusInitial();
     await Promise.allSettled(this.states.map(row => this.loadRow(row)));
     if (this.disposed || generation !== this.generation) return;
@@ -160,7 +164,7 @@ export class ProviderHomeView {
   }
 
   private rowTitle(row: ProviderRow): string {
-    return ({ movies: 'Films', shows: 'TV shows', 'trending-movies': 'Trending films', 'trending-shows': 'Trending TV shows', collection: 'Collection', watchlist: 'Watchlist' })[row.source];
+    return ({ movies: 'Filmes', shows: 'Séries', 'trending-movies': 'Filmes em Alta', 'trending-shows': 'Séries em Alta', collection: 'Coleção', watchlist: 'Minha Lista' })[row.source];
   }
   private buildRow(config: ProviderRow, navigationOnly = false): RowState {
     const title = config.title.trim() || this.rowTitle(config);
@@ -168,12 +172,13 @@ export class ProviderHomeView {
     element.hidden = config.source === 'watchlist';
     const heading = el('div', 'tvl-provider-row-heading'); heading.append(el('h2', 'tvl-home-row-title', title));
     if (!this.options.rowId) {
-      const all = button('View all', '', 'tvl-provider-view-all', () => this.options.openRow(config.id)); all.setAttribute('aria-label', `View all ${title}`);
+      const all = button('Ver tudo', '', 'tvl-provider-view-all', () => this.options.openRow(config.id)); all.setAttribute('aria-label', `Ver tudo de ${title}`);
       all.dataset.focusId = `provider-all:${config.id}`; heading.append(all);
     }
     const cards = el('div', this.options.rowId ? `tvl-provider-grid${config.ranked ? ' tvl-provider-ranked-grid' : ''}` : 'tvl-home-row-cards'); cards.setAttribute('role', 'list');
-    const status = el('p', 'tvl-provider-row-status'); status.setAttribute('role', 'status'); status.textContent = 'Loading…';
-    const more = button('Load more', '', 'tvl-provider-more', () => { void this.loadRow(state, true); }); more.hidden = true;
+    if (!this.options.rowId) attachRowScrollButtons(heading, cards);
+    const status = el('p', 'tvl-provider-row-status'); status.setAttribute('role', 'status'); status.textContent = 'Carregando…';
+    const more = button('Carregar mais', '', 'tvl-provider-more', () => { void this.loadRow(state, true); }); more.hidden = true;
     more.dataset.focusId = `provider-more:${config.id}`;
     element.append(heading, cards, status, more); if (!navigationOnly) this.rowsHost.append(element);
     const state: RowState = { config, element, cards, status, more, items: [], busy: false, fingerprint: '', restoreCount: 0, navigationOnly }; return state;
@@ -230,13 +235,16 @@ export class ProviderHomeView {
       }
       row.more.hidden = !this.options.rowId || row.items.length >= result.total;
       const messages: string[] = [];
-      if (result.status === 'refreshing' && !result.pending) messages.push('Refreshing UK availability…');
-      if (result.pending) messages.push(`Checking UK availability: ${Math.max(0, result.totalToCheck - result.pending)} of ${result.totalToCheck} titles.`);
-      if (result.status === 'unavailable' && !result.missingSource) messages.push(result.items.length ? 'Some availability could not be refreshed. Showing the last available results.' : 'UK availability is temporarily unavailable.');
+      if (result.status === 'refreshing' && !result.pending) messages.push('Atualizando disponibilidade no Brasil…');
+      if (result.pending) messages.push(`Verificando disponibilidade no Brasil: ${Math.max(0, result.totalToCheck - result.pending)} de ${result.totalToCheck} títulos.`);
+      if (result.status === 'unavailable' && !result.missingSource) messages.push(result.items.length ? 'Algumas disponibilidades não puderam ser atualizadas. Exibindo os últimos resultados disponíveis.' : 'A disponibilidade no Brasil está temporariamente indisponível.');
       if (result.missingSource) messages.push(row.config.source === 'collection' || row.config.collectionId
-        ? 'The selected collection is unavailable for this account.' : 'Choose a collection for this row in Streaming services settings.');
+        ? 'A coleção selecionada está indisponível para esta conta.' : 'Escolha uma coleção para esta fileira nas configurações de Serviços de Streaming.');
       if (!messages.length && !row.items.length) messages.push(row.config.source === 'watchlist'
-        ? 'No films or TV shows in your Watchlist match this service yet.' : 'No matching titles in your library.');
+        ? 'Nenhum filme ou série da sua Lista corresponde a este serviço ainda.'
+        : row.config.source.startsWith('trending')
+        ? 'Nenhum título em alta desta plataforma foi encontrado na sua biblioteca local.'
+        : 'Nenhum título correspondente na sua biblioteca.');
       row.status.textContent = messages.join(' ');
       row.status.hidden = !messages.length;
       this.updateWatchlistVisibility(row, ownedFocus);
@@ -244,9 +252,9 @@ export class ProviderHomeView {
       if (!restoreMore || inputRevision !== this.inputRevision) this.focusInitial();
     } catch {
       if (!current()) return;
-      row.status.textContent = row.items.length ? 'This row could not refresh. Your existing results are still shown.' : 'This row could not be loaded.';
+      row.status.textContent = row.items.length ? 'Não foi possível atualizar esta fileira. Os resultados atuais continuam visíveis.' : 'Não foi possível carregar esta fileira.';
       row.status.hidden = false;
-      const retry = button('Retry', '', '', () => { void this.loadRow(row); }); retry.dataset.focusId = `provider-retry:${row.config.id}`; row.status.append(retry);
+      const retry = button('Tentar novamente', '', '', () => { void this.loadRow(row); }); retry.dataset.focusId = `provider-retry:${row.config.id}`; row.status.append(retry);
       this.updateWatchlistVisibility(row);
     } finally {
       row.busy = false; row.more.disabled = false;

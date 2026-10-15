@@ -1,5 +1,5 @@
 import type { Item, MediaApi, LibraryQuery, SuggestionSection } from './types';
-import { button, el, icon, picture, replace } from './dom';
+import { button, el, icon, picture, replace, isCardAction } from './dom';
 import { attachRemote } from './remote';
 import { progress, resumePosition } from './utils';
 import { subscribeWatchlist } from './watchlist';
@@ -32,9 +32,9 @@ const pageSize = 48;
 export class LibraryView {
   readonly element = el('section', 'tvl-root tvl-keyboard tvl-library-view');
   private get isShows(): boolean { return this.options.kind === 'shows'; }
-  private get title(): string { return this.isShows ? 'TV Shows' : 'Movies'; }
-  private get plural(): string { return this.isShows ? 'shows' : 'movies'; }
-  private get singular(): string { return this.isShows ? 'show' : 'movie'; }
+  private get title(): string { return this.isShows ? 'Séries' : 'Filmes'; }
+  private get plural(): string { return this.isShows ? 'séries' : 'filmes'; }
+  private get singular(): string { return this.isShows ? 'série' : 'filme'; }
   private content = el('div', 'tvl-content');
   private hero = el('div', 'tvl-library-hero');
   private navigation = el('nav', 'tvl-library-tabs');
@@ -69,13 +69,13 @@ export class LibraryView {
     this.element.setAttribute('aria-modal', 'true');
     this.element.setAttribute('aria-label', this.title);
     const header = el('header', 'tvl-header');
-    const back = button('Back', 'back', 'tvl-back', options.back);
+    const back = button('Voltar', 'back', 'tvl-back', options.back);
     back.dataset.focusId = 'back';
     header.append(back);
     const heroCopy = el('div', 'tvl-library-hero-copy');
     heroCopy.append(el('h1', 'tvl-library-title', this.title), this.count);
     this.hero.append(heroCopy);
-    this.navigation.setAttribute('aria-label', `Browse ${this.plural}`);
+    this.navigation.setAttribute('aria-label', `Navegar em ${this.plural}`);
     this.count.setAttribute('aria-live', 'polite');
     this.content.append(header, this.hero, this.navigation, this.filters, this.results);
     this.element.append(this.content);
@@ -119,9 +119,10 @@ export class LibraryView {
 
   private renderControls(): void {
     replace(this.navigation);
-    const collections = button('Collections', 'grid', 'tvl-library-tab tvl-library-collections', this.options.openCollections);
+    const collections = button('Coleções', 'grid', 'tvl-library-tab tvl-library-collections', this.options.openCollections);
     collections.dataset.focusId = 'collections';
-    const tabs: [LibraryTab, string][] = [['suggestions', 'Suggestions'], ['watchlist', 'Watchlist'], ['favorites', 'Favourites'], ['genres', 'Genres'], ['all', `All ${this.plural}`]];
+    const allLabel = this.isShows ? 'Todas as séries' : 'Todos os filmes';
+    const tabs: [LibraryTab, string][] = [['suggestions', 'Sugestões'], ['watchlist', 'Minha Lista'], ['favorites', 'Favoritos'], ['genres', 'Gêneros'], ['all', allLabel]];
     for (const [tab, label] of tabs) {
       if (tab === 'all') this.navigation.append(collections);
       const control = button(label, '', 'tvl-library-tab', () => {
@@ -136,10 +137,10 @@ export class LibraryView {
     form.setAttribute('role', 'search');
     this.input = el('input', 'tvl-library-search-input');
     this.input.type = 'search'; this.input.tabIndex = 0;
-    this.input.placeholder = `Search ${this.plural}`; this.input.value = this.state.search;
+    this.input.placeholder = `Buscar ${this.plural}`; this.input.value = this.state.search;
     this.input.autocomplete = 'off'; this.input.dataset.focusId = 'search';
-    this.input.setAttribute('aria-label', `Search ${this.plural}`);
-    const submit = button('Search', '', 'tvl-library-search-submit', () => {});
+    this.input.setAttribute('aria-label', `Buscar ${this.plural}`);
+    const submit = button('Buscar', '', 'tvl-library-search-submit', () => {});
     submit.type = 'submit'; submit.dataset.focusId = 'search-submit';
     form.append(this.input, submit);
     form.addEventListener('submit', event => {
@@ -148,19 +149,19 @@ export class LibraryView {
       this.change({ tab, search: this.input.value.trim(), letter: '' }, 'search');
     });
     if (this.state.search) {
-      const clear = button('Clear search', 'close', 'tvl-library-clear', () => this.change({ search: '' }, 'search'));
+      const clear = button('Limpar busca', 'close', 'tvl-library-clear', () => this.change({ search: '' }, 'search'));
       clear.dataset.focusId = 'clear-search'; form.append(clear);
     }
     const controls: HTMLElement[] = [form];
     if (this.state.tab === 'all' || this.state.tab === 'favorites' || this.state.tab === 'watchlist' || this.state.genreId) {
       const alphabet = el('nav', 'tvl-library-alphabet');
-      alphabet.setAttribute('aria-label', 'Browse by title');
+      alphabet.setAttribute('aria-label', 'Navegar por título');
       for (const letter of ['', '#', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ']) {
-        const control = button(letter || 'All', '', 'tvl-library-letter', () => this.change({ letter }, `letter:${letter || 'all'}`));
+        const control = button(letter || 'Todos', '', 'tvl-library-letter', () => this.change({ letter }, `letter:${letter || 'all'}`));
         control.dataset.focusId = `letter:${letter || 'all'}`;
         control.dataset.libraryLetter = letter;
         control.setAttribute('aria-pressed', String(this.state.letter === letter));
-        if (letter === '#') control.setAttribute('aria-label', '# — numbers and symbols');
+        if (letter === '#') control.setAttribute('aria-label', '# — números e símbolos');
         alphabet.append(control);
       }
       controls.push(alphabet);
@@ -186,7 +187,7 @@ export class LibraryView {
     this.results.setAttribute('aria-busy', 'true');
     if (!append) {
       this.count.textContent = '';
-      const loading = el('p', 'tvl-loading', this.state.tab === 'suggestions' ? 'Finding something to watch…' : `Loading your ${this.plural}…`);
+      const loading = el('p', 'tvl-loading', this.state.tab === 'suggestions' ? 'Procurando algo para assistir…' : `Carregando ${this.plural}…`);
       loading.setAttribute('role', 'status');
       replace(this.results, loading);
       if (!this.element.contains(document.activeElement)) this.focus(`tab:${this.state.tab}`, false, false);
@@ -207,7 +208,7 @@ export class LibraryView {
         let more = true;
         let total: number | null = null;
         do {
-          if (this.state.tab === 'watchlist' && !this.api.getWatchlist) throw new Error('Watchlist is unavailable.');
+          if (this.state.tab === 'watchlist' && !this.api.getWatchlist) throw new Error('A Minha Lista está indisponível.');
           const page = await (this.state.tab === 'watchlist' ? this.api.getWatchlist!({ ...this.query(offset), type: this.isShows ? 'Series' : 'Movie' }) : this.isShows ? this.api.getShows(this.query(offset)) : this.api.getMovies(this.query(offset)));
           if (!current()) return;
           for (const item of page.items) unique.set(item.Id, item);
@@ -235,9 +236,9 @@ export class LibraryView {
       if (!current()) return;
       this.loading = false; this.results.removeAttribute('aria-busy');
       const error = el('div', 'tvl-library-empty');
-      const retry = button('Try again', '', 'tvl-primary', () => { this.nextFocus = requestedFocus; void this.loadResults(append); });
+      const retry = button('Tentar novamente', '', 'tvl-primary', () => { this.nextFocus = requestedFocus; void this.loadResults(append); });
       retry.dataset.focusId = 'retry';
-      error.append(el('h2', '', `${this.title} unavailable`), el('p', '', 'Check your connection and try again.'), retry);
+      error.append(el('h2', '', `${this.title} indisponíveis`), el('p', '', 'Verifique sua conexão e tente novamente.'), retry);
       if (append) {
         this.results.querySelector('.tvl-library-more')?.remove();
         this.results.querySelector('.tvl-library-empty')?.remove();
@@ -250,21 +251,21 @@ export class LibraryView {
 
   private renderItems(): void {
     const heading = el('div', 'tvl-library-section-heading');
-    let label = this.state.tab === 'watchlist' ? 'Your watchlist' : this.state.tab === 'favorites' ? 'Your favourites' : this.state.genreName || `All ${this.plural}`;
-    if (this.state.search) label = `Results for “${this.state.search}”`;
+    let label = this.state.tab === 'watchlist' ? 'Sua lista' : this.state.tab === 'favorites' ? 'Seus favoritos' : this.state.genreName || (this.isShows ? 'Todas as séries' : 'Todos os filmes');
+    if (this.state.search) label = `Resultados para “${this.state.search}”`;
     else if (this.state.letter) label += ` · ${this.state.letter}`;
     heading.append(el('h2', '', label));
     if (this.state.tab === 'genres' && this.state.genreId) {
-      const all = button('All genres', 'back', 'tvl-library-all-genres', () => this.change({ genreId: undefined, genreName: undefined, letter: '', search: '' }, 'tab:genres'));
+      const all = button('Todos os gêneros', 'back', 'tvl-library-all-genres', () => this.change({ genreId: undefined, genreName: undefined, letter: '', search: '' }, 'tab:genres'));
       all.dataset.focusId = 'all-genres'; heading.append(all);
     }
     replace(this.results, heading);
     if (this.items.length) this.results.append(this.grid(this.items, label));
-    else this.results.append(this.empty(this.state.tab === 'watchlist' ? 'No saved titles found' : this.state.tab === 'favorites' ? 'No favourites found' : `No ${this.plural} found`,
-      this.state.search || this.state.letter || this.state.genreId ? 'Try a different search or filter.' : this.state.tab === 'watchlist' ? `Add ${this.plural} to your watchlist from their details${this.isShows ? '' : ' or trailers'}.` : this.state.tab === 'favorites' ? `Your favourite ${this.plural} will appear here.` : `${this.title} in this library will appear here.`));
+    else this.results.append(this.empty(this.state.tab === 'watchlist' ? 'Nenhum título salvo encontrado' : this.state.tab === 'favorites' ? 'Nenhum favorito encontrado' : `Nenhum(a) ${this.singular} encontrado(a)`,
+      this.state.search || this.state.letter || this.state.genreId ? 'Tente uma busca ou filtro diferente.' : this.state.tab === 'watchlist' ? `Adicione ${this.plural} à sua lista a partir dos detalhes${this.isShows ? '' : ' ou trailers'}.` : this.state.tab === 'favorites' ? `Seus(suas) ${this.plural} favoritos(as) aparecerão aqui.` : `${this.title} nesta biblioteca aparecerão aqui.`));
     if (this.hasMore) {
       const footer = el('div', 'tvl-library-more');
-      const more = button('Show more', '', 'tvl-primary', () => { void this.loadResults(true); });
+      const more = button('Mostrar mais', '', 'tvl-primary', () => { void this.loadResults(true); });
       more.dataset.focusId = 'show-more'; footer.append(more); this.results.append(footer);
     }
     this.artwork(this.items[0]);
@@ -281,19 +282,19 @@ export class LibraryView {
       group.append(el('h2', 'tvl-library-section-title', section.title), this.grid(section.items, section.title, `${this.singular}:section-${index}`));
       this.results.append(group);
     }
-    if (!first) this.results.append(this.empty('No suggestions yet', 'Suggestions will appear as your library grows.'));
+    if (!first) this.results.append(this.empty('Sem sugestões ainda', 'As sugestões aparecerão conforme sua biblioteca crescer.'));
     this.artwork(first);
   }
 
   private renderGenres(genres: Item[]): void {
-    this.count.textContent = `${genres.length} ${genres.length === 1 ? 'genre' : 'genres'}`;
+    this.count.textContent = `${genres.length} ${genres.length === 1 ? 'gênero' : 'gêneros'}`;
     const grid = el('div', 'tvl-library-genres');
     for (const genre of genres) {
       const card = button(genre.Name, 'chevron', 'tvl-library-genre', () => this.change({ genreId: genre.Id, genreName: genre.Name, search: '', letter: '' }, ''));
       card.dataset.genreId = genre.Id; card.dataset.focusId = `genre:${genre.Id}`;
       grid.append(card);
     }
-    replace(this.results, el('h2', 'tvl-library-section-title', 'Browse genres'), genres.length ? grid : this.empty('No genres yet', `Genres from your ${this.singular} library will appear here.`));
+    replace(this.results, el('h2', 'tvl-library-section-title', 'Explorar gêneros'), genres.length ? grid : this.empty('Nenhum gênero ainda', `Gêneros da sua biblioteca de ${this.plural} aparecerão aqui.`));
     this.artwork();
   }
 
@@ -304,6 +305,8 @@ export class LibraryView {
       const entry = el('div', 'tvl-library-entry'); entry.setAttribute('role', 'listitem');
       const card = el('button', 'tvl-library-card'); card.type = 'button';
       card.dataset.libraryItem = item.Id;
+      card.dataset.itemId = item.Id;
+      card.dataset.id = item.Id;
       if (this.isShows) card.dataset.showItem = item.Id; else card.dataset.movieItem = item.Id;
       card.dataset.focusId = `${focusPrefix}:${item.Id}`;
       const episode = item.Type === 'Episode';
@@ -314,11 +317,11 @@ export class LibraryView {
       const art = picture(this.api.image(item, 'thumb'), 'tvl-library-art');
       const placeholder = el('span', 'tvl-library-placeholder'); placeholder.setAttribute('aria-hidden', 'true');
       placeholder.append(icon('grid')); art.append(placeholder);
-      if (item.UserData?.IsFavorite) { const favorite = el('span', 'tvl-library-favorite'); favorite.setAttribute('aria-label', 'Favourite'); favorite.append(icon('heart')); art.append(favorite); }
+      if (item.UserData?.IsFavorite) { const favorite = el('span', 'tvl-library-favorite'); favorite.setAttribute('aria-label', 'Favorito'); favorite.append(icon('heart')); art.append(favorite); }
       if (resumePosition(item) > 0 && progress(item) > 0) {
         const value = progress(item);
         const track = el('span', 'tvl-library-progress');
-        track.setAttribute('role', 'progressbar'); track.setAttribute('aria-label', 'Playback progress');
+        track.setAttribute('role', 'progressbar'); track.setAttribute('aria-label', 'Progresso da reprodução');
         track.setAttribute('aria-valuemin', '0'); track.setAttribute('aria-valuemax', '100');
         track.setAttribute('aria-valuenow', String(Math.round(value)));
         const fill = el('span'); fill.style.width = `${value}%`; track.append(fill); art.append(track);
@@ -328,7 +331,15 @@ export class LibraryView {
       const meta = [item.ProductionYear ? String(item.ProductionYear) : '', item.OfficialRating || ''].filter(Boolean);
       if (meta.length) caption.append(el('p', '', meta.join(' · ')));
       card.append(art, caption);
-      card.addEventListener('click', () => { if (!this.disposed) { this.save(); this.options.navigate(item.Id); } });
+      card.addEventListener('click', (event: MouseEvent) => {
+        const target = event.target as HTMLElement | null;
+        if (isCardAction(target, card)) {
+          event.stopPropagation();
+          event.preventDefault();
+          return;
+        }
+        if (!this.disposed) { this.save(); this.options.navigate(item.Id); }
+      });
       entry.append(card); grid.append(entry);
     }
     return grid;

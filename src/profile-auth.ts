@@ -19,14 +19,14 @@ export type ProfileSwitchPhase = 'checking' | 'signing-out' | 'signing-in' | 'op
 export class ProfileLoginRequired extends Error {}
 const identity = (id: string) => /^[\da-f]{32}$|^[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/i.test(id) ? id.replace(/-/g, '').toLowerCase() : id;
 const loginRoute = () => /^#\/?(?:login|selectserver)\/?(?:\?|$)/i.test(window.location.hash);
-const abort = () => new DOMException('Profile switching was cancelled.', 'AbortError');
+const abort = () => new DOMException('A troca de perfil foi cancelada.', 'AbortError');
 // Native logout and session adoption cannot be cancelled. Keep this lock even
 // if the owning view is destroyed so a retry cannot overtake their callbacks.
 let switching = false;
 export const profileSwitchPending = () => switching;
 
 export async function openProfileLogin(session: ProfileSession, signal = new AbortController().signal): Promise<void> {
-  if (switching) throw new Error('Jellyfin is still finishing the previous profile switch.');
+  if (switching) throw new Error('O Jellyfin ainda está finalizando a troca de perfil anterior.');
   check(session, signal);
   switching = true;
   try { await signOut(session, signal); }
@@ -69,7 +69,7 @@ export async function publicProfiles(session: ProfileSession, signal?: AbortSign
   check(session, signal);
   const users = await session.client.getPublicUsers();
   check(session, signal);
-  if (!Array.isArray(users)) throw new Error('Jellyfin could not load its public profiles. Try again.');
+  if (!Array.isArray(users)) throw new Error('O Jellyfin não conseguiu carregar os perfis públicos. Tente novamente.');
   const eligible = await directProfileIds(session);
   check(session, signal);
   return users.filter(user => typeof user?.Id === 'string' && !!user.Id && typeof user.Name === 'string' && !!user.Name)
@@ -121,7 +121,7 @@ function keepServerDuringLogout(session: ProfileSession, start: string, signal: 
     Object.defineProperty(shell, 'selectServer', descriptor ? { ...descriptor, value: selectServer }
       : { value: selectServer, writable: true, enumerable: true, configurable: true });
   } catch {
-    throw new ProfileLoginRequired('This Jellyfin client needs its native login screen to switch profiles.');
+    throw new ProfileLoginRequired('Este cliente Jellyfin precisa da tela de login padrão para trocar de perfil.');
   }
   signal.addEventListener('abort', restore, { once: true });
   return restore;
@@ -166,7 +166,7 @@ function signOut(session: ProfileSession, signal: AbortSignal): Promise<void> {
 
 export async function switchPublicProfile(session: ProfileSession, profileId: string, signal: AbortSignal,
   phase: (value: ProfileSwitchPhase) => void): Promise<void> {
-  if (switching) throw new Error('Jellyfin is still finishing the previous profile switch.');
+  if (switching) throw new Error('O Jellyfin ainda está finalizando a troca de perfil anterior.');
   switching = true;
   try { await performSwitch(session, profileId, signal, phase); }
   finally { switching = false; }
@@ -181,7 +181,7 @@ async function performSwitch(session: ProfileSession, profileId: string, signal:
   const users = await publicProfiles(session, signal);
   if (window.location.hash !== start) throw abort();
   const profile = users.find(user => identity(user.Id) === identity(profileId));
-  if (!profile?.CanSwitchDirectly) throw new ProfileLoginRequired('That profile needs Jellyfin’s login screen. Its password and access rules still apply.');
+  if (!profile?.CanSwitchDirectly) throw new ProfileLoginRequired('Esse perfil precisa da tela de login do Jellyfin. As regras de senha e acesso ainda se aplicam.');
   if (identity(profile.Id) === identity(session.userId)) return;
   check(session, signal);
   phase('signing-out');
@@ -199,7 +199,7 @@ async function performSwitch(session: ProfileSession, profileId: string, signal:
   if (typeof result?.User?.Id !== 'string' || identity(result.User.Id) !== identity(profile.Id)
     || typeof result.ServerId !== 'string' || identity(result.ServerId) !== identity(session.serverId)
     || typeof result.AccessToken !== 'string' || !result.AccessToken.trim()) {
-    throw new Error('Jellyfin returned a different profile. Please sign in again.');
+    throw new Error('O Jellyfin retornou um perfil diferente. Faça login novamente.');
   }
   phase('opening');
   await session.client.onAuthenticated!(session.client, result);

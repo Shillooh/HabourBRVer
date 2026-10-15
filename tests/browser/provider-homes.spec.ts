@@ -318,7 +318,7 @@ async function device(browser: Browser, server: SettingsServer, user: string, la
     const query = new URL(route.request().url()).searchParams, account = route.request().headers()['x-fixture-user'];
     const isMovie = query.get('type') === 'Movie';
     const items = account === 'kids' ? [] : [{ Id: isMovie ? 'movie-tide' : 'series-north', Type: isMovie ? 'Movie' : 'Series', Name: isMovie ? 'After the Tide' : 'North of Nowhere' }];
-    await route.fulfill({ json: { Items: items, TotalRecordCount: items.length, Total: items.length, Pending: 0, UpdatedAt: null, Status: 'ready', Region: 'GB' } });
+    await route.fulfill({ json: { Items: items, TotalRecordCount: items.length, Total: items.length, Pending: 0, UpdatedAt: null, Status: 'ready', Region: 'BR' } });
   });
   await page.route('**/dist/demo.js', async route => {
     const response = await route.fetch(); await route.fulfill({ response, body: `${await response.text()}\n(() => {
@@ -488,7 +488,7 @@ test('a late catalogue page cannot repopulate a row after another device changes
     const query = new URL(route.request().url()).searchParams, start = Number(query.get('startIndex') || 0), limit = Number(query.get('limit') || 60);
     if (start === 60) { requested(); await held; }
     const items = Array.from({ length: Math.min(limit, 125 - start) }, (_, index) => ({ Id: `catalogue-${start + index}`, Name: `Catalogue ${start + index}`, Type: 'Movie' }));
-    await route.fulfill({ json: { Items: items, TotalRecordCount: 125, Total: 125, Pending: 0, UpdatedAt: null, Status: 'ready', Region: 'GB' } });
+    await route.fulfill({ json: { Items: items, TotalRecordCount: 125, Total: 125, Pending: 0, UpdatedAt: null, Status: 'ready', Region: 'BR' } });
   });
   try {
     await page.goto(previewUrl('tv', '/home?cinemaProvider=netflix&cinemaRow=movies'));

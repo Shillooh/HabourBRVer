@@ -112,7 +112,7 @@ test('details return to a later catalogue page and its focused item before provi
     await route.fulfill({ response, body: `${await response.text()}\n(() => {
       const api=window.TvItemLayoutDemo.api, original=api.getProviderItems.bind(api), getItem=api.getItem.bind(api);
       const item=index=>({Id:'navigation-film-'+index,Name:'Navigation film '+String(index).padStart(3,'0'),Type:'Movie',ProductionYear:2025,RunTimeTicks:60000000000});
-      api.getProviderItems=async(id,query)=>{if(id!=='netflix'||query.type!=='Movie')return original(id,query);const items=Array.from({length:125},(_,i)=>item(i+1));return {Items:items.slice(query.startIndex||0,(query.startIndex||0)+(query.limit||60)),TotalRecordCount:125,Pending:0,Total:125,UpdatedAt:null,Status:'ready',Region:'GB'};};
+      api.getProviderItems=async(id,query)=>{if(id!=='netflix'||query.type!=='Movie')return original(id,query);const items=Array.from({length:125},(_,i)=>item(i+1));return {Items:items.slice(query.startIndex||0,(query.startIndex||0)+(query.limit||60)),TotalRecordCount:125,Pending:0,Total:125,UpdatedAt:null,Status:'ready',Region:'BR'};};
       api.getItem=async id=>id.startsWith('navigation-film-')?{...await getItem('movie-tide'),...item(Number(id.split('-').pop()))}:getItem(id);
     })();` });
   });

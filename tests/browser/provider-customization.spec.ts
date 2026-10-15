@@ -26,7 +26,7 @@ async function sourceOptions(page: Page) {
   if (!await details.evaluate(node => (node as HTMLDetailsElement).open)) await details.locator('summary').click();
 }
 const serviceDirectory: ProviderDirectory = {
-  Region: 'GB',
+  Region: 'BR',
   Movies: [{ Id: 8, Name: 'Netflix' }, { Id: 175, Name: 'Netflix Kids' }, { Id: 1796, Name: 'Netflix Standard with Ads' }, { Id: 9, Name: 'Prime Video' }, { Id: 337, Name: 'Disney+' }, { Id: 591, Name: 'NOW Cinema' }],
   Shows: [{ Id: 8, Name: 'Netflix' }, { Id: 175, Name: 'Netflix Kids' }, { Id: 1796, Name: 'Netflix Standard with Ads' }, { Id: 9, Name: 'Prime Video' }, { Id: 337, Name: 'Disney+' }, { Id: 39, Name: 'NOW Entertainment' }]
 };
@@ -261,7 +261,7 @@ test('late service names preserve the draft, search focus and previously selecte
 });
 
 test('service directory retry retains preset edits and enforces the twenty-service limit by name', async ({ page }) => {
-  const directory: ProviderDirectory = { Region: 'GB', Movies: Array.from({ length: 22 }, (_, index) => ({ Id: index + 1, Name: `Catalogue service ${String(index + 1).padStart(2, '0')}` })), Shows: serviceDirectory.Shows };
+  const directory: ProviderDirectory = { Region: 'BR', Movies: Array.from({ length: 22 }, (_, index) => ({ Id: index + 1, Name: `Catalogue service ${String(index + 1).padStart(2, '0')}` })), Shows: serviceDirectory.Shows };
   await directoryFixture(page, { fail: true, directory }); await setup(page);
   await sidebar(page).getByRole('button', { name: 'Add service', exact: true }).click(); await editor(page).getByLabel('Service name', { exact: true }).fill('My selection'); await sourceOptions(page);
   const films = editor(page).getByRole('group', { name: 'Film services', exact: true });

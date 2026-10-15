@@ -15,6 +15,7 @@ import { HomeChannelArtwork, clearHomeChannelArtwork } from './home-channel-artw
 import { createProviderHomesStore, type ProviderHomesStore } from './provider-settings-store';
 import type { ProviderHomesSettings, ProviderId } from './provider-settings';
 import { providerHomeRow } from './provider-home';
+import { attachRowScrollButtons } from './home-row-scroll';
 import { isDesktopLayout } from './layout';
 import { getAllWatchlistItems, subscribeWatchlist } from './watchlist';
 import { HomeLibraryVisibility, homeLibraryExcludedClass } from './home-library-visibility';
@@ -1027,7 +1028,7 @@ export class HomeCollections {
       if (this.disposed || revision !== this.revision) return;
       this.renderRetry = true;
       const error = el('div', 'tvl-home-row-status'); error.setAttribute('role', 'status');
-      error.append(el('p', '', 'Your Home rows could not be loaded.'), button('Retry Home rows', '', '', () => { void this.render(true); }));
+      error.append(el('p', '', 'Não foi possível carregar as fileiras da Página Inicial.'), button('Tentar novamente', '', '', () => { void this.render(true); }));
       this.staged = { revision, inputRevision, error, retry: true,
         sections: [...providerRows, ...this.sections.filter(section => rows.some(row => row.id === section.row.id))] }; this.attach();
     }
@@ -1049,10 +1050,14 @@ export class HomeCollections {
       return alive && !this.disposed && (this.current(revision) || this.sections.some(row => row.element === section));
     };
     const chosen = row.collectionIds.map(id => available.get(id)).filter((item): item is Item => !!item);
-    const title = row.title || (row.kind === 'watchlist' ? 'Watchlist' : row.kind === 'collections' ? 'Collections' : chosen[0]?.Name || 'Collection');
+    const title = row.title || (row.kind === 'watchlist' ? 'Minha Lista' : row.kind === 'collections' ? 'Coleções' : chosen[0]?.Name || 'Coleção');
     const section = el('section', 'verticalSection tvl-home-collection-row');section.dataset.homeRow = row.id;
-    section.setAttribute('aria-label', title);section.append(el('h2', 'tvl-home-row-title', title));
+    section.setAttribute('aria-label', title);
+    const header = el('div', 'tvl-home-row-header');
+    header.append(el('h2', 'tvl-home-row-title', title));
     const cards = el('div', 'tvl-home-row-cards focuscontainer-x');cards.setAttribute('role', 'list');
+    attachRowScrollButtons(header, cards);
+    section.append(header);
     if (row.appearance) {
       // Jellyfin queues its own TV focus animation after focusin. Seasonal
       // cards already position both axes, so opt out through its scroller
@@ -1091,17 +1096,17 @@ export class HomeCollections {
       replace(cards); cards.scrollLeft = 0; cards.removeAttribute('aria-busy');
       if (tabbed) panel.setAttribute('aria-labelledby', `${prefix}-tab-${encodeURIComponent(source.id)}`);
       if (row.kind !== 'watchlist' && (row.kind === 'items' ? !collection : !chosen.length)) {
-        cards.append(el('p', 'tvl-home-row-status', 'No accessible collections selected.')); return;
+        cards.append(el('p', 'tvl-home-row-status', 'Nenhuma coleção acessível selecionada.')); return;
       }
       cards.setAttribute('aria-busy', 'true');
-      cards.append(el('p', 'tvl-home-row-status', row.kind === 'watchlist' ? 'Loading Watchlist…' : 'Loading collection…'));
+      cards.append(el('p', 'tvl-home-row-status', row.kind === 'watchlist' ? 'Carregando Minha Lista…' : 'Carregando coleção…'));
       try {
         const ordered = row.kind === 'watchlist' ? orderHomeItems(await this.watchlistItems(), row) : row.kind === 'items' ? orderHomeItems(await this.collectionItems(collection!.Id), source) : chosen;
         if (!current() || currentSource !== sourceRevision) return;
         const items = this.displayItems(ordered, row, row.kind === 'items' ? source.collectionId : row.kind);
         replace(cards);
         let shown = 0;
-        const more = button('Show more Watchlist', 'grid', '', () => {
+        const more = button('Mostrar mais da Minha Lista', 'grid', '', () => {
           const next = shown; more.remove(); appendItems();
           cards.querySelector<HTMLElement>(`[data-watchlist-index="${next}"]`)?.focus();
         });
@@ -1130,9 +1135,9 @@ export class HomeCollections {
         }
         const focusedIndex = row.kind === 'watchlist' ? items.findIndex(item => restore === `home:${row.id}:${item.Id}`) : -1;
         appendItems(Math.max(60, row.kind === 'watchlist' ? this.watchlistShown.get(row.id) || 0 : 0, Math.ceil((focusedIndex + 1) / 60) * 60));
-        if (!items.length && row.kind !== 'watchlist') cards.append(el('p', 'tvl-home-row-status', 'This collection is empty.'));
+        if (!items.length && row.kind !== 'watchlist') cards.append(el('p', 'tvl-home-row-status', 'Esta coleção está vazia.'));
         if (row.kind === 'items' && items.length > 60) {
-          const full = button('View full collection', 'grid', '', () => this.navigate(collection!.Id));
+          const full = button('Ver coleção completa', 'grid', '', () => this.navigate(collection!.Id));
           if (tabbed) full.dataset.focusId = `${focusPrefix(source.id)}full-collection`;
           cards.append(full);
         }
@@ -1141,7 +1146,7 @@ export class HomeCollections {
         // Home only shows Watchlist when it has cards. The editor retains its
         // empty/error feedback; regular background refreshes retry this source.
         if (row.kind === 'watchlist') { replace(cards); return; }
-        replace(cards, el('p', 'tvl-home-row-status', 'This collection could not be loaded.'), button('Retry collection', '', '', () => {
+        replace(cards, el('p', 'tvl-home-row-status', 'Não foi possível carregar esta coleção.'), button('Tentar novamente', '', '', () => {
           const focused = cards.contains(document.activeElement);
           const inputRevision = this.inputRevision;
           const pending = renderItems(), retrySource = sourceRevision;

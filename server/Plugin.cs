@@ -25,9 +25,9 @@ public sealed class Plugin : BasePlugin<BasePluginConfiguration>
 
     internal IServerConfigurationManager ConfigurationManager { get; }
 
-    public override string Name => "ScreenHarbour";
+    public override string Name => "ScreenHarbour Brasil";
 
     public override Guid Id => Guid.Parse(PluginId);
 
-    public override string Description => "A cinematic interface for Jellyfin, with personal collection rows, live guide and in-player navigation.";
+    public override string Description => "Interface cinematográfica para Jellyfin, com fileiras personalizadas de coleções e serviços de streaming, guia de TV ao vivo e navegação in-player.";
 }

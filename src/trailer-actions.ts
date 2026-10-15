@@ -14,8 +14,8 @@ const delay = (ms: number) => new Promise<void>(resolve => window.setTimeout(res
 export class TrailerActions {
   private element = el('section', 'tvl-trailer-actions');
   private controls = el('div', 'tvl-trailer-buttons');
-  private skip = button('Skip trailer', 'chevron', 'tvl-trailer-skip', () => { void this.skipTrailer(); });
-  private add = button('Add to watchlist', 'plus', 'tvl-trailer-watchlist', () => { void this.addToWatchlist(); });
+  private skip = button('Pular trailer', 'chevron', 'tvl-trailer-skip', () => { void this.skipTrailer(); });
+  private add = button('Adicionar à lista', 'plus', 'tvl-trailer-watchlist', () => { void this.addToWatchlist(); });
   private status = el('p', 'tvl-trailer-status');
   private binding: Binding | null = null;
   private model: TrailerActionsContext | null = null;
@@ -37,7 +37,7 @@ export class TrailerActions {
 
   constructor(private context: PlayerContext, private getApi: () => MediaApi | null) {
     this.element.id = 'tvl-trailer-actions'; this.element.hidden = true;
-    this.element.setAttribute('aria-label', 'Trailer actions');
+    this.element.setAttribute('aria-label', 'Ações do trailer');
     this.status.setAttribute('role', 'status'); this.status.setAttribute('aria-live', 'polite');
     this.controls.append(this.add, this.skip); this.element.append(this.controls, this.status);
     // Jellyfin treats pointer presses outside its native bottom bar as a
@@ -181,15 +181,15 @@ export class TrailerActions {
 
   private render(): void {
     this.skip.disabled = this.skipping;
-    this.skip.querySelector('span')!.textContent = this.skipping ? 'Skipping…' : 'Skip trailer';
+    this.skip.querySelector('span')!.textContent = this.skipping ? 'Pulando…' : 'Pular trailer';
     // Keep the selected control in the TV focus path while saving and after
     // success. Moving focus to Skip here could turn a held Select into a skip.
     this.add.disabled = this.skipping || !this.model?.Movie;
     this.add.setAttribute('aria-disabled', String(this.add.disabled || this.saving || !!this.model?.InWatchlist));
-    this.add.querySelector('span')!.textContent = this.saving ? 'Adding…' : this.model?.InWatchlist ? 'In watchlist' : 'Add to watchlist';
+    this.add.querySelector('span')!.textContent = this.saving ? 'Adicionando…' : this.model?.InWatchlist ? 'Na minha lista' : 'Adicionar à lista';
     const glyph = this.model?.InWatchlist ? 'check' : 'plus';
     if (this.add.dataset.glyph !== glyph) { this.add.querySelector('svg')?.remove(); this.add.prepend(icon(glyph)); this.add.dataset.glyph = glyph; }
-    this.add.title = this.model?.Movie ? this.model.Movie.Name : 'This trailer is not linked to an available movie.';
+    this.add.title = this.model?.Movie ? this.model.Movie.Name : 'Este trailer não está vinculado a um filme disponível.';
     if (this.model?.Movie) this.element.dataset.movieId = this.model.Movie.Id;
     else delete this.element.dataset.movieId;
   }
@@ -203,12 +203,12 @@ export class TrailerActions {
       const result = await api.addTrailerToWatchlist(expected(binding.playback));
       if (!this.current(binding)) return;
       if (!this.matches(result, binding) || !sameMediaId(result.Movie?.Id, this.model.Movie.Id) || !result.InWatchlist) {
-        throw new Error('The trailer changed. Try again.');
+        throw new Error('O trailer mudou. Tente novamente.');
       }
       this.model = result;
-      this.status.textContent = `${result.Movie!.Name} added to your watchlist.`;
+      this.status.textContent = `${result.Movie!.Name} adicionado à sua lista.`;
     } catch (error) {
-      if (this.current(binding)) this.status.textContent = error instanceof Error ? error.message : 'Unable to add this movie. Try again.';
+      if (this.current(binding)) this.status.textContent = error instanceof Error ? error.message : 'Não foi possível adicionar este filme. Tente novamente.';
     } finally {
       if (this.current(binding)) { this.saving = false; this.render(); this.schedule(); }
     }
@@ -223,10 +223,10 @@ export class TrailerActions {
       // Re-check at selection time: session reports and trailer changes are asynchronous.
       const latest = await api.getTrailerActions(expected(binding.playback));
       if (!this.current(binding) || this.blocked(binding.playback)) return;
-      if (!this.matches(latest, binding)) throw new Error('The trailer changed. Try again.');
+      if (!this.matches(latest, binding)) throw new Error('O trailer mudou. Tente novamente.');
       const next = binding.playback.osd.querySelector<HTMLButtonElement>('.btnNextTrack');
       if (!next?.isConnected || next.disabled || next.getAttribute('aria-disabled') === 'true'
-        || next.hidden || next.classList.contains('hide')) throw new Error('Skipping is unavailable in this player.');
+        || next.hidden || next.classList.contains('hide')) throw new Error('Não é possível pular trailers neste player.');
       // The native next-track action advances one existing queue entry without
       // rebuilding the feature's playlist, source or subtitle selections.
       next.click();
@@ -234,9 +234,9 @@ export class TrailerActions {
       while (this.current(binding) && Date.now() - started < 12000) {
         this.context.refresh(); await delay(100);
       }
-      if (this.current(binding)) throw new Error('The trailer has not changed. Try again.');
+      if (this.current(binding)) throw new Error('O trailer não mudou. Tente novamente.');
     } catch (error) {
-      if (this.current(binding)) this.status.textContent = error instanceof Error ? error.message : 'Unable to skip this trailer. Try again.';
+      if (this.current(binding)) this.status.textContent = error instanceof Error ? error.message : 'Não foi possível pular este trailer. Tente novamente.';
     } finally {
       if (this.current(binding)) { this.skipping = false; this.render(); this.schedule(); }
     }

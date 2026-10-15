@@ -13,7 +13,7 @@ const wrap = (index: number, length: number) => (index % length + length) % leng
 const timeout = (ms: number) => new Promise<void>(resolve => window.setTimeout(resolve, ms));
 
 export class PlayerBrowser {
-  private entry = button('Browse', 'episodes', 'tvl-player-entry', () => { void this.open(); });
+  private entry = button('Navegar', 'episodes', 'tvl-player-entry', () => { void this.open(); });
   private element: HTMLElement | null = null;
   private current: ActivePlayback | null = null;
   private previousFocus: HTMLElement | null = null;
@@ -31,21 +31,21 @@ export class PlayerBrowser {
   private content = el('div', 'tvl-player-content');
   private status = el('p', 'tvl-player-status');
   private seasonNav = el('nav', 'tvl-player-seasons');
-  private heading = el('h2', 'tvl-player-heading', 'Browse');
+  private heading = el('h2', 'tvl-player-heading', 'Navegar');
   private count = el('span', 'tvl-player-count');
-  private play = button('Play', 'play', 'tvl-player-play', () => { void this.playSelected(); });
-  private previous = button('Previous', '', 'tvl-player-previous', () => this.navigate(-1));
-  private next = button('Next', '', 'tvl-player-next', () => this.navigate(1));
-  private closeButton = button('Close', 'close', 'tvl-player-close', () => this.close());
-  private retry = button('Try again', '', 'tvl-player-retry', () => { void this.load(); });
+  private play = button('Reproduzir', 'play', 'tvl-player-play', () => { void this.playSelected(); });
+  private previous = button('Anterior', '', 'tvl-player-previous', () => this.navigate(-1));
+  private next = button('Próximo', '', 'tvl-player-next', () => this.navigate(1));
+  private closeButton = button('Fechar', 'close', 'tvl-player-close', () => this.close());
+  private retry = button('Tentar novamente', '', 'tvl-player-retry', () => { void this.load(); });
 
   constructor(private context: PlayerContext, private getApi: () => MediaApi | null) {
     this.entry.id = 'tvl-player-browse';
     this.entry.lastElementChild?.remove();
-    this.entry.setAttribute('aria-label', 'Browse');
-    this.entry.title = 'Browse';
+    this.entry.setAttribute('aria-label', 'Navegar');
+    this.entry.title = 'Navegar';
     this.entry.setAttribute('aria-haspopup', 'dialog');
-    this.seasonNav.setAttribute('aria-label', 'Seasons');
+    this.seasonNav.setAttribute('aria-label', 'Temporadas');
     this.status.setAttribute('role', 'status');
     this.status.setAttribute('aria-live', 'polite');
     this.play.dataset.playerAction = 'play';
@@ -109,7 +109,7 @@ export class PlayerBrowser {
     const bar = isDesktopLayout() ? current.osd.querySelector<HTMLElement>('.videoOsdBottom') : null;
     if (bar && this.entry.parentElement !== bar) bar.append(this.entry);
     else if (!bar) this.entry.remove();
-    const label = current.item?.Type === 'Episode' ? 'Episodes & seasons' : current.item?.Type === 'TvChannel' || current.item?.Type === 'Program' ? 'Channels' : current.item?.Type === 'Movie' ? 'More like this' : 'Browse';
+    const label = current.item?.Type === 'Episode' ? 'Episódios e temporadas' : current.item?.Type === 'TvChannel' || current.item?.Type === 'Program' ? 'Canais' : current.item?.Type === 'Movie' ? 'Títulos semelhantes' : 'Navegar';
     this.entry.setAttribute('aria-label', label); this.entry.title = label;
     if (this.element) {
       if (this.dialog() || (this.state !== 'playing' && this.current && (this.current.key !== current.key
@@ -132,7 +132,7 @@ export class PlayerBrowser {
     this.element = el('section', 'tvl-player-browser');
     this.element.id = 'tvl-player-browser'; this.element.tabIndex = -1;
     this.element.setAttribute('role', 'dialog'); this.element.setAttribute('aria-modal', 'true');
-    this.element.setAttribute('aria-label', 'Browse while playing');
+    this.element.setAttribute('aria-label', 'Navegar durante a reprodução');
     const header = el('header', 'tvl-player-header');
     header.append(this.heading, this.count, this.closeButton);
     const actions = el('div', 'tvl-player-actions'); actions.append(this.previous, this.play, this.next);
@@ -149,7 +149,7 @@ export class PlayerBrowser {
     const api = this.getApi(); const current = this.current;
     if (!api || !current || !this.element) return;
     const revision = ++this.revision;
-    this.state = 'loading'; this.items = []; this.seasons = []; this.status.textContent = 'Loading…';
+    this.state = 'loading'; this.items = []; this.seasons = []; this.status.textContent = 'Carregando…';
     this.content.textContent = ''; this.seasonNav.textContent = ''; this.count.textContent = '';
     this.retry.hidden = true; this.play.hidden = true; this.previous.hidden = true; this.next.hidden = true;
     this.closeButton.focus({ preventScroll: true });
@@ -169,7 +169,7 @@ export class PlayerBrowser {
         playback = playback || await api.getPlaybackContext?.() || undefined;
         const feature = playback && sameMediaId(playback.PlayingItemId, current.playingItemId)
           ? await queuedFeature(playback, api, () => this.isCurrent(revision)) : null;
-        if (!feature) throw new Error('Browsing will be available when the film or episode starts.');
+        if (!feature) throw new Error('A navegação estará disponível quando o filme ou episódio começar.');
         item = feature;
         this.current = { ...current, item, itemId: item.Id, upcomingItemId: item.Id, playlistItemId: playback?.PlaylistItemId };
       }
@@ -183,29 +183,29 @@ export class PlayerBrowser {
         if (!items.some(candidate => sameMediaId(candidate.Id, episode.Id)) && available(item)) items.push(item);
         items.sort((a, b) => (a.ParentIndexNumber ?? Number.MAX_SAFE_INTEGER) - (b.ParentIndexNumber ?? Number.MAX_SAFE_INTEGER)
           || (a.IndexNumber ?? Number.MAX_SAFE_INTEGER) - (b.IndexNumber ?? Number.MAX_SAFE_INTEGER) || a.Id.localeCompare(b.Id));
-        this.heading.textContent = item.SeriesName || 'Episodes & seasons';
+        this.heading.textContent = item.SeriesName || 'Episódios e temporadas';
       } else if (item.Type === 'Movie') {
         items = [item, ...await api.getSimilar(item.Id)].filter(candidate => candidate.Type === 'Movie' && available(candidate));
-        this.heading.textContent = 'More like this';
+        this.heading.textContent = 'Títulos semelhantes';
       } else if (item.Type === 'TvChannel' || (item.Type === 'Program' && item.ChannelId)) {
         if (item.Type === 'Program') item = await api.getItem(item.ChannelId!);
         if (!this.isCurrent(revision)) return;
-        if (item.Type !== 'TvChannel') throw new Error('This channel is unavailable.');
+        if (item.Type !== 'TvChannel') throw new Error('Este canal está indisponível.');
         const channel = item;
         items = (await api.getChannels()).filter(candidate => candidate.Type === 'TvChannel' && available(candidate));
         if (!items.some(candidate => sameMediaId(candidate.Id, channel.Id))) items.push(item);
-        this.heading.textContent = 'Live TV';
-      } else throw new Error('Start a film, episode or live channel to browse.');
+        this.heading.textContent = 'TV ao Vivo';
+      } else throw new Error('Inicie um filme, episódio ou canal ao vivo para navegar.');
       if (!this.isCurrent(revision)) return;
       const unique = new Map<string, Item>();
       for (const candidate of items) if (![...unique.keys()].some(id => sameMediaId(id, candidate.Id))) unique.set(candidate.Id, candidate);
       this.items = [...unique.values()];
-      if (!this.items.length) throw new Error('No available items were returned. Try again.');
+      if (!this.items.length) throw new Error('Nenhum item disponível foi encontrado. Tente novamente.');
       this.index = Math.max(0, this.items.findIndex(candidate => sameMediaId(candidate.Id, item.Id)));
       this.state = 'ready'; this.render(); this.play.focus({ preventScroll: true });
     } catch (error) {
       if (!this.isCurrent(revision)) return;
-      this.state = 'error'; this.status.textContent = error instanceof Error ? error.message : 'Unable to load media. Try again.';
+      this.state = 'error'; this.status.textContent = error instanceof Error ? error.message : 'Não foi possível carregar a mídia. Tente novamente.';
       this.retry.hidden = false; this.retry.focus({ preventScroll: true });
     }
   }
@@ -217,16 +217,16 @@ export class PlayerBrowser {
     const upcoming = playing && !!current?.upcomingItemId;
     const programme = item.Type === 'TvChannel' ? item.CurrentProgram : undefined;
     this.element.dataset.itemId = item.Id;
-    this.count.textContent = `${this.index + 1} of ${this.items.length}`;
+    this.count.textContent = `${this.index + 1} de ${this.items.length}`;
     this.status.textContent = ''; this.retry.hidden = true;
     this.play.hidden = false; this.play.disabled = false; this.play.removeAttribute('aria-busy');
     this.previous.hidden = this.items.length < 2; this.next.hidden = this.items.length < 2;
     this.previous.disabled = false; this.next.disabled = false;
-    const label = playing && !upcoming ? 'Return to playback' : item.Type === 'TvChannel' ? 'Watch channel'
-      : resumePosition(item) > 0 ? 'Resume' : 'Play';
+    const label = playing && !upcoming ? 'Voltar para reprodução' : item.Type === 'TvChannel' ? 'Assistir canal'
+      : resumePosition(item) > 0 ? 'Continuar' : 'Reproduzir';
     this.play.lastElementChild!.textContent = label;
     const media = el('div', 'tvl-player-media');
-    const fallback = el('span', 'tvl-player-image-fallback', item.Type === 'TvChannel' ? item.Name : 'No image available');
+    const fallback = el('span', 'tvl-player-image-fallback', item.Type === 'TvChannel' ? item.Name : 'Nenhuma imagem disponível');
     const image = el('img', 'tvl-player-image'); image.alt = ''; image.draggable = false;
     let source = programme ? api.image(programme, 'thumb') : api.image(item, 'thumb');
     const backup = item.Type === 'TvChannel' ? api.image(item, 'logo') || api.image(item, 'thumb') : null;
@@ -238,24 +238,24 @@ export class PlayerBrowser {
     if (!source && backup) { source = backup; image.classList.add('tvl-player-logo'); }
     if (source) { image.src = source; fallback.hidden = true; } else image.hidden = true;
     media.append(image, fallback);
-    if (playing) media.append(el('span', 'tvl-player-playing', upcoming ? 'Up next after intro' : 'Currently playing'));
+    if (playing) media.append(el('span', 'tvl-player-playing', upcoming ? 'A seguir após a introdução' : 'Reproduzindo agora'));
     const percent = progress(item);
     if (percent) { const track = el('div', 'tvl-player-progress'); const fill = el('div'); fill.style.width = `${percent}%`; track.append(fill); media.append(track); }
     const details = el('div', 'tvl-player-details');
-    const position = item.Type === 'Episode' ? `${item.ParentIndexNumber === 0 ? 'Specials' : `Season ${item.ParentIndexNumber ?? '?'}`} · Episode ${item.IndexNumber ?? '?'}`
+    const position = item.Type === 'Episode' ? `${item.ParentIndexNumber === 0 ? 'Especiais' : `Temporada ${item.ParentIndexNumber ?? '?'}`} · Episódio ${item.IndexNumber ?? '?'}`
       : item.Type === 'TvChannel' ? [item.Number || item.ChannelNumber, item.Name].filter(Boolean).join(' · ') : [item.ProductionYear, item.OfficialRating].filter(Boolean).join(' · ');
     details.append(el('p', 'tvl-player-position', position), el('h3', 'tvl-player-title', programme?.Name || item.Name));
     if (programme?.StartDate && programme.EndDate) {
       const format = (value: string) => new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      details.append(el('p', 'tvl-player-time', `Live now · ${format(programme.StartDate)}–${format(programme.EndDate)}`));
+      details.append(el('p', 'tvl-player-time', `Ao vivo agora · ${format(programme.StartDate)}–${format(programme.EndDate)}`));
     } else if (item.Type !== 'TvChannel') {
       const runtime = item.RunTimeTicks ? `${Math.round(item.RunTimeTicks / 600000000)} min` : '';
-      details.append(el('p', 'tvl-player-meta', [runtime, isWatched(item) ? 'Watched' : '', item.Genres?.slice(0, 3).join(' · ')].filter(Boolean).join(' · ')));
+      details.append(el('p', 'tvl-player-meta', [runtime, isWatched(item) ? 'Assistido' : '', item.Genres?.slice(0, 3).join(' · ')].filter(Boolean).join(' · ')));
     }
     details.append(el('p', 'tvl-player-description', plainText(programme?.Overview || item.Overview)));
     replace(this.content, media, details);
     const seasonButtons = this.seasons.filter(season => this.items.some(candidate => candidate.SeasonId === season.Id || candidate.ParentIndexNumber === season.IndexNumber)).map(season => {
-      const control = button(season.Name || `Season ${season.IndexNumber}`, '', '', () => {
+      const control = button(season.Name || `Temporada ${season.IndexNumber}`, '', '', () => {
         const index = this.items.findIndex(candidate => candidate.SeasonId === season.Id || candidate.ParentIndexNumber === season.IndexNumber);
         if (index >= 0) { this.index = index; this.render(); this.play.focus({ preventScroll: true }); }
       });
@@ -265,8 +265,8 @@ export class PlayerBrowser {
     });
     replace(this.seasonNav, ...seasonButtons); this.seasonNav.hidden = !seasonButtons.length;
     const previous = this.items[wrap(this.index - 1, this.items.length)], next = this.items[wrap(this.index + 1, this.items.length)];
-    this.previous.textContent = `‹ ${previous.Name}`; this.previous.setAttribute('aria-label', `Previous: ${previous.Name}`);
-    this.next.textContent = `${next.Name} ›`; this.next.setAttribute('aria-label', `Next: ${next.Name}`);
+    this.previous.textContent = `‹ ${previous.Name}`; this.previous.setAttribute('aria-label', `Anterior: ${previous.Name}`);
+    this.next.textContent = `${next.Name} ›`; this.next.setAttribute('aria-label', `Próximo: ${next.Name}`);
   }
   private navigate(direction: number): void {
     if (this.state !== 'ready' || this.items.length < 2) return;
@@ -282,7 +282,7 @@ export class PlayerBrowser {
     const previousPlaylistItemId = current.playlistItemId || this.current?.playlistItemId;
     this.state = 'playing'; this.play.disabled = true; this.play.setAttribute('aria-busy', 'true');
     this.previous.disabled = true; this.next.disabled = true; this.seasonNav.querySelectorAll('button').forEach(button => button.disabled = true);
-    this.status.textContent = item.Type === 'TvChannel' ? 'Tuning channel…' : 'Starting playback…';
+    this.status.textContent = item.Type === 'TvChannel' ? 'Sintonizando canal…' : 'Iniciando reprodução…';
     try {
       await api.play(item, item.Type === 'TvChannel' ? 0 : resumePosition(item), () => this.isCurrent(revision));
       if (!this.isCurrent(revision)) return;
@@ -320,11 +320,11 @@ export class PlayerBrowser {
         }
         await timeout(100);
       }
-      if (this.isCurrent(revision)) throw new Error('Playback did not start. Try again.');
+      if (this.isCurrent(revision)) throw new Error('A reprodução não iniciou. Tente novamente.');
     } catch (error) {
       if (!this.isCurrent(revision)) return;
       this.state = 'ready'; this.render();
-      this.status.textContent = error instanceof Error ? error.message : 'Unable to start playback. Try again.';
+      this.status.textContent = error instanceof Error ? error.message : 'Não foi possível iniciar a reprodução. Tente novamente.';
       this.play.focus({ preventScroll: true });
     }
   }

@@ -8,7 +8,7 @@ test('seasonal fonts preserve Jellyfin base paths, injected versions and Pages p
   assert.equal(resolveSeasonalFontUrl('halloween-nightmare.woff2', 'https://media.test/jellyfin/TvItemLayout/ClientScript?v=content-hash', 'https://client.test/web/'),
     'https://media.test/jellyfin/TvItemLayout/SeasonalFont/halloween-nightmare.woff2?v=content-hash');
   assert.equal(resolveSeasonalFontUrl('christmas-storybook.woff2', 'https://demo.test/ScreenHarbour/dist/jellyfin-tv-layout.js', 'https://demo.test/ScreenHarbour/'),
-    'https://demo.test/ScreenHarbour/assets/seasonal-fonts/christmas-storybook.woff2?v=0.2.55');
+    'https://demo.test/ScreenHarbour/assets/seasonal-fonts/christmas-storybook.woff2?v=1.0.0.0');
 });
 
 function fixture(load?: (value: string) => Promise<unknown>) {

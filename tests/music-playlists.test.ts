@@ -98,7 +98,7 @@ test('failed, empty, changed or cancelled playlist loads never launch a partial 
   const unavailable = apiClient(({ query }) => { if (query.StartIndex) throw new Error('offline'); return { Items: [track('one')], TotalRecordCount: 2 }; });
   await assert.rejects(unavailable.api.playPlaylist(playlist, undefined, () => true), /offline/);
   const empty = apiClient(() => ({ Items: [], TotalRecordCount: 0 }));
-  await assert.rejects(empty.api.playPlaylist(playlist, undefined, () => true), /no available items/i);
+  await assert.rejects(empty.api.playPlaylist(playlist, undefined, () => true), /no available items|disponíveis para reprodução/i);
   const changed = apiClient(() => ({ Items: [track('one')], TotalRecordCount: 1 }));
   await assert.rejects(changed.api.playPlaylist(playlist, 'removed', () => true), /no longer in the playlist/i);
   let user = 'user';

@@ -2,7 +2,7 @@
 .tvl-admin-item { white-space:nowrap; }
 .tvl-episode-row > .tvl-admin-item { flex-shrink:0;align-self:center;margin:.5em; }
 .tvl-browse-entry,.tvl-collection-entry { position:relative; }
-.tvl-browse-entry > .tvl-admin-item,.tvl-collection-entry > .tvl-admin-item { position:absolute;top:.5rem;right:.5rem;z-index:2;background:#101712eb;padding:.4rem .6rem;min-width:0;min-height:0;font-size:.8rem;border-radius:.35rem;opacity:0; }
+.tvl-browse-entry > .tvl-admin-item,.tvl-collection-entry > .tvl-admin-item { position:absolute;top:.5rem;right:.5rem;z-index:2;background:#141518eb;padding:.4rem .6rem;min-width:0;min-height:0;font-size:.8rem;border-radius:.35rem;opacity:0; }
 .tvl-browse-entry:hover > .tvl-admin-item,.tvl-browse-entry:focus-within > .tvl-admin-item,.tvl-collection-entry:hover > .tvl-admin-item,.tvl-collection-entry:focus-within > .tvl-admin-item { opacity:1; }
 .tvl-browse-tracks .tvl-browse-entry > .tvl-admin-item { position:static;opacity:1;margin:.5rem; }
 .tvl-collection-hero-copy > .tvl-admin-item { margin-top:1rem; }
@@ -10,8 +10,9 @@
    modal surface above the themed item view and use the same dark palette. */
 body.tvl-admin-native .dialogContainer { z-index:100030!important; }
 body.tvl-admin-native .dialogBackdrop { z-index:100029!important; }
-.tvl-admin-native-dialog { background:#151b18!important;color:#f5f5f2!important;border:1px solid #ffffff24;box-shadow:0 1rem 4rem #0009; }
-.tvl-admin-native-dialog .formDialogHeader,.tvl-admin-native-dialog .formDialogFooter { background:#151b18!important;color:#f5f5f2!important; }
-.tvl-admin-native-dialog .actionSheetMenuItem:hover,.tvl-admin-native-dialog .actionSheetMenuItem:focus { background:#d3e7de1f!important; }
-.tvl-admin-native-dialog .emby-input,.tvl-admin-native-dialog .emby-textarea,.tvl-admin-native-dialog .emby-select { background:#202a24!important;color:#f5f5f2!important;border-color:#819588!important; }
-.tvl-admin-native-dialog .button-submit { background:#d3e7de!important;color:#172019!important; }
+.tvl-admin-native-dialog { background:#141518!important;color:#f5f5f2!important;border:1px solid #ffffff24;box-shadow:0 1rem 4rem #0009; }
+.tvl-admin-native-dialog .formDialogHeader,.tvl-admin-native-dialog .formDialogFooter { background:#141518!important;color:#f5f5f2!important; }
+.tvl-admin-native-dialog .actionSheetMenuItem:hover,.tvl-admin-native-dialog .actionSheetMenuItem:focus { background:#e5091426!important; }
+.tvl-admin-native-dialog .emby-input,.tvl-admin-native-dialog .emby-textarea,.tvl-admin-native-dialog .emby-select { background:#18191d!important;color:#f5f5f2!important;border-color:#45474e!important; }
+.tvl-admin-native-dialog .button-submit { background:#e50914!important;color:#ffffff!important; }
+

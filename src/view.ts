@@ -50,7 +50,7 @@ export class DetailView {
     this.element.id = 'tv-layout';
     this.element.setAttribute('role', 'dialog');
     this.element.setAttribute('aria-modal', 'true');
-    this.element.setAttribute('aria-label', 'Media details');
+    this.element.setAttribute('aria-label', 'Detalhes da mídia');
     this.status.setAttribute('role','status');
     this.status.setAttribute('aria-live','polite');
     this.element.append(this.content, this.status);
@@ -59,7 +59,7 @@ export class DetailView {
     this.removeRemote = attachRemote(this.element, () => this.back(), direction=>this.moveBetweenSeasons(direction));
   }
   async load(retainSeasonId?: string): Promise<void> {
-    this.content.append(this.header(), el('div', 'tvl-loading', 'Loading your library…'));
+    this.content.append(this.header(), el('div', 'tvl-loading', 'Carregando sua biblioteca…'));
     this.focusFirst();
     try {
       const requested = await this.api.getItem(this.options.id);
@@ -82,7 +82,7 @@ export class DetailView {
         try { this.collectionAccess = await this.api.canManageCollections(); } catch { /* The picker offers a permission retry. */ }
         if (this.disposed) return;
       }
-      this.element.setAttribute('aria-label', `${this.item.Name} details`);
+      this.element.setAttribute('aria-label', `Detalhes de ${this.item.Name}`);
       if (this.item.Type === 'Series') {
         // Main metadata remains usable while season and next-up requests load.
         const [seasons, next] = await Promise.allSettled([this.api.getSeasons(this.item.Id), this.api.getNextEpisode(this.item.Id)]);
@@ -103,7 +103,7 @@ export class DetailView {
             } catch { /* Episodes has its own retry state. */ }
           }
         }
-        if (seasons.status === 'rejected') this.announce('Seasons could not be loaded. Reopen the details to retry.');
+        if (seasons.status === 'rejected') this.announce('Não foi possível carregar as temporadas. Reabra os detalhes para tentar novamente.');
       } else this.target = this.item;
       if (this.disposed) return;
       this.setBackdrop();
@@ -124,8 +124,8 @@ export class DetailView {
       if (this.disposed) return;
       replace(this.content,this.header());
       const error = el('div','tvl-empty');
-      error.append(el('h1','','Unable to load this title'), el('p','','Check your connection and try again.'),
-        button('Try again','', 'tvl-primary', () => { replace(this.content); void this.load(); }));
+      error.append(el('h1','','Não foi possível carregar este título'), el('p','','Verifique sua conexão e tente novamente.'),
+        button('Tentar novamente','', 'tvl-primary', () => { replace(this.content); void this.load(); }));
       this.content.append(error); this.focusFirst();
     }
   }
@@ -149,7 +149,7 @@ export class DetailView {
   }
   private header(): HTMLElement {
     const header = el('header','tvl-header');
-    const back = button(this.pane === 'overview' ? 'Back' : 'Overview','back','tvl-back', () => this.back());
+    const back = button(this.pane === 'overview' ? 'Voltar' : 'Visão Geral','back','tvl-back', () => this.back());
     header.append(back);
     return header;
   }
@@ -167,8 +167,8 @@ export class DetailView {
     const row = el('div','tvl-meta');
     if (item.ProductionYear) row.append(el('span','',String(item.ProductionYear)));
     if (item.OfficialRating) row.append(el('span','tvl-rating',item.OfficialRating));
-    const duration = item.Type === 'Series' ? `${this.seasons.filter(s => s.IndexNumber !== 0).length} seasons` : runtime(item.RunTimeTicks);
-    if (duration && duration !== '0 seasons') row.append(el('span','',duration));
+    const duration = item.Type === 'Series' ? `${this.seasons.filter(s => s.IndexNumber !== 0).length} temporadas` : runtime(item.RunTimeTicks);
+    if (duration && duration !== '0 temporadas') row.append(el('span','',duration));
     const width = Math.max(0,...(item.MediaStreams || []).filter(s => s.Type === 'Video').map(s => s.Width || 0));
     if (width >= 1280) row.append(el('span','tvl-quality',width >= 3840 ? '4K' : 'HD'));
     if (item.CommunityRating) row.append(el('span','tvl-community',`★ ${item.CommunityRating.toFixed(1)}`));
@@ -192,16 +192,16 @@ export class DetailView {
     const body = el('div','tvl-hero-copy');
     if (live) {
       const eyebrow = el('div','tvl-eyebrow');
-      eyebrow.append(el('span','tvl-live-dot'), el('span','','LIVE TV'), el('span','tvl-eyebrow-divider','/'), el('span','',this.item.ChannelNumber || this.item.Number || 'ON AIR'));
+      eyebrow.append(el('span','tvl-live-dot'), el('span','','TV AO VIVO'), el('span','tvl-eyebrow-divider','/'), el('span','',this.item.ChannelNumber || this.item.Number || 'NO AR'));
       body.append(eyebrow);
     }
     body.append(this.title());
     const programme = this.item.CurrentProgram;
     if (live) {
-      body.append(el('h2','tvl-episode-name', programme?.Name || 'Live on this channel'));
+      body.append(el('h2','tvl-episode-name', programme?.Name || 'Ao vivo neste canal'));
       const times = el('div','tvl-meta');
       if (programme?.StartDate && programme.EndDate) times.append(el('span','',`${time(programme.StartDate)} – ${time(programme.EndDate)}`));
-      times.append(el('span','tvl-on-air','Live now')); body.append(times);
+      times.append(el('span','tvl-on-air','Ao vivo')); body.append(times);
     } else {
       const metadata = this.meta();
       this.appendEndTime(metadata);
@@ -209,26 +209,26 @@ export class DetailView {
     }
     if (!live && !movie && this.target) body.append(el('h2','tvl-episode-name',`${episodeCode(this.target)}${episodeCode(this.target) ? '  ' : ''}${this.target.Name}`));
     const summary = live ? programme?.Overview || this.item.Overview : this.item.Overview;
-    body.append(el('p','tvl-synopsis',plainText(summary) || (live ? 'Programme information is not available for this channel.' : 'No synopsis is available for this title.')));
+    body.append(el('p','tvl-synopsis',plainText(summary) || (live ? 'As informações de programação não estão disponíveis para este canal.' : 'Nenhuma sinopse disponível para este título.')));
     if (live && programme?.StartDate && programme.EndDate) body.append(this.liveProgress(programme));
     if (this.target && !live && progress(this.target) > 0 && progress(this.target) < 100) body.append(this.resumeProgress(this.target));
     const actions = el('div',`tvl-actions${movie ? ' tvl-actions-movie' : ''}`);
     actions.append(this.playbackActions());
     if (movie) {
       const trailer=button('Trailer','trailer','tvl-trailer',()=>void this.playTrailer());
-      trailer.setAttribute('aria-label','Watch trailer');trailer.dataset.focusId='trailer';
+      trailer.setAttribute('aria-label','Assistir ao trailer');trailer.dataset.focusId='trailer';
       actions.append(trailer);
     }
     if (this.item.Type === 'Series') {
-      const episodes = button('Episodes & seasons','episodes','', () => this.open('episodes'));
+      const episodes = button('Episódios e temporadas','episodes','', () => this.open('episodes'));
       episodes.dataset.focusId = 'episodes'; actions.append(episodes);
     }
     if (live) {
-      const guide=button('Channels & guide','live','',this.options.openGuide);
+      const guide=button('Canais e guia','live','',this.options.openGuide);
       guide.dataset.focusId='guide';actions.append(guide);
     }
     else {
-      const similar = button('More like this','grid',movie ? 'tvl-round-label' : '',() => this.open('similar'));
+      const similar = button('Títulos semelhantes','grid',movie ? 'tvl-round-label' : '',() => this.open('similar'));
       similar.dataset.focusId = 'similar'; actions.append(similar);
     }
     if (!live && this.api.getWatchlistState && this.api.setWatchlist) {
@@ -236,12 +236,12 @@ export class DetailView {
       saved.dataset.focusId = 'watchlist'; saved.dataset.watchlist = '';
       actions.append(saved); this.updateWatchlistButton(saved);
     }
-    const favorite = button(this.item.UserData?.IsFavorite ? 'In favourites' : 'Add to favourites', 'heart', movie ? 'tvl-icon-button' : 'tvl-favorite', () => void this.toggleFavorite());
-    favorite.setAttribute('aria-label',this.item.UserData?.IsFavorite ? 'Remove from favourites' : 'Add to favourites');
+    const favorite = button(this.item.UserData?.IsFavorite ? 'Nos favoritos' : 'Adicionar aos favoritos', 'heart', movie ? 'tvl-icon-button' : 'tvl-favorite', () => void this.toggleFavorite());
+    favorite.setAttribute('aria-label',this.item.UserData?.IsFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos');
     favorite.setAttribute('aria-pressed',String(!!this.item.UserData?.IsFavorite));
     favorite.dataset.favorite = ''; favorite.dataset.focusId = 'favorite'; actions.append(favorite);
     if (!live && this.collectionAccess !== false && this.api.canManageCollections && this.api.addToCollection && this.api.createCollection) {
-      const add = button('Add to collection', 'grid', 'tvl-add-collection', () => this.openCollectionPicker());
+      const add = button('Adicionar à coleção', 'grid', 'tvl-add-collection', () => this.openCollectionPicker());
       add.dataset.focusId = 'add-collection'; actions.insertBefore(add, favorite);
     }
     if (!live && this.watchedItem && this.api.setPlayed) {
@@ -256,19 +256,19 @@ export class DetailView {
       this.content.append(hero, this.filmDetails());
     } else {
       const footer = el('footer','tvl-footer');
-      footer.append(el('span','tvl-footer-kind',live ? 'YOUR LIVE CHANNELS' : 'DISCOVER MORE'));
+      footer.append(el('span','tvl-footer-kind',live ? 'SEUS CANAIS AO VIVO' : 'DESCUBRA MAIS'));
       this.content.append(hero, footer);
     }
     let collections:HTMLElement|undefined;
     let more:HTMLElement|undefined;
     if (!live) {
       collections = el('section','tvl-collections');
-      collections.setAttribute('aria-label','Collections');
+      collections.setAttribute('aria-label','Coleções');
       // An empty placeholder avoids advertising membership before the server replies.
       this.content.append(collections);
       more = el('section','tvl-movie-recommendations');
-      more.setAttribute('aria-label','More like this');
-      more.append(el('h2','tvl-section-title','More like this'));
+      more.setAttribute('aria-label','Títulos semelhantes');
+      more.append(el('h2','tvl-section-title','Títulos semelhantes'));
       this.content.append(more);
     }
     this.focusFirst(this.restoreId);
@@ -280,11 +280,11 @@ export class DetailView {
     const details = el('section','tvl-film-details');
     const left = el('div','tvl-film-description');
     if (this.item.Taglines?.[0]) left.append(el('p','tvl-tagline',this.item.Taglines[0]));
-    left.append(el('p','',plainText(this.item.Overview) || 'No synopsis available.'));
+    left.append(el('p','',plainText(this.item.Overview) || 'Nenhuma sinopse disponível.'));
     const right = el('dl','tvl-facts');
     const people = (this.item.People || []).filter(p=>p.Type === 'Actor').slice(0,4).map(p=>p.Name).filter(Boolean);
     const directors = (this.item.People || []).filter(p=>p.Type === 'Director').map(p=>p.Name).filter(Boolean);
-    for (const [label,value] of [['Cast', people.join(', ')], ['Director',directors.join(', ')], ['Genres',(this.item.Genres || []).join(', ')]]) {
+    for (const [label,value] of [['Elenco', people.join(', ')], ['Diretor',directors.join(', ')], ['Gêneros',(this.item.Genres || []).join(', ')]]) {
       if (!value) continue;
       const row = el('div'); row.append(el('dt','',`${label}:`),el('dd','',value)); right.append(row);
     }
@@ -294,7 +294,7 @@ export class DetailView {
     const wrap = el('div','tvl-resume');
     const bar = el('div','tvl-progress'); const fill = el('span'); fill.style.width = `${progress(item)}%`; bar.append(fill);
     const remaining = runtime(Math.max(0,(item.RunTimeTicks || 0)-(item.UserData?.PlaybackPositionTicks || 0)));
-    wrap.append(bar,el('span','',`${remaining} remaining`)); return wrap;
+    wrap.append(bar,el('span','',`Restam ${remaining}`)); return wrap;
   }
   private liveProgress(item: Item): HTMLElement {
     const wrap = el('div','tvl-live-progress');
@@ -312,24 +312,24 @@ export class DetailView {
       const end = playbackEnd(target);
       if (!end) { node.remove(); return; }
       node.dateTime = end.toISOString();
-      node.textContent = `Ends at ${time(node.dateTime)}`;
+      node.textContent = `Termina às ${time(node.dateTime)}`;
       // Refresh when the displayed finish minute changes, including partial-minute resumes.
       this.endTimeTimer = window.setTimeout(update, 60_000 - end.getTime() % 60_000);
     };
     update();
   }
   private playLabel(): string {
-    if (this.item.Type === 'TvChannel') return 'Watch live';
-    if (!this.target) return 'No episodes available';
+    if (this.item.Type === 'TvChannel') return 'Assistir ao vivo';
+    if (!this.target) return 'Nenhum episódio disponível';
     const code = this.item.Type === 'Series' ? episodeCode(this.target) : '';
-    return `${this.canResume() ? 'Resume' : 'Play'}${code ? ` ${code}` : ''}`;
+    return `${this.canResume() ? 'Continuar' : 'Reproduzir'}${code ? ` ${code}` : ''}`;
   }
   private playbackActions(): HTMLElement {
     const play = button(this.playLabel(), 'play', 'tvl-primary', () => { if(this.target) void this.play(this.target); });
     play.dataset.focusId = 'play'; play.disabled = !this.target || !playable(this.target);
     if (!['Movie', 'Episode'].includes(this.target?.Type || '') || !this.canResume()) return play;
     const playback = el('div', 'tvl-playback-actions');
-    const restart = button('Play from beginning', '', 'tvl-restart', () => { if(this.target) void this.play(this.target, 0); });
+    const restart = button('Reproduzir do início', '', 'tvl-restart', () => { if(this.target) void this.play(this.target, 0); });
     restart.dataset.focusId = 'restart'; restart.disabled = play.disabled;
     playback.append(play, restart); return playback;
   }
@@ -386,7 +386,7 @@ export class DetailView {
     const layout = el('main','tvl-browser');
     const sidebar = el('aside','tvl-sidebar');
     sidebar.append(this.title(true), this.meta());
-    const seasons = el('nav','tvl-seasons'); seasons.setAttribute('aria-label','Seasons');
+    const seasons = el('nav','tvl-seasons'); seasons.setAttribute('aria-label','Temporadas');
     for (const season of this.seasons) {
       const node = button(seasonName(season), '', 'tvl-season', () => { this.selectedSeason=season; void this.updateEpisodes(); });
       node.dataset.season = season.Id;
@@ -398,7 +398,7 @@ export class DetailView {
     const right = el('section','tvl-browser-main'); right.id='tvl-episodes-area';
     layout.append(sidebar,right);this.content.append(layout);
     if (!this.seasons.length) {
-      right.append(this.empty('No seasons available','Seasons will appear here when they are available in your library.'));
+      right.append(this.empty('Nenhuma temporada disponível','As temporadas aparecerão aqui quando estiverem disponíveis em sua biblioteca.'));
       this.focusFirst(); return;
     }
     void this.updateEpisodes();
@@ -418,25 +418,25 @@ export class DetailView {
     if (this.api.setPlayed) heading.append(this.watchedButton(season, 'tvl-season-watched'));
     heading.append(this.adminActions.button(season));
     area.setAttribute('aria-busy','true');
-    const loading = el('div','tvl-loading','Loading episodes…');
+    const loading = el('div','tvl-loading','Carregando episódios…');
     replace(area,heading,loading);
     try {
       const items = await this.fetchEpisodes(season);
       if (this.disposed || revision !== this.loadingRevision || this.pane !== 'episodes') return;
-      const list = el('div','tvl-episode-list');list.setAttribute('aria-label',`${seasonName(season)} episodes`);
-      if (!items.length) list.append(this.empty('No episodes available','This season has no playable episodes yet.'));
+      const list = el('div','tvl-episode-list');list.setAttribute('aria-label',`Episódios de ${seasonName(season)}`);
+      if (!items.length) list.append(this.empty('Nenhum episódio disponível','Esta temporada ainda não possui episódios reproduzíveis.'));
       for (const episode of items) {
         const card = el('button','tvl-episode'); card.type='button';card.dataset.episode=episode.Id;
-        card.setAttribute('aria-label',`${episodeCode(episode)} ${episode.Name}${isWatched(episode) ? ', watched' : ''}`);
+        card.setAttribute('aria-label',`${episodeCode(episode)} ${episode.Name}${isWatched(episode) ? ', assistido' : ''}`);
         const thumb = picture(this.api.image(episode,'thumb'),'tvl-episode-thumb');
         const overlay = el('span','tvl-thumb-play');overlay.append(icon('play'));thumb.append(overlay);
         thumb.append(el('span','tvl-episode-number',episodeCode(episode)));
         if (progress(episode)>0) {const bar=el('span','tvl-thumb-progress');bar.style.width=`${progress(episode)}%`;thumb.append(bar);}
         const copy=el('div','tvl-episode-copy');
         const title=el('div','tvl-episode-title');title.append(el('h3','',episode.Name),el('span','',runtime(episode.RunTimeTicks)));
-        copy.append(title,el('p','',plainText(episode.Overview)||'No synopsis available.'));
-        if (resumePosition(episode)) copy.append(el('span','tvl-continue','Continue watching'));
-        else if (isWatched(episode)) {const watched=el('span','tvl-watched','Watched');watched.prepend(icon('check'));copy.append(watched);}
+        copy.append(title,el('p','',plainText(episode.Overview)||'Nenhuma sinopse disponível.'));
+        if (resumePosition(episode)) copy.append(el('span','tvl-continue','Continuar assistindo'));
+        else if (isWatched(episode)) {const watched=el('span','tvl-watched','Assistido');watched.prepend(icon('check'));copy.append(watched);}
         card.append(thumb,copy);card.addEventListener('click',()=>void this.play(episode));
         const row = el('div', 'tvl-episode-row'); row.append(card);
         if (this.api.setPlayed) row.append(this.watchedButton(episode, 'tvl-icon-button tvl-episode-watched', `${episodeCode(episode)} ${episode.Name}`));
@@ -451,17 +451,17 @@ export class DetailView {
         const target = (watchedEdge ? card?.parentElement?.querySelector<HTMLElement>('[data-watched-id]') : card) || card;
         target?.focus({preventScroll:true});
         target?.scrollIntoView({block:'nearest',inline:'nearest'});
-        if (!target) this.announce(`${seasonName(season)} has no episodes available.`);
+        if (!target) this.announce(`${seasonName(season)} não possui episódios disponíveis.`);
       }
     } catch {
       if (this.disposed || revision !== this.loadingRevision || this.pane !== 'episodes') return;
-      loading.replaceWith(this.empty('Episodes could not be loaded','Check your connection and try again.',()=>void this.updateEpisodes(focusEdge)));
+      loading.replaceWith(this.empty('Não foi possível carregar os episódios','Verifique sua conexão e tente novamente.',()=>void this.updateEpisodes(focusEdge)));
       area.setAttribute('aria-busy','false');
       if (anchor && document.activeElement === anchor) area.querySelector<HTMLElement>('.tvl-empty button')?.focus({preventScroll:true});
     }
   }
   private async renderSimilar(): Promise<void> {
-    const main=el('main','tvl-similar');main.append(el('div','tvl-eyebrow',`BECAUSE YOU WATCH ${this.item.Name}`),el('h1','tvl-section-title','More like this'));
+    const main=el('main','tvl-similar');main.append(el('div','tvl-eyebrow',`PORQUE VOCÊ ASSISTIU ${this.item.Name}`),el('h1','tvl-section-title','Títulos semelhantes'));
     this.content.append(main);await this.fillRecommendations(main,true);
   }
   private async fillCollections(container: HTMLElement, focusId=''): Promise<void> {
@@ -480,15 +480,15 @@ export class DetailView {
         const card = el('button','tvl-film-card tvl-collection-card');
         card.type = 'button';
         card.dataset.focusId = `collection-${collection.Id}`;
-        card.setAttribute('aria-label',`Open collection: ${collection.Name}`);
+        card.setAttribute('aria-label',`Abrir coleção: ${collection.Name}`);
         const art = picture(this.api.image(collection,'thumb'),'tvl-film-art');
         const copy = el('div','tvl-film-copy');
-        copy.append(el('h3','',collection.Name),el('span','tvl-collection-link','View collection →'));
+        copy.append(el('h3','',collection.Name),el('span','tvl-collection-link','Ver coleção →'));
         card.append(art,copy);
         card.addEventListener('click',()=>this.options.navigate(collection.Id));
         grid.append(card);
       }
-      replace(container,el('h2','tvl-section-title','Collections'),grid);
+      replace(container,el('h2','tvl-section-title','Coleções'),grid);
       if (restoreFocus) this.focusFirst('',grid);
       else if(focusId.startsWith('collection-')&&document.activeElement===anchor){
         this.focusFirst(focusId,grid);
@@ -498,43 +498,43 @@ export class DetailView {
       if (this.disposed || revision !== this.revision || collectionsRevision !== this.collectionsRevision) return;
       const restoreFocus = container.contains(document.activeElement);
       container.removeAttribute('aria-busy');
-      const retry = button('Try again','','',()=>{
+      const retry = button('Tentar novamente','','',()=>{
         if (container.getAttribute('aria-busy') === 'true') return;
         retry.setAttribute('aria-busy','true');
         void this.fillCollections(container);
       });
-      replace(container,el('h2','tvl-section-title','Collections'),el('p','tvl-collections-message','Collections could not be loaded.'),retry);
+      replace(container,el('h2','tvl-section-title','Coleções'),el('p','tvl-collections-message','Não foi possível carregar as coleções.'),retry);
       if (restoreFocus) retry.focus({preventScroll:true});
     }
   }
   private async fillRecommendations(container: HTMLElement, focus: boolean): Promise<void> {
-    const rev=this.revision;const loading=el('div','tvl-loading','Finding something you’ll love…');container.append(loading);
+    const rev=this.revision;const loading=el('div','tvl-loading','Buscando algo que você vai adorar…');container.append(loading);
     try {
       const items=await this.api.getSimilar(this.item.Id);
       if(this.disposed||rev!==this.revision)return;
       this.similar=items;loading.remove();
       const grid=el('div','tvl-film-grid');
-      if(!items.length)grid.append(this.empty('A little more to discover','No similar titles are available in your library yet.'));
+      if(!items.length)grid.append(this.empty('Mais para descobrir','Ainda não há títulos semelhantes disponíveis na sua biblioteca.'));
       for(const item of items){
         const card=el('button','tvl-film-card');card.type='button';
         const art=picture(this.api.image(item,'thumb'),'tvl-film-art');art.append(el('span','tvl-film-duration',runtime(item.RunTimeTicks)));
         const copy=el('div','tvl-film-copy');copy.append(el('h3','',item.Name));
         const meta=el('div','tvl-card-meta');if(item.ProductionYear)meta.append(el('span','',String(item.ProductionYear)));if(item.OfficialRating)meta.append(el('span','tvl-rating',item.OfficialRating));
-        copy.append(meta,el('p','',plainText(item.Overview)||'View this title in your library.'));card.append(art,copy);
+        copy.append(meta,el('p','',plainText(item.Overview)||'Ver este título na sua biblioteca.'));card.append(art,copy);
         card.addEventListener('click',()=>this.options.navigate(item.Id));grid.append(card);
       }
       container.append(grid);if(focus)this.focusFirst('',grid);
     }catch{
       if(this.disposed||rev!==this.revision)return;
-      loading.remove();container.append(this.empty('Recommendations unavailable','You can still play this title.',()=>{container.querySelector('.tvl-empty')?.remove();void this.fillRecommendations(container,focus);}));
+      loading.remove();container.append(this.empty('Recomendações indisponíveis','Você ainda pode reproduzir este título.',()=>{container.querySelector('.tvl-empty')?.remove();void this.fillRecommendations(container,focus);}));
       if(focus)this.focusFirst();
     }
   }
   private updateWatchlistButton(node = this.element.querySelector<HTMLButtonElement>('[data-watchlist]')): void {
     if (!node) return;
-    const label = this.watchlistFailed ? 'Retry watchlist' : this.watchlist === null ? 'Loading watchlist…'
-      : this.watchlist ? 'In watchlist' : 'Add to watchlist';
-    node.setAttribute('aria-label', this.watchlistFailed ? label : this.watchlist ? 'Remove from watchlist' : label);
+    const label = this.watchlistFailed ? 'Tentar lista novamente' : this.watchlist === null ? 'Carregando lista…'
+      : this.watchlist ? 'Na minha lista' : 'Adicionar à lista';
+    node.setAttribute('aria-label', this.watchlistFailed ? label : this.watchlist ? 'Remover da lista' : label);
     node.setAttribute('aria-pressed', String(this.watchlist === true));
     node.setAttribute('aria-busy', String(this.watchlistPending));
     node.setAttribute('aria-disabled', String(this.watchlistPending));
@@ -551,7 +551,7 @@ export class DetailView {
       const state = await this.api.getWatchlistState(id);
       if (current()) this.watchlist = state.InWatchlist;
     } catch (error) {
-      if (current()) { this.watchlistFailed = true; this.announce(error instanceof Error ? error.message : 'Could not load your watchlist. Try again.'); }
+      if (current()) { this.watchlistFailed = true; this.announce(error instanceof Error ? error.message : 'Não foi possível carregar sua lista. Tente novamente.'); }
     } finally {
       if (current()) {
         this.watchlistPending = false; this.updateWatchlistButton();
@@ -570,9 +570,9 @@ export class DetailView {
       const state = await this.api.setWatchlist(id, !this.watchlist);
       if (!current()) return;
       this.watchlist = state.InWatchlist;
-      this.announce(state.InWatchlist ? 'Added to your watchlist' : 'Removed from your watchlist');
+      this.announce(state.InWatchlist ? 'Adicionado à sua lista' : 'Removido da sua lista');
     } catch (error) {
-      if (current()) { this.watchlistFailed = true; this.announce(error instanceof Error ? error.message : 'Could not update your watchlist. Try again.'); }
+      if (current()) { this.watchlistFailed = true; this.announce(error instanceof Error ? error.message : 'Não foi possível atualizar sua lista. Tente novamente.'); }
     } finally {
       if (current()) {
         this.watchlistPending = false; this.updateWatchlistButton();
@@ -585,19 +585,19 @@ export class DetailView {
     const value=!this.item.UserData?.IsFavorite;
     try{await this.api.setFavorite(this.item.Id,value);if(this.disposed)return;this.item.UserData={...this.item.UserData,IsFavorite:value};
       const node=this.element.querySelector<HTMLButtonElement>('[data-favorite]');
-      if(node){node.setAttribute('aria-pressed',String(value));node.setAttribute('aria-label',value?'Remove from favourites':'Add to favourites');const label=node.querySelector('span');if(label)label.textContent=value?'In favourites':'Add to favourites';}
-      this.announce(value?'Added to your favourites':'Removed from your favourites');
-    }catch{this.announce('Could not update favourites. Please try again.');}finally{this.favoritePending=false;}
+      if(node){node.setAttribute('aria-pressed',String(value));node.setAttribute('aria-label',value?'Remover dos favoritos':'Adicionar aos favoritos');const label=node.querySelector('span');if(label)label.textContent=value?'Nos favoritos':'Adicionar aos favoritos';}
+      this.announce(value?'Adicionado aos seus favoritos':'Removido dos seus favoritos');
+    }catch{this.announce('Não foi possível atualizar os favoritos. Tente novamente.');}finally{this.favoritePending=false;}
   }
   private watchedButton(item: Item, className: string, label?: string): HTMLButtonElement {
-    const subject = label || (item.Type === 'Movie' ? '' : (item.Type || '').toLowerCase());
+    const subject = label || (item.Type === 'Movie' ? '' : (item.Type === 'Episode' ? 'episódio' : item.Type === 'Season' ? 'temporada' : (item.Type || '').toLowerCase()));
     const node = button('', 'check', `tvl-watch-toggle ${className}`, () => void this.toggleWatched(item));
     node.dataset.watchedId = item.Id; node.dataset.watchedSubject = subject;
     this.updateWatchedButton(node, item); return node;
   }
   private updateWatchedButton(node: HTMLButtonElement, item: Item): void {
     const played = isWatched(item);
-    const label = `Mark ${node.dataset.watchedSubject ? `${node.dataset.watchedSubject} ` : ''}${played ? 'unwatched' : 'watched'}`;
+    const label = played ? `Marcar${node.dataset.watchedSubject ? ` ${node.dataset.watchedSubject}` : ''} como não assistido` : `Marcar${node.dataset.watchedSubject ? ` ${node.dataset.watchedSubject}` : ''} como assistido`;
     node.setAttribute('aria-label', label); node.title = label;
     node.setAttribute('aria-pressed', String(played));
     node.setAttribute('aria-disabled', String(this.watchedPending));
@@ -656,12 +656,12 @@ export class DetailView {
     this.refreshWatchedControls();
     this.element.querySelectorAll<HTMLButtonElement>('[data-episode]').forEach(card => {
       const episode = this.watchedItems().find(item => item.Id === card.dataset.episode); if (!episode) return;
-      card.setAttribute('aria-label', `${episodeCode(episode)} ${episode.Name}${isWatched(episode) ? ', watched' : ''}`);
+      card.setAttribute('aria-label', `${episodeCode(episode)} ${episode.Name}${isWatched(episode) ? ', assistido' : ''}`);
       const copy = card.querySelector('.tvl-episode-copy');
       copy?.querySelectorAll('.tvl-watched,.tvl-continue').forEach(node => node.remove());
-      if (resumePosition(episode)) copy?.append(el('span', 'tvl-continue', 'Continue watching'));
+      if (resumePosition(episode)) copy?.append(el('span', 'tvl-continue', 'Continuar assistindo'));
       else if (isWatched(episode)) {
-        const badge = el('span', 'tvl-watched', 'Watched'); badge.prepend(icon('check')); copy?.append(badge);
+        const badge = el('span', 'tvl-watched', 'Assistido'); badge.prepend(icon('check')); copy?.append(badge);
       }
       const thumb = card.querySelector('.tvl-episode-thumb'); thumb?.querySelector('.tvl-thumb-progress')?.remove();
       if (progress(episode) > 0) { const bar = el('span', 'tvl-thumb-progress'); bar.style.width = `${progress(episode)}%`; thumb?.append(bar); }
@@ -691,9 +691,9 @@ export class DetailView {
       const refreshed = await this.refreshRelatedWatched(item);
       if (this.disposed) return;
       this.refreshWatchedPresentation();
-      this.announce(`${item.Name} marked ${data.Played ? 'watched' : 'unwatched'}.${refreshed ? '' : ' Reopen the details to refresh related episodes.'}`);
+      this.announce(`${item.Name} marcado como ${data.Played ? 'assistido' : 'não assistido'}.${refreshed ? '' : ' Reabra os detalhes para atualizar os episódios relacionados.'}`);
     } catch {
-      if (!this.disposed) this.announce('Could not update watched status. Please try again.');
+      if (!this.disposed) this.announce('Não foi possível atualizar o status de assistido. Tente novamente.');
     } finally {
       this.watchedPending = false;
       if (!this.disposed) this.refreshWatchedControls();
@@ -701,7 +701,7 @@ export class DetailView {
   }
   private openCollectionPicker(): void {
     if (this.collectionPicker || this.disposed) return;
-    if (this.collectionSaving) { this.announce('The collection is still being saved.'); return; }
+    if (this.collectionSaving) { this.announce('A coleção ainda está sendo salva.'); return; }
     this.removeRemote();
     this.element.setAttribute('aria-modal', 'false');
     this.content.setAttribute('aria-hidden', 'true');
@@ -712,11 +712,11 @@ export class DetailView {
       saved: collection => {
         if (this.disposed) return;
         this.closeCollectionPicker();
-        this.announce(`Added to ${collection.Name}`);
+        this.announce(`Adicionado a ${collection.Name}`);
         if (this.pane !== 'overview') return;
         let section = this.content.querySelector<HTMLElement>('.tvl-collections');
         if (!section) {
-          section = el('section', 'tvl-collections'); section.setAttribute('aria-label', 'Collections');
+          section = el('section', 'tvl-collections'); section.setAttribute('aria-label', 'Coleções');
           this.content.insertBefore(section, this.content.querySelector('.tvl-movie-recommendations'));
         }
         void this.fillCollections(section);
@@ -738,12 +738,12 @@ export class DetailView {
     if(this.launching||!playable(item))return;
     await this.launch(
       ()=>this.api.play(item,startTicks ?? (item.Type==='TvChannel' ? 0 : resumePosition(item)),()=>!this.disposed),
-      item.Type==='TvChannel'?'Tuning channel…':`Starting ${item.Name}…`
+      item.Type==='TvChannel'?'Sintonizando canal…':`Iniciando ${item.Name}…`
     );
   }
   private async playTrailer(): Promise<void> {
     if(this.item.Type!=='Movie'||this.launching)return;
-    await this.launch(()=>this.api.playTrailer(this.item,()=>!this.disposed),`Starting trailer for ${this.item.Name}…`);
+    await this.launch(()=>this.api.playTrailer(this.item,()=>!this.disposed),`Iniciando trailer de ${this.item.Name}…`);
   }
   private async launch(request:()=>Promise<void>,pending:string): Promise<void> {
     this.launching=true;this.announce(pending);
@@ -753,12 +753,12 @@ export class DetailView {
     try{
       await request();
       if(this.disposed)return;
-      this.launchTimer=window.setTimeout(()=>finish('Playback has not started. Please try again.'),15_000);
-    }catch(error){finish(error instanceof Error?error.message:'Could not start playback. Please try again.');}
+      this.launchTimer=window.setTimeout(()=>finish('A reprodução não iniciou. Tente novamente.'),15_000);
+    }catch(error){finish(error instanceof Error?error.message:'Não foi possível iniciar a reprodução. Tente novamente.');}
   }
   private empty(title: string, description: string, retry?: () => void): HTMLElement {
     const node=el('div','tvl-empty');node.append(el('h2','',title),el('p','',description));
-    if(retry)node.append(button('Try again','','',retry));return node;
+    if(retry)node.append(button('Tentar novamente','','',retry));return node;
   }
   private announce(message: string): void {this.status.textContent=message;}
   private focusFirst(id='',within:HTMLElement=this.element): void {

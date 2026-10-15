@@ -1,5 +1,5 @@
 import type { Item, MediaApi } from './types';
-import { button, el, icon, picture, replace } from './dom';
+import { button, el, icon, picture, replace, isCardAction } from './dom';
 import { attachRemote } from './remote';
 import { plainText } from './utils';
 import { AdminItemActions } from './admin-item-actions';
@@ -14,11 +14,11 @@ type CollectionOptions = {
 };
 
 const typeNames: Record<string, string> = {
-  Movie: 'Movie', Series: 'TV show', Season: 'Season', Episode: 'Episode',
-  BoxSet: 'Collection', MusicAlbum: 'Album', MusicArtist: 'Artist',
-  Audio: 'Track', MusicVideo: 'Music video', Video: 'Video',
-  Book: 'Book', Photo: 'Photo', PhotoAlbum: 'Photo album', Folder: 'Folder',
-  TvChannel: 'Live TV'
+  Movie: 'Filme', Series: 'Série', Season: 'Temporada', Episode: 'Episódio',
+  BoxSet: 'Coleção', MusicAlbum: 'Álbum', MusicArtist: 'Artista',
+  Audio: 'Faixa', MusicVideo: 'Vídeo musical', Video: 'Vídeo',
+  Book: 'Livro', Photo: 'Foto', PhotoAlbum: 'Álbum de fotos', Folder: 'Pasta',
+  TvChannel: 'TV ao Vivo'
 };
 
 export class CollectionView {
@@ -40,15 +40,15 @@ export class CollectionView {
     this.element.dataset.pane = 'collections';
     this.element.setAttribute('role', 'dialog');
     this.element.setAttribute('aria-modal', 'true');
-    this.element.setAttribute('aria-label', options.item ? `${options.item.Name} collection` : 'Collections');
+    this.element.setAttribute('aria-label', options.item ? `Coleção ${options.item.Name}` : 'Coleções');
     this.adminActions = new AdminItemActions(api, this.element, { openNative: options.openNative, updated: () => { void this.refreshMetadata(); },
       announce: message => { this.count.textContent = message; } });
     const header = el('header', 'tvl-header');
-    this.backButton = button('Back', 'back', 'tvl-back', options.back);
+    this.backButton = button('Voltar', 'back', 'tvl-back', options.back);
     this.backButton.dataset.focusId = 'back';
     header.append(this.backButton);
     const copy = el('div', 'tvl-collection-hero-copy');
-    copy.append(el('h1', 'tvl-collection-title', options.item?.Name || 'Collections'));
+    copy.append(el('h1', 'tvl-collection-title', options.item?.Name || 'Coleções'));
     const overview = plainText(options.item?.Overview);
     if (overview) copy.append(el('p', 'tvl-collection-overview', overview));
     this.count.setAttribute('aria-live', 'polite');
@@ -70,7 +70,7 @@ export class CollectionView {
     if (previousId && previousId !== 'back' && previousId !== 'retry') this.focusId = previousId;
     this.count.textContent = '';
     this.body.setAttribute('aria-busy', 'true');
-    const loading = el('p', 'tvl-loading', this.options.item ? 'Loading this collection…' : 'Loading your collections…');
+    const loading = el('p', 'tvl-loading', this.options.item ? 'Carregando esta coleção…' : 'Carregando suas coleções…');
     loading.setAttribute('role', 'status');
     replace(this.body, loading);
     this.backButton.focus({ preventScroll: true });
@@ -81,23 +81,23 @@ export class CollectionView {
       if (!this.current(revision)) return;
       this.body.removeAttribute('aria-busy');
       this.count.textContent = `${items.length} ${this.options.item
-        ? items.length === 1 ? 'item' : 'items'
-        : items.length === 1 ? 'collection' : 'collections'}`;
+        ? items.length === 1 ? 'item' : 'itens'
+        : items.length === 1 ? 'coleção' : 'coleções'}`;
       // Prefer the collection's own artwork. A collection without an image can
       // borrow an actual member's backdrop rather than inventing cover artwork.
       const artwork = [this.options.item, ...items].find(item => item && this.api.image(item, 'backdrop'));
       this.setArtwork(artwork);
       if (!items.length) {
         const empty = el('div', 'tvl-collection-empty');
-        empty.append(el('h2', '', this.options.item ? 'This collection is empty' : 'No collections yet'),
-          el('p', '', this.options.item ? 'There are no items in this collection.' : 'Your collections will appear here.'));
+        empty.append(el('h2', '', this.options.item ? 'Esta coleção está vazia' : 'Nenhuma coleção ainda'),
+          el('p', '', this.options.item ? 'Não há itens nesta coleção.' : 'Suas coleções aparecerão aqui.'));
         replace(this.body, empty);
         return;
       }
-      const heading = el('h2', 'tvl-collection-section-title', this.options.item ? 'In this collection' : 'Your collections');
+      const heading = el('h2', 'tvl-collection-section-title', this.options.item ? 'Nesta coleção' : 'Suas coleções');
       const list = el('div', 'tvl-collection-grid');
       list.setAttribute('role', 'list');
-      list.setAttribute('aria-label', this.options.item ? 'Collection items' : 'Collections');
+      list.setAttribute('aria-label', this.options.item ? 'Itens da coleção' : 'Coleções');
       for (const item of items) {
         const entry = el('div', 'tvl-collection-entry');
         entry.setAttribute('role', 'listitem');
@@ -117,10 +117,10 @@ export class CollectionView {
       if (!this.current(revision)) return;
       this.body.removeAttribute('aria-busy');
       const error = el('div', 'tvl-collection-empty');
-      const retry = button('Try again', '', 'tvl-primary', () => { void this.load(); });
+      const retry = button('Tentar novamente', '', 'tvl-primary', () => { void this.load(); });
       retry.dataset.focusId = 'retry';
-      error.append(el('h2', '', this.options.item ? 'Collection unavailable' : 'Collections unavailable'),
-        el('p', '', 'Check your connection and try again.'), retry);
+      error.append(el('h2', '', this.options.item ? 'Coleção indisponível' : 'Coleções indisponíveis'),
+        el('p', '', 'Verifique sua conexão e tente novamente.'), retry);
       replace(this.body, error);
       if (document.activeElement === this.backButton || document.activeElement === document.body) retry.focus({ preventScroll: true });
     }
@@ -137,7 +137,7 @@ export class CollectionView {
         const item = await this.api.getItem(this.options.item.Id);
         if (this.disposed) return;
         this.options.item = item;
-        this.element.setAttribute('aria-label', `${item.Name} collection`);
+        this.element.setAttribute('aria-label', `Coleção ${item.Name}`);
         this.hero.querySelector<HTMLElement>('.tvl-collection-title')!.textContent = item.Name;
         this.hero.querySelector('.tvl-collection-overview')?.remove();
         const overview = plainText(item.Overview);
@@ -160,6 +160,8 @@ export class CollectionView {
     const card = el('button', 'tvl-collection-card');
     card.type = 'button';
     card.dataset.collectionItem = item.Id;
+    card.dataset.itemId = item.Id;
+    card.dataset.id = item.Id;
     card.dataset.focusId = `item:${item.Id}`;
     card.setAttribute('aria-label', item.Name);
     const art = picture(this.api.image(item, 'thumb'), 'tvl-collection-art');
@@ -173,7 +175,15 @@ export class CollectionView {
     if (metadata.length) caption.append(el('p', 'tvl-collection-card-meta', metadata.join(' · ')));
     card.append(art, caption);
     card.addEventListener('focus', () => { this.focusId = card.dataset.focusId || ''; });
-    card.addEventListener('click', () => { if (!this.disposed) this.options.navigate(item.Id); });
+    card.addEventListener('click', (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (isCardAction(target, card)) {
+        event.stopPropagation();
+        event.preventDefault();
+        return;
+      }
+      if (!this.disposed) this.options.navigate(item.Id);
+    });
     return card;
   }
 

@@ -3,7 +3,7 @@ import { brandLabel } from './interface-branding';
 import { isDesktopLayout } from './layout';
 import { currentUserAccount, isCurrentUserAdministrator, sameUserAccount, type CurrentUserAccount } from './current-user-policy';
 
-const preferences = /^(mypreferencesmenu|mypreferencesdisplay|mypreferenceshome|mypreferencesplayback|mypreferencessubtitles|mypreferencescontrols|userprofile|quickconnect)\/?$/i;
+const preferences = /^(mypreferences.*|userprofile|quickconnect|achievements.*|conquistas.*)\/?$/i;
 
 /** Theme native Search/Settings without replacing their controllers or forms. */
 export class NativeUserPages {
@@ -39,7 +39,7 @@ export class NativeUserPages {
   private toggle(name: string, enabled: boolean): void {
     if (document.body.classList.contains(name) !== enabled) document.body.classList.toggle(name, enabled);
   }
-  private path(): string { return location.hash.replace(/^#\/?/, '').split('?')[0]; }
+  private path(): string { return location.hash.replace(/^#[!/]*/, '').split('?')[0]; }
   private ownSettings(account = this.account): boolean {
     if (!this.enabled || !this.scope || !/^mypreferencesmenu\/?$/i.test(this.path()) || !account) return false;
     const editedUser = new URLSearchParams(location.hash.split('?')[1] || '').get('userId');
@@ -78,11 +78,11 @@ export class NativeUserPages {
     if (native && !native.closest('.hide,[hidden]') && native.getClientRects().length) { this.removeDashboard(); return; }
     if (!this.section) {
       this.section = el('section', 'adminSection verticalSection tvl-settings-admin');
-      this.section.append(el('h2', 'sectionTitle headerUsername', 'Administration'));
+      this.section.append(el('h2', 'sectionTitle headerUsername', 'Administração'));
       const link = el('a', 'emby-button show-focus listItem-border tvl-settings-dashboard'); link.href = '#/dashboard';
       const item = el('div', 'listItem');
       const glyph = el('span', 'material-icons listItemIcon listItemIcon-transparent dashboard'); glyph.setAttribute('aria-hidden', 'true');
-      const body = el('div', 'listItemBody'); body.append(el('div', 'listItemBodyText', 'Dashboard')); item.append(glyph, body); link.append(item);
+      const body = el('div', 'listItemBody'); body.append(el('div', 'listItemBodyText', 'Painel de Controle')); item.append(glyph, body); link.append(item);
       link.addEventListener('click', event => {
         event.preventDefault();
         if (this.activating) return;
@@ -119,17 +119,17 @@ export class NativeUserPages {
       this.collectionsLink = el('a', 'emby-button show-focus listItem-border tvl-settings-collections-link');
       const collectionsItem = el('div', 'listItem');
       const collectionsGlyph = el('span', 'material-icons listItemIcon listItemIcon-transparent', 'collections_bookmark'); collectionsGlyph.setAttribute('aria-hidden', 'true');
-      const collectionsText = el('div', 'listItemBody'); collectionsText.append(el('div', 'listItemBodyText', 'Collection rows'), el('div', 'listItemBodyText secondary', 'Home collections and seasonal rows'));
+      const collectionsText = el('div', 'listItemBody'); collectionsText.append(el('div', 'listItemBodyText', 'Fileiras de coleções'), el('div', 'listItemBodyText secondary', 'Coleções da Home e fileiras sazonais'));
       collectionsItem.append(collectionsGlyph, collectionsText); this.collectionsLink.append(collectionsItem);
       const link = el('a', 'emby-button show-focus listItem-border tvl-settings-provider-link'); link.href = '#/mypreferencesmenu?cinemaProviders=1';
       const item = el('div', 'listItem');
       const glyph = el('span', 'material-icons listItemIcon listItemIcon-transparent', 'video_library'); glyph.setAttribute('aria-hidden', 'true');
-      const text = el('div', 'listItemBody'); text.append(el('div', 'listItemBodyText', 'Streaming services'), el('div', 'listItemBodyText secondary', 'Provider homes and rows'));
+      const text = el('div', 'listItemBody'); text.append(el('div', 'listItemBodyText', 'Serviços de Streaming'), el('div', 'listItemBodyText secondary', 'Páginas e fileiras de serviços'));
       item.append(glyph, text); link.append(item); this.providerSection.append(link);
       const loading = el('a', 'emby-button show-focus listItem-border tvl-settings-loading-link'); loading.href = '#/mypreferencesmenu?cinemaLoading=1';
       const loadingItem = el('div', 'listItem');
       const loadingGlyph = el('span', 'material-icons listItemIcon listItemIcon-transparent', 'movie'); loadingGlyph.setAttribute('aria-hidden', 'true');
-      const loadingText = el('div', 'listItemBody'); loadingText.append(el('div', 'listItemBodyText', 'Loading screen'), el('div', 'listItemBodyText secondary', 'Animation and custom text'));
+      const loadingText = el('div', 'listItemBody'); loadingText.append(el('div', 'listItemBodyText', 'Tela de carregamento'), el('div', 'listItemBodyText secondary', 'Animação e texto personalizado'));
       loadingItem.append(loadingGlyph, loadingText); loading.append(loadingItem); this.providerSection.append(loading);
     }
     if (isDesktopLayout()) {

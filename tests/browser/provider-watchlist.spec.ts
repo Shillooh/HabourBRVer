@@ -21,7 +21,7 @@ async function fixture(page: Page, options: { withRow?: boolean; hold?: boolean;
     await route.fulfill({ response, body: `${await response.text()}\n(() => {
       window.TvItemLayoutDemo.api.serverId=location.origin; window.TvItemLayoutDemo.api.userId='demo';
       const state = window.__providerWatchlist = { items:${JSON.stringify(options.empty ? [] : [movie, show])}, calls:[], previews:[], hold:${!!options.hold}, pending:[], remaining:${options.pending || 0}, fail:false, release(){this.hold=false;this.pending.splice(0).forEach(resolve=>resolve());} };
-      const result=items=>({Items:items,TotalRecordCount:items.length,Pending:state.remaining,Total:items.length+state.remaining,MissingIds:155,UpdatedAt:null,Status:state.remaining?'refreshing':'ready',Region:'GB'});
+      const result=items=>({Items:items,TotalRecordCount:items.length,Pending:state.remaining,Total:items.length+state.remaining,MissingIds:155,UpdatedAt:null,Status:state.remaining?'refreshing':'ready',Region:'BR'});
       window.TvItemLayoutDemo.api.getProviderItems=async(provider,query)=>{
         state.calls.push({provider,query}); const items=structuredClone(query.watchlist?state.items:[${JSON.stringify(movie)}]);
         if(state.hold) await new Promise(resolve=>state.pending.push(resolve)); if(state.fail) throw new Error('offline'); return result(items);

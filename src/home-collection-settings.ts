@@ -126,7 +126,7 @@ export function homeCollectionTabs(row: HomeCollectionRow): HomeCollectionTab[] 
 }
 
 export function homeTabLabel(tab: HomeCollectionTab, collection?: Item): string {
-  return tab.label.trim() || collection?.Name || 'Collection';
+  return tab.label.trim() || collection?.Name || 'Coleção';
 }
 
 export function homeCollectionKey(server: string, user: string): string {

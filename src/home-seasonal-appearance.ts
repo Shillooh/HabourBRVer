@@ -37,10 +37,10 @@ function refreshAdventCard(card: HTMLElement, reveal = false): boolean {
   if (locked) {
     if (card.getAttribute('aria-disabled') !== 'true') card.setAttribute('aria-disabled', 'true');
   } else if (card.hasAttribute('aria-disabled')) card.removeAttribute('aria-disabled');
-  const caption = locked ? opens ? `Opens ${opens}` : 'Not available yet' : data.title;
+  const caption = locked ? opens ? `Abre em ${opens}` : 'Ainda não disponível' : data.title;
   if (data.caption && data.caption.textContent !== caption) data.caption.textContent = caption;
-  const label = locked ? `Advent door ${state.day}. ${opens ? `Opens ${opens}` : 'Not available yet'}`
-    : reveal ? `Advent door ${state.day}: ${data.label}` : `Advent door ${state.day}`;
+  const label = locked ? `Porta do Advento ${state.day}. ${opens ? `Abre em ${opens}` : 'Ainda não disponível'}`
+    : reveal ? `Porta do Advento ${state.day}: ${data.label}` : `Porta do Advento ${state.day}`;
   if (card.getAttribute('aria-label') !== label) card.setAttribute('aria-label', label);
   return !locked;
 }

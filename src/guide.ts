@@ -29,9 +29,9 @@ export class HorizontalGuide {
 
   constructor(private api: MediaApi, private options: GuideOptions) {
     this.selection = {channelId: options.currentChannel?.Id || ''};
-    this.element.setAttribute('aria-label', 'Live TV programme guide');
-    this.detail.setAttribute('aria-label', 'Selected programme');
-    this.scroll.setAttribute('aria-label', 'Channels and programme schedule');
+    this.element.setAttribute('aria-label', 'Guia de programação da TV ao vivo');
+    this.detail.setAttribute('aria-label', 'Programa selecionado');
+    this.scroll.setAttribute('aria-label', 'Canais e grade de programação');
     this.element.append(this.detail, this.scroll, this.footer);
     window.addEventListener('resize', this.resize);
     if (typeof ResizeObserver !== 'undefined') {
@@ -53,7 +53,7 @@ export class HorizontalGuide {
     }
     const revision = ++this.revision;
     this.busy = true;
-    replace(this.detail, el('p', 'tvl-epg-message', 'Loading your channels and programme guide…'));
+    replace(this.detail, el('p', 'tvl-epg-message', 'Carregando seus canais e grade de programação…'));
     replace(this.scroll); replace(this.footer);
     try {
       const channels = await this.api.getChannels();
@@ -66,7 +66,7 @@ export class HorizontalGuide {
       this.channels = first;
       this.rows = first.slice(0, BATCH_SIZE).map(channel => ({channel, programs: [], state: 'loading', request: 0}));
       if (!this.rows.length) {
-        replace(this.detail, el('h2', '', 'No channels available'), el('p', 'tvl-epg-message', 'Check your Live TV configuration in Jellyfin.'));
+        replace(this.detail, el('h2', '', 'Nenhum canal disponível'), el('p', 'tvl-epg-message', 'Verifique a configuração de TV ao Vivo no Jellyfin.'));
         this.busy = false; return;
       }
       this.selection = {channelId: this.rows[0]!.channel.Id};
@@ -84,8 +84,8 @@ export class HorizontalGuide {
     } catch {
       if (!this.valid(revision)) return;
       this.busy = false;
-      replace(this.detail, el('h2', '', 'Channels unavailable'), el('p', 'tvl-epg-message', 'Try again to load your Live TV guide.'),
-        button('Try again', '', 'tvl-epg-retry', () => { void this.load(); }));
+      replace(this.detail, el('h2', '', 'Canais indisponíveis'), el('p', 'tvl-epg-message', 'Tente novamente para carregar o guia de TV.'),
+        button('Tentar novamente', '', 'tvl-epg-retry', () => { void this.load(); }));
       this.detail.querySelector<HTMLButtonElement>('button')?.focus({preventScroll: true});
     }
   }
@@ -192,13 +192,13 @@ export class HorizontalGuide {
     const scrollLeft = this.scroll.scrollLeft, scrollTop = this.scroll.scrollTop;
     const grid = el('div', 'tvl-epg-grid');
     const header = el('div', 'tvl-epg-timeline');
-    const corner = el('div', 'tvl-epg-corner', 'CHANNEL');
+    const corner = el('div', 'tvl-epg-corner', 'CANAL');
     const timeline = el('div', 'tvl-epg-time-track');
     for (let halfHour = 0; halfHour < 48; halfHour++) {
       const at = this.windowStart + halfHour * 30 * GUIDE_MINUTE;
       const label = el('span', 'tvl-epg-time', time(new Date(at).toISOString()));
       label.style.left = `${halfHour / 48 * 100}%`;
-      if (new Date(at).getDate() !== new Date(this.windowStart).getDate() && new Date(at).getHours() === 0 && new Date(at).getMinutes() === 0) label.textContent = `Tomorrow ${label.textContent}`;
+      if (new Date(at).getDate() !== new Date(this.windowStart).getDate() && new Date(at).getHours() === 0 && new Date(at).getMinutes() === 0) label.textContent = `Amanhã ${label.textContent}`;
       timeline.append(label);
     }
     const now = this.nowMarker(true); if (now) timeline.append(now);
@@ -220,9 +220,9 @@ export class HorizontalGuide {
         const card = el('button', `tvl-epg-program${live ? ' tvl-epg-program-live' : ''}`); card.type = 'button';
         card.dataset.program = slot.item.Id; card.dataset.epgRow = row.channel.Id;
         card.style.left = `${slot.left}%`; card.style.width = `${slot.width}%`;
-        card.setAttribute('aria-label', `${row.channel.Name}: ${slot.item.Name}, ${time(slot.item.StartDate)} to ${time(slot.item.EndDate)}${live ? ', live now' : ', upcoming'}`);
+        card.setAttribute('aria-label', `${row.channel.Name}: ${slot.item.Name}, ${time(slot.item.StartDate)} às ${time(slot.item.EndDate)}${live ? ', ao vivo agora' : ', a seguir'}`);
         const timing = el('span', 'tvl-epg-program-time', `${time(slot.item.StartDate)} – ${time(slot.item.EndDate)}`);
-        if (live) timing.prepend(el('span', 'tvl-epg-live-badge', 'LIVE'));
+        if (live) timing.prepend(el('span', 'tvl-epg-live-badge', 'AO VIVO'));
         card.append(timing, el('span', 'tvl-epg-program-name', slot.item.Name));
         card.addEventListener('focus', () => { this.select(row, slot); this.keepVisible(card); });
         card.addEventListener('click', () => {
@@ -234,9 +234,9 @@ export class HorizontalGuide {
         track.append(card);
       }
       if (!slots.length) {
-        const message = el('div', 'tvl-epg-row-message', row.state === 'loading' ? 'Loading schedule…' : row.state === 'error' ? 'Schedule unavailable' : 'No programme information');
+        const message = el('div', 'tvl-epg-row-message', row.state === 'loading' ? 'Carregando programação…' : row.state === 'error' ? 'Programação indisponível' : 'Sem informações sobre o programa');
         if (row.state === 'error') {
-          const retry = button('Retry', '', 'tvl-epg-retry', () => { void this.retryRow(row); }); retry.dataset.epgRow = row.channel.Id; message.append(retry);
+          const retry = button('Tentar novamente', '', 'tvl-epg-retry', () => { void this.retryRow(row); }); retry.dataset.epgRow = row.channel.Id; message.append(retry);
         }
         track.append(message);
       }
@@ -253,7 +253,7 @@ export class HorizontalGuide {
     }
     replace(this.footer);
     if (this.rows.length < this.channels.length) {
-      const more = button(this.busy ? 'Loading channels…' : 'More channels', '', 'tvl-epg-more', () => { void this.moreChannels(); });
+      const more = button(this.busy ? 'Carregando canais…' : 'Mais canais', '', 'tvl-epg-more', () => { void this.moreChannels(); });
       more.disabled = this.busy; this.footer.append(more);
     }
     if (focusedChannel) {
@@ -278,13 +278,13 @@ export class HorizontalGuide {
     const artwork = this.programmeArtwork(programme, row.channel);
     const copy = el('div', 'tvl-epg-detail-copy');
     const meta = el('div', 'tvl-epg-detail-meta');
-    if (programme) meta.append(el('span', live ? 'tvl-epg-detail-badge tvl-epg-detail-live' : 'tvl-epg-detail-badge', live ? 'LIVE NOW' : 'UPCOMING'));
+    if (programme) meta.append(el('span', live ? 'tvl-epg-detail-badge tvl-epg-detail-live' : 'tvl-epg-detail-badge', live ? 'AO VIVO AGORA' : 'A SEGUIR'));
     meta.append(el('span', 'tvl-epg-detail-channel', row.channel.Name));
     if (programme) meta.append(el('span', 'tvl-epg-detail-time', `${time(programme.StartDate)} – ${time(programme.EndDate)}`));
-    copy.append(meta, el('h2', 'tvl-epg-detail-title', programme?.Name || 'The guide is taking a break'), el('p', 'tvl-epg-description', plainText(programme?.Overview) || 'Programme information is unavailable. You can still watch this channel live.'));
+    copy.append(meta, el('h2', 'tvl-epg-detail-title', programme?.Name || 'O guia está indisponível no momento'), el('p', 'tvl-epg-description', plainText(programme?.Overview) || 'As informações do programa não estão disponíveis. Você ainda pode assistir a este canal ao vivo.'));
     if (slot && !live) {
       const action = el('div', 'tvl-epg-detail-action');
-      action.append(icon('clock'), el('span', '', `Starts ${time(programme?.StartDate)}`), el('small', '', 'Upcoming programme'));
+      action.append(icon('clock'), el('span', '', `Começa às ${time(programme?.StartDate)}`), el('small', '', 'Próximo programa'));
       copy.append(action);
     }
     replace(this.detail, artwork, copy);
@@ -310,7 +310,7 @@ export class HorizontalGuide {
       artwork.classList.toggle('tvl-no-art', !source);
       if (!source?.url) return;
       const image = el('img');
-      image.alt = source.logo ? `${channel.Name} logo` : programme?.Name || '';
+      image.alt = source.logo ? `Logotipo de ${channel.Name}` : programme?.Name || '';
       image.addEventListener('error', () => { image.remove(); next(); }, {once: true});
       image.src = source.url;
       artwork.append(image);
@@ -323,7 +323,7 @@ export class HorizontalGuide {
     const position = (Date.now() - this.windowStart) / GUIDE_DURATION * 100;
     if (position < 0 || position > 100) return null;
     const line = el('div', label ? 'tvl-epg-now tvl-epg-now-label' : 'tvl-epg-now'); line.style.left = `${position}%`;
-    line.setAttribute('aria-hidden', 'true'); if (label) line.append(el('span', '', 'NOW')); return line;
+    line.setAttribute('aria-hidden', 'true'); if (label) line.append(el('span', '', 'AGORA')); return line;
   }
 
   private setWidth(): void {

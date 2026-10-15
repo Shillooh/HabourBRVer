@@ -1,8 +1,13 @@
 {
-  "name": "screenharbour",
-  "version": "0.2.55",
+  "name": "screenharbour-brasil",
+  "version": "1.0.0.0",
   "private": true,
-  "description": "A cinematic interface for Jellyfin, with personal collection rows and in-player navigation",
+  "description": "Interface cinematográfica para Jellyfin (Edição Brasil), com fileiras personalizadas, integração TMDB dinâmica e navegação in-player",
+  "author": "Shillooh",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Shillooh/HabourBRVer.git"
+  },
   "scripts": {
     "build": "node scripts/build.mjs",
     "build:demo": "node scripts/build-demo.mjs",
@@ -13,6 +18,7 @@
   },
   "devDependencies": {
     "@playwright/test": "1.56.1",
+    "@types/node": "^26.6.5",
     "esbuild": "0.25.11",
     "tsx": "4.20.6",
     "typescript": "5.9.3"

@@ -1,16 +1,16 @@
 export const loadingAnimations = [
-  { id: 'projector', name: 'Film projector' },
-  { id: 'clapperboard', name: 'Clapperboard' },
-  { id: 'film-reel', name: 'Film reel' },
-  { id: 'countdown', name: 'Cinema countdown' },
-  { id: 'spotlights', name: 'Spotlights' },
-  { id: 'jellyfin', name: 'Jellyfin logo' }
+  { id: 'projector', name: 'Projetor de cinema' },
+  { id: 'clapperboard', name: 'Claquete' },
+  { id: 'film-reel', name: 'Rolo de filme' },
+  { id: 'countdown', name: 'Contagem regressiva' },
+  { id: 'spotlights', name: 'Refletores' },
+  { id: 'jellyfin', name: 'Logotipo do Jellyfin' }
 ] as const;
 export type LoadingAnimation = typeof loadingAnimations[number]['id'];
 export type LoadingScreenSettings = { version: 1; animation: LoadingAnimation; brandText: string; message: string };
 export const maxLoadingSettingsBytes = 7 * 1024;
 export function defaultLoadingScreen(): LoadingScreenSettings {
-  return { version: 1, animation: 'projector', brandText: 'SCREENHARBOUR', message: 'Preparing your Home' };
+  return { version: 1, animation: 'projector', brandText: 'SCREENHARBOUR', message: 'Preparando sua Página Inicial' };
 }
 export function loadingScreenKey(server: string, user: string): string {
   return `jellyfin-cinema.loading-screen.v1:${encodeURIComponent(server)}:${encodeURIComponent(user)}`;

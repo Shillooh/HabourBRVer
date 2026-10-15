@@ -20,7 +20,7 @@ function rememberLoginTitle(server: string, title: string): void {
   try { localStorage.setItem(loginKey(server), JSON.stringify(title)); } catch { /* Branding remains usable without storage. */ }
 }
 function selectedServer(): string {
-  const [path, query = ''] = location.hash.replace(/^#\/?/, '').split('?');
+  const [path, query = ''] = location.hash.replace(/^#[!/]*/, '').split('?');
   // A server chooser has not selected a server. Never borrow the previous one's name.
   if (/^selectserver\/?$/i.test(path)) return location.origin;
   const params = new URLSearchParams(query);
@@ -94,7 +94,7 @@ export class InterfaceBranding {
     else if (!api) this.apply(readLoginTitle(server));
     // Home and the loading editor already fetch these same settings. Subscribe
     // to their results; a direct visit elsewhere needs one background read.
-    const [path, query = ''] = location.hash.replace(/^#\/?/, '').split('?');
+    const [path, query = ''] = location.hash.replace(/^#[!/]*/, '').split('?');
     const ownedRead = /^home\/?$/i.test(path) && !new URLSearchParams(query).has('cinemaProvider')
       || /^mypreferencesmenu\/?$/i.test(path) && new URLSearchParams(query).get('cinemaLoading') === '1';
     if (key && this.store && !this.confirmed && !this.requested && !ownedRead) {

@@ -20,7 +20,7 @@ export function resolveSeasonalFontUrl(filename: string, script: string, base: s
   const source = new URL(script || 'dist/jellyfin-tv-layout.js', base);
   const injected = /\/TvItemLayout\/ClientScript$/i.test(source.pathname);
   const url = new URL(injected ? `SeasonalFont/${filename}` : `../assets/seasonal-fonts/${filename}`, source);
-  url.searchParams.set('v', source.searchParams.get('v') || '0.2.55');
+  url.searchParams.set('v', source.searchParams.get('v') || '1.0.0.0');
   return url.href;
 }
 

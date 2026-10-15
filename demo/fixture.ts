@@ -181,24 +181,26 @@ if (showcase) {
     Overview:'Five fictional films for exploring ranked rows, seasonal artwork and opening doors.', ChildCount:movieIds.length }, 'forest');
 }
 
-// Fictional memberships make full catalogues visibly different from weekly charts.
 const providerCatalogues: Record<ProviderBrandId, { movies: string[]; shows: string[] }> = {
   netflix: { movies: ['movie-tide','movie-silence','movie-higher','movie-blue'], shows: ['series-north','series-harbour','series-signal'] },
   prime: { movies: ['movie-wild','movie-blue','movie-higher'], shows: ['series-wild','series-1999','series-harbour'] },
+  max: { movies: ['movie-blue','movie-silence','movie-wild'], shows: ['series-1999','series-harbour'] },
+  globoplay: { movies: ['movie-tide','movie-silence'], shows: ['series-north','series-harbour'] },
   disney: { movies: ['movie-tide','movie-wild'], shows: ['series-wild','series-north'] },
+  crunchyroll: { movies: ['movie-wild','movie-blue'], shows: ['series-1999','series-harbour'] },
   apple: { movies: ['movie-silence','movie-higher'], shows: ['series-signal','series-harbour'] },
-  now: { movies: ['movie-blue','movie-silence','movie-wild'], shows: ['series-1999','series-harbour'] },
   paramount: { movies: ['movie-higher','movie-tide','movie-wild'], shows: ['series-north','series-signal'] },
-  bbc: { movies: ['movie-tide','movie-silence'], shows: ['series-north','series-harbour'] },
-  itvx: { movies: ['movie-wild','movie-blue'], shows: ['series-1999','series-harbour'] },
-  channel4: { movies: ['movie-blue','movie-higher'], shows: ['series-signal','series-wild'] }
+  discovery: { movies: ['movie-blue','movie-higher'], shows: ['series-signal','series-wild'] },
+  wetv: { movies: ['movie-tide','movie-silence'], shows: ['series-north','series-harbour'] },
+  brasilparalelo: { movies: ['movie-wild','movie-blue'], shows: ['series-1999','series-harbour'] },
+  viki: { movies: ['movie-wild','movie-blue'], shows: ['series-1999','series-harbour'] }
 };
-for (const brand of providerBrands.filter(brand => !['bbc','itvx','channel4'].includes(brand.id))) for (const kind of ['movies','shows'] as const) {
+for (const brand of providerBrands) for (const kind of ['movies','shows'] as const) {
   const id = `provider-chart-${brand.id}-${kind}`;
   const members = brand.id === 'netflix' ? kind === 'movies' ? ['movie-blue','movie-tide'] : ['series-signal','series-north']
     : providerCatalogues[brand.id][kind].slice(0,2).reverse();
   collectionMembers.set(id,members);
-  register({ Id:id, Type:'BoxSet', Name:`${brand.name} — Trending ${kind === 'movies' ? 'Movies' : 'Shows'} (UK)`, ChildCount:members.length }, 'ocean');
+  register({ Id:id, Type:'BoxSet', Name:`${brand.name} — Em Alta ${kind === 'movies' ? 'Filmes' : 'Séries'} (Brasil)`, ChildCount:members.length }, 'ocean');
 }
 // The preview account has explicitly selected its fictional chart collections.
 // Production settings never infer a collection ID from a display name.
@@ -528,7 +530,12 @@ function providerPage(config: ProviderHomeConfig | undefined, query: ProviderIte
   const items = orderHomeItems(list([...ids].map(id => library.get(id)!)), { itemSort: query.sort || 'title', itemOrder: [] });
   const start = query.startIndex || 0;
   return { Items: items.slice(start, start + (query.limit || 60)), TotalRecordCount: items.length, Pending: 0, Total: items.length,
-    Status: configured ? 'ready' : 'unavailable', Region: 'GB', UpdatedAt: new Date().toISOString(), MissingIds: 0, FailedIds: 0 };
+    Status: configured ? 'ready' : 'unavailable', Region: 'BR', UpdatedAt: new Date().toISOString(), MissingIds: 0, FailedIds: 0 };
+}
+function providerTrendingPage(config: ProviderHomeConfig | undefined, type: 'Movie' | 'Series', limit = 20): ProviderItemsPage {
+  const page = providerPage(config, { type, limit, sort: 'title' });
+  const items = page.Items.slice(0, Math.min(limit, page.Items.length));
+  return { ...page, Items: items, TotalRecordCount: items.length, Total: items.length };
 }
 const api: MediaApi = {
   ...(showcase ? { userId: demoUserId } : {}),
@@ -579,11 +586,12 @@ const api: MediaApi = {
   getProviderDirectory: () => respond(() => {
     const common = [
       { Id:8, Name:'Netflix' }, { Id:175, Name:'Netflix Kids' }, { Id:1796, Name:'Netflix Standard with Ads' },
-      { Id:9, Name:'Amazon Prime Video' }, { Id:2100, Name:'Amazon Prime Video with Ads' }, { Id:337, Name:'Disney Plus' },
-      { Id:350, Name:'Apple TV Plus' }, { Id:531, Name:'Paramount Plus' }, { Id:2303, Name:'Paramount Plus Premium' },
-      { Id:2304, Name:'Paramount Plus Basic with Ads' }, { Id:38, Name:'BBC iPlayer' }, { Id:41, Name:'ITVX' }, { Id:103, Name:'Channel 4' }
+      { Id:119, Name:'Prime Video' }, { Id:9, Name:'Amazon Prime Video' }, { Id:1899, Name:'Max' },
+      { Id:307, Name:'Globoplay' }, { Id:337, Name:'Disney+' }, { Id:283, Name:'Crunchyroll' },
+      { Id:350, Name:'Apple TV+' }, { Id:531, Name:'Paramount+' }, { Id:524, Name:'Discovery+' },
+      { Id:623, Name:'WeTV' }, { Id:6265, Name:'Brasil Paralelo' }, { Id:344, Name:'Rakuten Viki' }
     ];
-    return { Region:'GB' as const, Movies:[...common, { Id:591, Name:'Now TV Cinema' }], Shows:[...common, { Id:39, Name:'Now TV' }] };
+    return { Region:'BR' as const, Movies:[...common], Shows:[...common] };
   }),
   getProviderItems: (provider, query) => respond(() => {
     let settings = defaultProviderHomes();
@@ -591,6 +599,12 @@ const api: MediaApi = {
     return providerPage(settings.providers.find(config => config.id === provider && config.enabled), query);
   }),
   previewProviderItems: (provider, query) => respond(() => providerPage(provider, query)),
+  getProviderTrending: (provider, type, limit = 20) => respond(() => {
+    let settings = defaultProviderHomes();
+    try { const raw = localStorage.getItem(providerHomesKey(location.origin, demoUserId)); if (raw) settings = parseProviderHomes(JSON.parse(raw)); } catch { /* Use preview defaults. */ }
+    return providerTrendingPage(settings.providers.find(config => config.id === provider && config.enabled), type, limit);
+  }),
+  previewProviderTrending: (provider, type, limit = 20) => respond(() => providerTrendingPage(provider, type, limit)),
   getMusic: query => respond(() => {
     const genre=musicGenres.find(item=>item.Id===query.genreId)?.Name;
     let found=list(query.kind==='artists'||query.kind==='albumArtists'?artists:query.kind==='songs'?songs:query.kind==='playlists'?playlists:albums);

@@ -8,14 +8,27 @@ public sealed record ConfiguredProvider(int[] MovieProviderIds, int[] ShowProvid
 /// <summary>Strict versioned account preferences; availability IDs never become upstream URLs.</summary>
 public static class ProviderHomesSchema
 {
-    public static bool LegacyProvider(string id) => id is "netflix" or "prime" or "disney" or "apple" or "now" or "paramount";
+    public static bool KnownBrand(string id) => id is "netflix" or "prime" or "max" or "globoplay" or "disney" or "crunchyroll" or "apple"
+        or "paramount" or "discovery" or "wetv" or "brasilparalelo" or "viki";
+    public static bool LegacyProvider(string id) => KnownBrand(id) || id is "now";
     public static bool BroadcastProvider(string id) => id is "bbc" or "itvx" or "channel4";
-    public static bool ValidProvider(string id) => LegacyProvider(id) || BroadcastProvider(id)
+    public static bool ValidProvider(string id) => KnownBrand(id) || LegacyProvider(id) || BroadcastProvider(id)
         || Regex.IsMatch(id, @"\Acustom-[a-z0-9-]{1,57}\z", RegexOptions.CultureInvariant);
     public static int[] DefaultIds(string id, bool series = false) => id switch
     {
-        "netflix" => [8, 175, 1796], "prime" => [9, 2100], "disney" => [337], "apple" => [350],
-        "now" => series ? [39] : [591], "paramount" => [531, 2303, 2304],
+        "netflix" => [8, 175, 1796],
+        "prime" => [119, 9, 2100],
+        "max" => [1899],
+        "globoplay" => [307],
+        "disney" => [337],
+        "crunchyroll" => [283],
+        "apple" => [350],
+        "paramount" => [531, 2303, 2304],
+        "discovery" => [524],
+        "wetv" => [623],
+        "brasilparalelo" => [6265],
+        "viki" => [344, 1390],
+        "now" => series ? [39] : [591],
         "bbc" => [38], "itvx" => [41], "channel4" => [103], _ => []
     };
     public static ConfiguredProvider? Resolve(JsonElement? settings, string id)

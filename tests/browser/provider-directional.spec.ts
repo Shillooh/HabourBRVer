@@ -43,7 +43,7 @@ async function fixture(page: Page, grid = false): Promise<void> {
         if(id!=='netflix'||query.type!=='Movie')return provider(id,query);
         const items=Array.from({length:125},(_,i)=>item('movies',i+1));
         return {Items:items.slice(query.startIndex||0,(query.startIndex||0)+(query.limit||60)),TotalRecordCount:125,
-          Pending:0,Total:125,UpdatedAt:null,Status:'ready',Region:'GB'};
+          Pending:0,Total:125,UpdatedAt:null,Status:'ready',Region:'BR'};
       };
     })();` });
   });

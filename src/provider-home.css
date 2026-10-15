@@ -4,17 +4,17 @@
 .tvl-provider-logo { display:inline-flex;align-items:center;justify-content:center;min-width:0; }
 .tvl-provider-logo img { display:block;object-fit:contain;width:100%;height:100%; }
 .tvl-provider-logo [hidden] { display:none!important; }
-.tvl-provider-monogram { color:var(--provider-accent,#d3e7de);font-size:2em;font-weight:700;letter-spacing:.05em; }
+.tvl-provider-monogram { color:var(--provider-accent,#e50914);font-size:2em;font-weight:700;letter-spacing:.05em; }
 .tvl-provider-tile-mark>.tvl-provider-logo { width:72%;height:52%; }
 .tvl-provider-tile[data-provider=bbc] .tvl-provider-logo { height:85%; }
 .tvl-provider-tile[data-provider=netflix] img { width:65%; }
 .tvl-provider-tile[data-provider=apple] img { width:55%; }
 .tvl-provider-tile-name { display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:break-word;word-break:break-word;padding:.7rem .1rem 0;line-height:1.3; }
 .tvl-provider-tile:focus { outline:none; }
-.tvl-provider-tile:focus .tvl-provider-tile-mark { outline:2px solid #f2faf4;outline-offset:3px;border-color:var(--provider-accent); }
+.tvl-provider-tile:focus .tvl-provider-tile-mark { outline:2px solid #e50914;outline-offset:3px;border-color:var(--provider-accent); }
 .tvl-provider-tile:hover .tvl-provider-tile-mark { background:linear-gradient(135deg,#343840,#1c2025);border-color:var(--provider-accent); }
 /* TV navigation uses one accent ring around the artwork, including on hover. */
-.layout-tv .tvl-provider-tile:focus .tvl-provider-tile-mark { outline-color:var(--provider-accent,#d3e7de);border-color:transparent; }
+.layout-tv .tvl-provider-tile:focus .tvl-provider-tile-mark { outline-color:var(--provider-accent,#e50914);border-color:transparent; }
 .tvl-provider-home { display:flex;flex-direction:column; }
 .tvl-provider-header { flex-shrink:0;position:relative;z-index:2;padding:1rem 4.5vw .9rem;background:#101112;border-bottom:1px solid #ffffff18; }
 .tvl-provider-header>.tvl-back { position:absolute;left:4.5vw;top:1.2rem; }
@@ -27,12 +27,12 @@
 .tvl-provider-identity p { font-size:.62em;line-height:1.6;color:#b8c0bb; }
 .tvl-provider-nav { display:flex;justify-content:center;flex-wrap:wrap;margin-top:.8rem; }
 .tvl-provider-nav .tvl-button { border-radius:999px;margin:.15rem .3rem;padding:.4rem 1rem;min-height:2.3em;font-size:.72em;color:#c4ccc7; }
-.tvl-provider-nav .tvl-button[aria-current=page] { color:#101112;background:#d3e7de; }
+.tvl-provider-nav .tvl-button[aria-current=page] { color:#ffffff;background:#e50914;font-weight:600; }
 .tvl-provider-nav .tvl-button[hidden] { display:none; }
-.tvl-provider-home .tvl-button:focus { outline:2px solid #f2faf4;outline-offset:3px; }
+.tvl-provider-home .tvl-button:focus { outline:2px solid #e50914;outline-offset:3px; }
 .tvl-provider-content { overflow:auto;overflow-x:hidden;flex:1;min-height:0;scrollbar-width:none; }
 .tvl-provider-content::-webkit-scrollbar { width:0;display:none; }
-.tvl-provider-hero { position:relative;min-height:24rem;display:flex;flex-direction:column;justify-content:center;padding:3rem 5.5vw;isolation:isolate;background:radial-gradient(ellipse at 75% 30%,#263531,#101112 80%); }
+.tvl-provider-hero { position:relative;min-height:24rem;display:flex;flex-direction:column;justify-content:center;padding:3rem 5.5vw;isolation:isolate;background:radial-gradient(ellipse at 75% 30%,#351418,#101112 80%); }
 .tvl-provider-hero[hidden] { display:none; }
 .tvl-provider-eyebrow { font-size:.64em;letter-spacing:.15em;color:#c8d6cd;margin-bottom:.85rem!important; }
 .tvl-provider-welcome { font-size:2.5em; }
@@ -41,7 +41,7 @@
 .tvl-provider-feature-backdrop::after { content:'';position:absolute;left:0;right:0;top:0;bottom:0;background:linear-gradient(90deg,#101112 0%,#101112e6 26%,#10111233 85%),linear-gradient(0deg,#101112,transparent 45%); }
 .tvl-provider-feature-copy { width:50%;max-width:42rem; }
 .tvl-provider-feature-title { font-size:2.5em;line-height:1.08;letter-spacing:-.035em; }
-.tvl-provider-feature-description { color:#d3d9d4;font-size:.82em;line-height:1.6;margin:1rem 0 1.2rem!important;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden; }
+.tvl-provider-feature-description { color:#d2d4d8;font-size:.82em;line-height:1.6;margin:1rem 0 1.2rem!important;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden; }
 .tvl-provider-feature-copy .tvl-primary { font-size:.8em;margin-top:1rem; }
 .tvl-provider-rows { padding:2rem 5.5vw 0; }
 .tvl-provider-row { margin:0 0 2.6rem;min-width:0; }

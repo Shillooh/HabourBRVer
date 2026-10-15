@@ -9,7 +9,7 @@ export type ProviderItemsQuery = {
 };
 export type ProviderItemsPage = {
   Items: Item[]; TotalRecordCount: number; Pending: number; Total: number;
-  UpdatedAt: string | null; Status: 'ready' | 'refreshing' | 'unavailable'; Region: 'GB';
+  UpdatedAt: string | null; Status: 'ready' | 'refreshing' | 'unavailable'; Region: 'BR';
   MissingIds?: number; FailedIds?: number;
 };
 export type ProviderRowResult = {
@@ -89,8 +89,8 @@ export class ProviderData {
     if (watchlist || !collectionId && (row.source === 'movies' || row.source === 'shows')) {
       const includesDisney = (watchlist ? [...config.movieProviderIds, ...config.showProviderIds]
         : type === 'Movie' ? config.movieProviderIds : config.showProviderIds).includes(337);
-      const sourceLabel = includesDisney ? 'Disney studios · UK streaming availability' : 'UK streaming availability · JustWatch';
-      const sourceUrl = 'https://www.justwatch.com/uk';
+      const sourceLabel = includesDisney ? 'Disney studios · Disponibilidade de streaming (Brasil)' : 'Disponibilidade de streaming (Brasil) · JustWatch';
+      const sourceUrl = 'https://www.justwatch.com/br';
       if (preview ? !this.api.previewProviderItems : !this.api.getProviderItems) return { items: [], total: 0, pending: 0, totalToCheck: 0, status: 'unavailable', sourceLabel, sourceUrl };
       const query: ProviderItemsQuery = { type: watchlist ? 'Mixed' : type!, ...(watchlist ? { watchlist: true } : {}), startIndex: start, limit: size, sort: row.itemSort === 'collection' ? 'title' : row.itemSort };
       const key = `${preview ? JSON.stringify(config) : config.id}:${query.type}:${!!query.watchlist}:${query.sort}:${start}:${size}`;
@@ -103,11 +103,50 @@ export class ProviderData {
       try { page = await promise; }
       finally { if (this.cataloguePending.get(key) === promise) this.cataloguePending.delete(key); }
       this.current(generation);
-      if (!page || page.Region !== 'GB' || !Array.isArray(page.Items) || !count(page.TotalRecordCount) || !count(page.Pending) || !count(page.Total)
+      if (!page || page.Region !== 'BR' || !Array.isArray(page.Items) || !count(page.TotalRecordCount) || !count(page.Pending) || !count(page.Total)
         || !['ready', 'refreshing', 'unavailable'].includes(page.Status) || (page.UpdatedAt !== null && typeof page.UpdatedAt !== 'string')
         || page.MissingIds !== undefined && !count(page.MissingIds) || page.FailedIds !== undefined && !count(page.FailedIds)) throw invalid();
       return { items: playableItems(page.Items, type), total: page.TotalRecordCount, pending: page.Pending, totalToCheck: page.Total,
         status: page.Status, sourceLabel, sourceUrl, updatedAt: page.UpdatedAt, missingIds: page.MissingIds, failedIds: page.FailedIds };
+    }
+
+    if (!collectionId && (row.source === 'trending-movies' || row.source === 'trending-shows')) {
+      const sourceLabel = 'Em Alta · Popularidade TMDB (Brasil)';
+      const sourceIds = type === 'Movie' ? config.movieProviderIds : config.showProviderIds;
+      if (!sourceIds.length || (preview ? !this.api.previewProviderTrending : !this.api.getProviderTrending)) {
+        return { items: [], total: 0, pending: 0, totalToCheck: 0, status: 'unavailable', sourceLabel, missingSource: true };
+      }
+      const sourceUrl = 'https://www.themoviedb.org';
+      const key = `trending:${preview ? JSON.stringify(config) : config.id}:${type}:${size}`;
+      let promise = this.cataloguePending.get(key);
+      if (!promise) {
+        promise = Promise.resolve().then(() => {
+          this.current(generation);
+          return preview ? this.api.previewProviderTrending!(config, type!, size)
+            : this.api.getProviderTrending!(config.id, type!, size);
+        });
+        this.cataloguePending.set(key, promise);
+      }
+      let page: ProviderItemsPage;
+      try { page = await promise; }
+      finally { if (this.cataloguePending.get(key) === promise) this.cataloguePending.delete(key); }
+      this.current(generation);
+      if (!page || page.Region !== 'BR' || !Array.isArray(page.Items) || !count(page.TotalRecordCount) || !count(page.Pending) || !count(page.Total)
+        || !['ready', 'refreshing', 'unavailable'].includes(page.Status) || (page.UpdatedAt !== null && typeof page.UpdatedAt !== 'string')
+        || page.MissingIds !== undefined && !count(page.MissingIds) || page.FailedIds !== undefined && !count(page.FailedIds)) throw invalid();
+      const items = orderHomeItems(playableItems(page.Items, type), { itemSort: row.itemSort, itemOrder: [] });
+      return {
+        items,
+        total: page.TotalRecordCount,
+        pending: page.Pending,
+        totalToCheck: page.Total,
+        status: page.Status,
+        sourceLabel,
+        sourceUrl,
+        updatedAt: page.UpdatedAt,
+        missingIds: page.MissingIds,
+        failedIds: page.FailedIds
+      };
     }
 
     const sourceLabel = 'Selected Jellyfin collection';

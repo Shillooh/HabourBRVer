@@ -193,8 +193,8 @@ public sealed class ProviderAvailabilityService : BackgroundService, IProviderAv
 {
     private readonly ProviderAvailabilityCache cache;
     public ProviderAvailabilityService(IApplicationPaths paths, TmdbProviderSource source)
-        => cache = new(Path.Combine(paths.DataPath, "jellyfin-cinema", "providers", "GB-v2.json"), source.FetchAsync, () => source.Available,
-            legacyPath: Path.Combine(paths.DataPath, "jellyfin-cinema", "providers", "GB-v1.json"));
+        => cache = new(Path.Combine(paths.DataPath, "jellyfin-cinema", "providers", "BR-v2.json"), source.FetchAsync, () => source.Available,
+            legacyPath: Path.Combine(paths.DataPath, "jellyfin-cinema", "providers", "BR-v1.json"));
     public Task<ProviderCacheSnapshot> ReadAsync(IEnumerable<string> keys, CancellationToken cancellationToken) => cache.ReadAsync(keys, cancellationToken);
     protected override Task ExecuteAsync(CancellationToken stoppingToken) => cache.RunAsync(stoppingToken);
 }

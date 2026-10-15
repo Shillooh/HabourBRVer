@@ -21,12 +21,12 @@ export class GuideView {
     this.element.dataset.pane = 'guide';
     this.element.setAttribute('role', 'dialog');
     this.element.setAttribute('aria-modal', 'true');
-    this.element.setAttribute('aria-label', 'Live TV guide');
+    this.element.setAttribute('aria-label', 'Guia de TV ao vivo');
     this.status.setAttribute('role', 'status');
     this.status.setAttribute('aria-live', 'polite');
     const content = el('div', 'tvl-content');
     const header = el('header', 'tvl-header');
-    this.backButton = button('Back', 'back', 'tvl-back', options.back);
+    this.backButton = button('Voltar', 'back', 'tvl-back', options.back);
     header.append(this.backButton);
     this.guide = new HorizontalGuide(api, {
       onPlay: channel => { void this.play(channel); },
@@ -57,7 +57,7 @@ export class GuideView {
     const current = () => !this.disposed && this.launching && revision === this.launchRevision;
     const focused = document.activeElement as HTMLElement | null;
     focused?.setAttribute('aria-busy', 'true');
-    this.announce('Tuning channel…');
+    this.announce('Sintonizando canal…');
     const finish = (message: string) => {
       if (!current()) return;
       window.clearTimeout(this.launchTimer);
@@ -65,11 +65,11 @@ export class GuideView {
       focused?.removeAttribute('aria-busy');
       this.announce(message);
     };
-    this.launchTimer = window.setTimeout(() => finish('Playback has not started. Please try again.'), 15_000);
+    this.launchTimer = window.setTimeout(() => finish('A reprodução não foi iniciada. Tente novamente.'), 15_000);
     try {
       await this.api.play(channel, 0, current);
     } catch (error) {
-      finish(error instanceof Error ? error.message : 'Could not start playback. Please try again.');
+      finish(error instanceof Error ? error.message : 'Não foi possível iniciar a reprodução. Tente novamente.');
     }
   }
 

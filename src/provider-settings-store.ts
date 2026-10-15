@@ -22,12 +22,19 @@ export function boundedProviderHomes(value: unknown): ProviderHomesSettings {
   catch { throw new ProviderHomesSyncError('invalid', 'Jellyfin returned invalid provider-home settings. Try again.'); }
 }
 export function providerHomesSnapshot(value: unknown): ProviderHomesSnapshot {
-  if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length !== 2 || !('Revision' in value) || !('Settings' in value))
+  if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length !== 2)
     throw new ProviderHomesSyncError('invalid', 'Jellyfin returned invalid provider-home settings. Try again.');
-  if (value.Revision === null && value.Settings === null) return { Revision: null, Settings: null };
-  if (typeof value.Revision !== 'string' || !value.Revision || value.Revision.length > 100)
+  const val = value as Record<string, unknown>;
+  const hasPascal = 'Revision' in val && 'Settings' in val;
+  const hasCamel = 'revision' in val && 'settings' in val;
+  if (!hasPascal && !hasCamel)
     throw new ProviderHomesSyncError('invalid', 'Jellyfin returned invalid provider-home settings. Try again.');
-  return { Revision: value.Revision, Settings: boundedProviderHomes(value.Settings) };
+  const revision = (hasPascal ? val.Revision : val.revision) as string | null;
+  const settings = hasPascal ? val.Settings : val.settings;
+  if (revision === null && settings === null) return { Revision: null, Settings: null };
+  if (typeof revision !== 'string' || !revision || revision.length > 100)
+    throw new ProviderHomesSyncError('invalid', 'Jellyfin returned invalid provider-home settings. Try again.');
+  return { Revision: revision, Settings: boundedProviderHomes(settings) };
 }
 
 /** Authentication belongs to Jellyfin's native client. The authenticated server

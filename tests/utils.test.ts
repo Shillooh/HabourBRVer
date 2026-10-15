@@ -69,10 +69,10 @@ test('finish estimates omit unavailable durations and clamp malformed resume pos
 });
 
 test('specials and descriptive season names stay distinct from generic labels', () => {
-  assert.equal(seasonName(item({ Name: 'Series 0', IndexNumber: 0 })), 'Specials');
-  assert.equal(seasonName(item({ Name: ' Chapter 2 ', IndexNumber: 2 })), 'Season 2');
+  assert.equal(seasonName(item({ Name: 'Series 0', IndexNumber: 0 })), 'Especiais');
+  assert.equal(seasonName(item({ Name: ' Chapter 2 ', IndexNumber: 2 })), 'Temporada 2');
   assert.equal(seasonName(item({ Name: 'The Northern Passage', IndexNumber: 2 })), 'The Northern Passage');
-  assert.equal(seasonName(item()), 'Episodes');
+  assert.equal(seasonName(item()), 'Episódios');
 });
 
 test('episode labels preserve zero and gracefully omit unknown numbering', () => {

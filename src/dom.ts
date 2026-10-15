@@ -14,7 +14,9 @@ const paths: Record<string, string> = {
   grid: 'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z',
   heart: 'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z',
   info: 'M12 17v-5m0-4v.1 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',
-  check: 'm5 12 4 4L19 6', chevron: 'm9 5 7 7-7 7', live: 'M8 8a6 6 0 0 0 0 8m8-8a6 6 0 0 1 0 8 M4 4a11 11 0 0 0 0 16m16-16a11 11 0 0 1 0 16 M12 11v2',
+  check: 'm5 12 4 4L19 6', chevron: 'm9 5 7 7-7 7',
+  chevronLeft: 'm15 19-7-7 7-7', chevronRight: 'm9 5 7 7-7 7',
+  live: 'M8 8a6 6 0 0 0 0 8m8-8a6 6 0 0 1 0 8 M4 4a11 11 0 0 0 0 16m16-16a11 11 0 0 1 0 16 M12 11v2',
   clock: 'M12 7v5l3 2 M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',
   trailer: 'M3 8h18v12H3z M3 8V4h18v4 M7 4l3 4 M14 4l3 4 M10 11l5 3-5 3z',
   close: 'm6 6 12 12M6 18 18 6', plus: 'M12 5v14M5 12h14'
@@ -52,3 +54,24 @@ export function picture(url: string | null, className: string, label = ''): HTML
   } else wrap.classList.add('tvl-no-art');
   return wrap;
 }
+
+/**
+ * Determines whether a click target inside a card is an action control
+ * (e.g., play, favorite, mark played, 3-dots context menu, admin action, selection checkbox)
+ * rather than clicking the card itself to open details.
+ */
+export function isCardAction(target: HTMLElement | null, card: HTMLElement): boolean {
+  if (!target || target === card) return false;
+  const innerButton = target.closest<HTMLElement>('button, [role="button"]');
+  if (innerButton && innerButton !== card && card.contains(innerButton)) return true;
+  const overlay = target.closest<HTMLElement>(
+    '.cardOverlayButton, .cardOverlayFab, .cardOverlayContainer, ' +
+    '.itemAction:not(.card), [data-action]:not([data-action="link"]), ' +
+    '.btnPlay, .btnUserData, .btnUserRating, .btnCardOptions, .btnPlaystate, .btnMoreCommands, ' +
+    '.itemSelectionPanel, .chkItemSelect, .checkboxContainer, .multiSelectCheckboxOutline, ' +
+    '.tvl-admin-item, [data-admin-item]'
+  );
+  if (overlay && overlay !== card && card.contains(overlay)) return true;
+  return false;
+}
+

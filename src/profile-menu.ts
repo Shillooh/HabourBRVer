@@ -54,30 +54,30 @@ export class ProfileMenu {
     anchor.setAttribute('aria-expanded', 'true'); anchor.setAttribute('aria-haspopup', 'dialog');
     const overlay = el('div', 'tvl-profile-overlay');
     const panel = el('section', 'tvl-profile-menu tvl-profile-chooser');
-    panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true'); panel.setAttribute('aria-label', 'Who’s watching?');
+    panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true'); panel.setAttribute('aria-label', 'Quem está assistindo?');
     const brand = brandLabel('p', 'tvl-profile-brand');
-    const heading = el('h2', '', 'Who’s watching?');
-    const grid = el('div', 'tvl-profile-grid'); grid.setAttribute('aria-label', 'Profiles');
-    const status = el('p', 'tvl-profile-status', 'Loading profiles…'); status.setAttribute('role', 'status');
+    const heading = el('h2', '', 'Quem está assistindo?');
+    const grid = el('div', 'tvl-profile-grid'); grid.setAttribute('aria-label', 'Perfis');
+    const status = el('p', 'tvl-profile-status', 'Carregando perfis…'); status.setAttribute('role', 'status');
     const session = profileSession();
     const current = () => this.overlay === overlay && (!session || sameProfileSession(session));
-    const login = button('Use login screen', '', 'tvl-profile-secondary', () => {
+    const login = button('Usar tela de login', '', 'tvl-profile-secondary', () => {
       if (!current() || profileSwitchPending()) { this.close(false); return; }
       login.disabled = true;
-      status.textContent = 'Opening the login screen…';
+      status.textContent = 'Abrindo a tela de login…';
       const failed = () => {
-        if (current()) { status.textContent = 'Could not open the login screen. Please try again.'; login.disabled = false; }
+        if (current()) { status.textContent = 'Não foi possível abrir a tela de login. Tente novamente.'; login.disabled = false; }
       };
       if (session) { void this.openLogin(session).then(() => this.close(false)).catch(failed); return; }
       try {
         const native = dashboard();
-        if (typeof native?.logout !== 'function') throw new Error('Native profile switching is unavailable');
+        if (typeof native?.logout !== 'function') throw new Error('A troca de perfil padrão está indisponível');
         // Jellyfin owns its session/cache cleanup and native login navigation.
         native.logout(); this.close(false);
       } catch { failed(); }
     });
-    const back = button('Back', 'back', 'tvl-profile-secondary', () => this.close(true));
-    const settings = button('Settings', '', 'tvl-profile-secondary', () => {
+    const back = button('Voltar', 'back', 'tvl-profile-secondary', () => this.close(true));
+    const settings = button('Configurações', '', 'tvl-profile-secondary', () => {
       this.close(false);
       const native = dashboard();
       if (typeof native?.navigate === 'function') native.navigate('mypreferencesmenu');
@@ -91,7 +91,7 @@ export class ProfileMenu {
     back.focus({ preventScroll: true });
     void this.addDashboard(panel, overlay, login, status);
     if (session) void this.chooseProfile(grid, overlay, session, status, login, back);
-    else status.textContent = 'Profile switching is unavailable.';
+    else status.textContent = 'A troca de perfil está indisponível.';
     return true;
   }
 
@@ -99,13 +99,13 @@ export class ProfileMenu {
     const account = currentUserAccount();
     const current = () => this.overlay === overlay && panel.contains(before) && sameUserAccount(account);
     if (!await isCurrentUserAdministrator(account) || !current()) return;
-    const action = button('Dashboard', '', 'tvl-profile-secondary', () => {
+    const action = button('Painel de Controle', '', 'tvl-profile-secondary', () => {
       if (action.disabled) return;
       action.disabled = true;
       void isCurrentUserAdministrator(account).then(allowed => {
         if (!current()) return;
         if (!allowed) {
-          action.remove(); status.textContent = 'Dashboard access is no longer available.';
+          action.remove(); status.textContent = 'O acesso ao painel de controle não está mais disponível.';
           before.focus({ preventScroll: true }); return;
         }
         this.close(false);
@@ -139,7 +139,7 @@ export class ProfileMenu {
     try {
       const profiles = await publicProfiles(session);
       if (!current()) return;
-      status.textContent = profiles.length ? '' : 'No public profiles are available.';
+      status.textContent = profiles.length ? '' : 'Nenhum perfil público disponível.';
       for (const profile of profiles) {
         const selected = profile.Id.replace(/-/g, '').toLowerCase() === session.userId.replace(/-/g, '').toLowerCase();
         const control = button('', '', 'tvl-profile-card', () => {
@@ -148,7 +148,7 @@ export class ProfileMenu {
           if (!profile.CanSwitchDirectly) { login.click(); return; }
           this.startSwitch(session, profile);
         });
-        control.setAttribute('aria-label', `${profile.Name}, ${selected ? 'current profile' : profile.CanSwitchDirectly ? 'switch profile' : 'sign in'}`);
+        control.setAttribute('aria-label', `${profile.Name}, ${selected ? 'perfil atual' : profile.CanSwitchDirectly ? 'trocar perfil' : 'entrar'}`);
         if (selected) control.setAttribute('aria-current', 'true');
         const artwork = this.artwork(session, profile);
         if (selected) artwork.append(el('span', 'tvl-profile-current-mark', '✓'));
@@ -156,12 +156,12 @@ export class ProfileMenu {
         // and accessible, visible name; no native authentication UI is cloned.
         control.textContent = '';
         control.append(artwork, el('span', 'tvl-profile-card-name', profile.Name),
-          el('span', 'tvl-profile-card-note', selected ? 'Current profile' : profile.CanSwitchDirectly ? '' : 'Sign in'));
+          el('span', 'tvl-profile-card-note', selected ? 'Perfil atual' : profile.CanSwitchDirectly ? '' : 'Entrar'));
         grid.append(control);
       }
       if (document.activeElement === back) (grid.querySelector<HTMLElement>('[aria-current="true"]') || grid.querySelector<HTMLElement>('button') || login).focus({ preventScroll: true });
     } catch {
-      if (current()) status.textContent = 'Could not load profiles. Try again.';
+      if (current()) status.textContent = 'Não foi possível carregar os perfis. Tente novamente.';
     } finally { grid.removeAttribute('aria-busy'); }
   }
 
@@ -172,12 +172,12 @@ export class ProfileMenu {
     const start = location.hash;
     let phase: ProfileSwitchPhase = 'checking';
     const overlay = el('div', 'tvl-profile-overlay tvl-profile-switching');
-    const panel = el('section', 'tvl-profile-menu tvl-profile-progress'); panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true'); panel.setAttribute('aria-label', 'Switching profile');
-    const status = el('p', 'tvl-profile-status', 'Checking profile…'); status.setAttribute('role', 'status');
+    const panel = el('section', 'tvl-profile-menu tvl-profile-progress'); panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true'); panel.setAttribute('aria-label', 'Trocando de perfil');
+    const status = el('p', 'tvl-profile-status', 'Verificando perfil…'); status.setAttribute('role', 'status');
     let adopting = false;
     const cancel = () => { if (!adopting) { controller.abort(); remove(); } };
-    const cancelButton = button('Cancel', '', '', cancel);
-    panel.append(brandLabel('p', 'tvl-profile-brand'), this.artwork(session, profile), el('h2', '', `Opening ${profile.Name}`), status, cancelButton); overlay.append(panel);
+    const cancelButton = button('Cancelar', '', '', cancel);
+    panel.append(brandLabel('p', 'tvl-profile-brand'), this.artwork(session, profile), el('h2', '', `Abrindo ${profile.Name}`), status, cancelButton); overlay.append(panel);
     document.body.append(overlay); document.body.classList.add('tvl-profile-open');
     const detach = attachRemote(panel, cancel);
     const remove = () => {
@@ -193,16 +193,16 @@ export class ProfileMenu {
     } }; cancelButton.focus({ preventScroll: true });
     void switchPublicProfile(session, profile.Id, controller.signal, next => {
       phase = next; adopting = phase === 'opening' || phase === 'signing-out'; cancelButton.disabled = adopting;
-      status.textContent = phase === 'checking' ? 'Checking profile…' : phase === 'signing-out' ? 'Closing the current session…'
-        : phase === 'signing-in' ? 'Signing in…' : 'Opening your Home page…';
+      status.textContent = phase === 'checking' ? 'Verificando perfil…' : phase === 'signing-out' ? 'Encerrando a sessão atual…'
+        : phase === 'signing-in' ? 'Entrando…' : 'Abrindo a Página Inicial…';
     }).then(remove).catch(error => {
       if (controller.signal.aborted || this.disposed || error?.name === 'AbortError') { remove(); return; }
       adopting = false; cancelButton.remove();
       const needsLogin = error instanceof ProfileLoginRequired || !session.client.getCurrentUserId();
       const failedUser = session.client.getCurrentUserId();
       status.textContent = error instanceof ProfileLoginRequired ? error.message
-        : needsLogin ? 'Could not sign in to that profile.' : 'Could not switch profile. Your current session is still open.';
-      const action = button(needsLogin ? 'Continue to login' : 'Close', '', 'tvl-primary', () => {
+        : needsLogin ? 'Não foi possível entrar nesse perfil.' : 'Não foi possível trocar de perfil. Sua sessão atual continua ativa.';
+      const action = button(needsLogin ? 'Continuar para o login' : 'Fechar', '', 'tvl-primary', () => {
         remove();
         if (needsLogin && sameProfileServer(session) && session.client.getCurrentUserId() === failedUser) {
           if (session.client.getCurrentUserId()) void this.openLogin(session).catch(() => {});

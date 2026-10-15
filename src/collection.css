@@ -1,7 +1,7 @@
 .tvl-collection-view { background: #101112; }
 .tvl-collection-view .tvl-header { margin-bottom: -2vw; }
 .tvl-collection-hero { position: relative; isolation: isolate; min-height: 32vh; display: flex; align-items: center; padding: 3.5vw 5.5vw 4vw; }
-.tvl-collection-backdrop { position: absolute; z-index: -1; top: -6vw; right: 0; bottom: 0; left: 0; overflow: hidden; background: #17201f; }
+.tvl-collection-backdrop { position: absolute; z-index: -1; top: -6vw; right: 0; bottom: 0; left: 0; overflow: hidden; background: #141518; }
 .tvl-collection-backdrop > img { position: absolute; top: 0; right: 0; width: 72%; height: 100%; object-fit: cover; object-position: 68% 40%; opacity: .85; }
 .tvl-collection-backdrop::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0; background: linear-gradient(90deg, #101112 12%, #101112ed 32%, #10111285 57%, #10111224 85%), linear-gradient(0deg, #101112 0%, #10111240 45%, #1011121a); }
 .tvl-collection-hero-copy { width: 63%; max-width: 1100px; padding: 1vw 0; }
@@ -12,12 +12,12 @@
 .tvl-collection-section-title { font-size: 1.15em; font-weight: 550; letter-spacing: -.015em; margin: 0 0 1.1em !important; color: #e2e8e3; }
 .tvl-collection-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-gap: 1.5vw; gap: 1.5vw; padding: 5px 0; }
 .tvl-collection-entry { min-width: 0; }
-.tvl-collection-card { display: block; width: 100%; padding: 0; border: 2px solid transparent; border-radius: 6px; overflow: hidden; background: #1a211f; color: #edf1ed; text-align: left; transition: border-color .16s, background-color .16s, transform .16s; }
-.tvl-collection-card:hover { background: #29372f; }
-.tvl-keyboard .tvl-collection-card:focus { border-color: #f3f7ed; outline: 2px solid #f3f7ed; outline-offset: 3px; transform: translateY(-2px); background: #29372f; }
-.tvl-collection-art { position: relative; width: 100%; padding-top: 56.25%; background: #24362c; overflow: hidden; }
+.tvl-collection-card { display: block; width: 100%; padding: 0; border: 2px solid transparent; border-radius: 6px; overflow: hidden; background: #16171a; color: #edf1ed; text-align: left; transition: border-color .16s, background-color .16s, transform .16s; cursor: pointer; }
+.tvl-collection-card:hover { background: #24252a; }
+.tvl-keyboard .tvl-collection-card:focus { border-color: #e50914; outline: 2px solid #e50914; outline-offset: 3px; transform: translateY(-2px); background: #2b1215; }
+.tvl-collection-art { position: relative; width: 100%; padding-top: 56.25%; background: #202228; overflow: hidden; }
 .tvl-collection-art > img { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
-.tvl-collection-placeholder { display: none; position: absolute; top: 0; right: 0; bottom: 0; left: 0; align-items: center; justify-content: center; color: #91b29d; }
+.tvl-collection-placeholder { display: none; position: absolute; top: 0; right: 0; bottom: 0; left: 0; align-items: center; justify-content: center; color: #e50914; }
 .tvl-collection-placeholder > svg { width: 3em; height: 3em; opacity: .7; }
 .tvl-no-art > .tvl-collection-placeholder { display: flex; }
 .tvl-collection-caption { padding: .8em .85em .9em; }

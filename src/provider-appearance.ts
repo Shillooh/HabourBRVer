@@ -11,7 +11,7 @@ export function providerAppearance(config: ProviderHomeConfig): { id: string; na
     try { const url = new URL(config.logoUrl); if (url.hostname && !url.username && !url.password) customLogo = url.href; } catch { /* Show the local fallback. */ }
   }
   return { id: config.id, name: config.name.trim() || brand?.name || 'New service',
-    logo: config.logoUrl ? customLogo : brand?.logo || '', accent: /^#[0-9a-f]{6}$/i.test(config.accent) ? config.accent : '#9fb8a8' };
+    logo: config.logoUrl ? customLogo : brand?.logo || '', accent: /^#[0-9a-f]{6}$/i.test(config.accent) ? config.accent : '#e50914' };
 }
 
 /** Keep both custom services and unavailable remote artwork recognisable. */

@@ -33,9 +33,9 @@ export function playbackEnd(item: Item, now = Date.now()): Date | null {
   return Number.isFinite(end.getTime()) ? end : null;
 }
 export function seasonName(item: Item): string {
-  if (item.IndexNumber === 0) return 'Specials';
-  const fallback = item.IndexNumber == null ? 'Episodes' : `Season ${item.IndexNumber}`;
-  return !item.Name || /^(season|series|chapter)\s*\d+$/i.test(item.Name.trim()) ? fallback : item.Name;
+  if (item.IndexNumber === 0) return 'Especiais';
+  const fallback = item.IndexNumber == null ? 'Episódios' : `Temporada ${item.IndexNumber}`;
+  return !item.Name || /^(season|series|chapter|temporada)\s*\d+$/i.test(item.Name.trim()) ? fallback : item.Name;
 }
 export function episodeCode(item: Item): string {
   return [item.ParentIndexNumber != null ? `S${item.ParentIndexNumber}` : '', item.IndexNumber != null ? `E${item.IndexNumber}` : ''].filter(Boolean).join(' · ');

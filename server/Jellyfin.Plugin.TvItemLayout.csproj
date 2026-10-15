@@ -6,13 +6,13 @@
     <TargetFramework Condition="$([System.String]::Copy('$(JellyfinVersion)').StartsWith('12.'))">net10.0</TargetFramework>
     <DefineConstants Condition="'$(JellyfinVersion)' == '10.10.7'">$(DefineConstants);JELLYFIN_1010</DefineConstants>
     <DefineConstants Condition="$([System.String]::Copy('$(JellyfinVersion)').StartsWith('12.'))">$(DefineConstants);JELLYFIN_12</DefineConstants>
-    <ReleaseVersion>0.2.55</ReleaseVersion>
-    <PluginVersion Condition="'$(JellyfinVersion)' == '10.10.7'">$(ReleaseVersion).1</PluginVersion>
-    <PluginVersion Condition="$([System.String]::Copy('$(JellyfinVersion)').StartsWith('10.11.'))">$(ReleaseVersion).2</PluginVersion>
-    <PluginVersion Condition="$([System.String]::Copy('$(JellyfinVersion)').StartsWith('12.'))">$(ReleaseVersion).3</PluginVersion>
-    <AssemblyVersion>$(PluginVersion)</AssemblyVersion>
-    <FileVersion>$(PluginVersion)</FileVersion>
-    <Version>$(PluginVersion)</Version>
+    <ReleaseVersion>1.0.0.0</ReleaseVersion>
+    <PluginVersion Condition="'$(JellyfinVersion)' == '10.10.7'">$(ReleaseVersion)</PluginVersion>
+    <PluginVersion Condition="$([System.String]::Copy('$(JellyfinVersion)').StartsWith('10.11.'))">$(ReleaseVersion)</PluginVersion>
+    <PluginVersion Condition="$([System.String]::Copy('$(JellyfinVersion)').StartsWith('12.'))">$(ReleaseVersion)</PluginVersion>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Version>1.0.0.0</Version>
     <LangVersion>12</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>

@@ -51,7 +51,7 @@ export class NativeFolderTheme {
     this.host = host;
     host.classList.add('tvl-folder-page'); document.body.classList.add('tvl-folder-native');
     const heading = el('header', 'tvl-folder-heading');
-    heading.append(el('p', 'tvl-folder-eyebrow', 'LIBRARY'), el('h1', '', this.folder.name));
+    heading.append(el('p', 'tvl-folder-eyebrow', 'BIBLIOTECA'), el('h1', '', this.folder.name));
     this.heading = heading; host.prepend(heading);
   };
 

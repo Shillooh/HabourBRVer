@@ -4,7 +4,7 @@ set -euo pipefail
 repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 project="$repo_dir/server/Jellyfin.Plugin.TvItemLayout.csproj"
 target="${1:-10.11.0}"
-release_version="0.2.55"
+release_version="1.0.0.0"
 
 case "$target" in
     all) targets=(10.10.7 10.11.0 12.0.0) ;;
@@ -23,9 +23,9 @@ mkdir -p "$repo_dir/dist/releases"
 
 for jellyfin_version in "${targets[@]}"; do
     case "$jellyfin_version" in
-        10.10.7) framework=net8.0; plugin_version="$release_version.1" ;;
-        10.11.*) framework=net9.0; plugin_version="$release_version.2" ;;
-        12.*) framework=net10.0; plugin_version="$release_version.3" ;;
+        10.10.7) framework=net8.0; plugin_version="$release_version" ;;
+        10.11.*) framework=net9.0; plugin_version="$release_version" ;;
+        12.*) framework=net10.0; plugin_version="$release_version" ;;
     esac
     dotnet build "$project" --configuration Release --nologo -p:JellyfinVersion="$jellyfin_version" -p:ReleaseVersion="$release_version"
     assembly="$repo_dir/server/bin/Release/$framework/Jellyfin.Plugin.TvItemLayout.dll"
@@ -51,7 +51,7 @@ with ZipFile(output, 'w', ZIP_DEFLATED) as archive:
             archive.write(asset, 'assets/seasonal-fonts/' + asset.name)
     archive.write(root / 'docs/server.md', 'INSTALL.md')
     archive.writestr('build-info.json', json.dumps({
-        'name': 'ScreenHarbour',
+        'name': 'ScreenHarbour Brasil',
         'id': '1a06b74f-7609-4af9-899d-430c9b5a52b1',
         'version': plugin_version,
         'jellyfinVersion': jellyfin_version,

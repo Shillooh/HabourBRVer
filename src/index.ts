@@ -105,9 +105,23 @@ function close(restore=true,destroyHome=false):void{
   if(document.body.classList.contains('tvl-home'))document.body.classList.remove('tvl-home');
   if(restore&&previousFocus?.isConnected&&!previousFocus.closest('#homeTab'))previousFocus.focus({preventScroll:true});
 }
+function parseRouteInfo():{path:string;params:URLSearchParams}{
+  const cleanHash=location.hash.replace(/^#[!/]*/,'');
+  const [hashPath,hashQuery='']=cleanHash.split('?');
+  const params=new URLSearchParams(hashQuery);
+  let path=hashPath.replace(/^\/+|\/+$/g,'');
+  if(!path&&location.pathname){
+    const segments=location.pathname.split('/').filter(Boolean);
+    const last=(segments[segments.length-1]||'').toLowerCase();
+    if(/^(?:details|item|items|itemdetailpage|home|movies|tv|music|livetv|boxsets|list)$/i.test(last)){
+      path=last;
+      new URLSearchParams(location.search).forEach((v,k)=>{if(!params.has(k))params.set(k,v);});
+    }
+  }
+  return {path,params};
+}
 function currentRoute():Route|null{
-  const [path,query='']=location.hash.replace(/^#\/?/,'').split('?');
-  const params=new URLSearchParams(query);
+  const {path,params}=parseRouteInfo();
   if(/^mypreferencesmenu\/?$/i.test(path)&&params.get('cinemaCollections')==='1'
     &&onlyParams(params,['cinemaCollections','serverId'])&&isDesktopLayout())return {kind:'collection-settings'};
   if(/^mypreferencesmenu\/?$/i.test(path)&&params.get('cinemaLoading')==='1'
@@ -172,9 +186,19 @@ function currentRoute():Route|null{
     const tab=tabs[params.get('tab')||'1'];
     if(tab)return {kind:'shows',parentId:params.get('topParentId')||undefined,tab};
   }
-  if(!/^details\/?$/i.test(path))return null;
-  const id=params.get('id');
-  return id?{kind:'detail',id}:null;
+  const parts=path.split('/');
+  const isDetail=/^(?:details|item|items|itemdetailpage)$/i.test(parts[0]);
+  if(isDetail){
+    const id=params.get('id')||params.get('itemId')||(parts.length>1&&parts[1]?parts[1]:undefined);
+    if(id)return {kind:'detail',id};
+  }
+  const nativeDetail=document.querySelector<HTMLElement>('.itemDetailPage:not(.tvl-native-hidden):not(.hide):not([hidden]), #itemDetailPage:not(.tvl-native-hidden):not(.hide):not([hidden])');
+  if(nativeDetail){
+    const identity=nativeDetail.querySelector<HTMLElement>('[data-id], [data-itemid]');
+    const id=identity?.dataset.id||identity?.dataset.itemid||nativeDetail.dataset.id||nativeDetail.dataset.itemid;
+    if(id)return {kind:'detail',id};
+  }
+  return null;
 }
 function onlyParams(params:URLSearchParams,allowed:string[]):boolean{
   let supported=true;params.forEach((_value,key)=>{if(!allowed.includes(key))supported=false;});return supported;
@@ -268,7 +292,7 @@ function refresh():void{
     const authentication=/^#\/?(?:login|selectserver)\/?(?:\?|$)/i.test(location.hash);
     close(false,!cinema||!api||authentication);return;
   }
-  if(dismissed===location.hash)return;
+  if(dismissed===location.hash && route.kind!=='detail')return;
   if(!api){close(false,true);return;}
   const scope=scopeOf(api);
   const key=`${scope}:${route.kind}:${location.hash}`;
@@ -489,14 +513,25 @@ function openRoute(route:Route,api:MediaApi,key:string):void{
 const schedule=()=>{if(disposed)return;window.clearTimeout(timer);timer=window.setTimeout(refresh,30);};
 // Route events must take ownership in the same task, before a restored native
 // page can paint. Debounce only noisy mutation notifications.
-const refreshNavigation=()=>{window.clearTimeout(timer);refresh();};
+const refreshNavigation=()=>{
+  window.clearTimeout(timer);
+  if(/^#!?\/(?:details|item)/i.test(location.hash)){
+    const clean='#/'+location.hash.replace(/^#[!/]*/,'');
+    if(location.hash!==clean)history.replaceState(history.state,'',clean);
+  }
+  refresh();
+};
 // Native cached pages rotate DOM slots, so DOM order cannot identify the owner.
 // A hide event on the overlay's current route belongs to an outgoing native
 // transition. Release the overlay once navigation has actually left its route.
 const hide=(event:Event)=>{if(location.hash!==openedHash&&nativeHostMask.owns(event.target))refreshNavigation();};
 const show=(event:Event)=>{
   const target=event.target as HTMLElement;
-  if(target.matches?.(nativePages)){
+  if(target.matches?.(nativePages)||target.matches?.('.itemDetailPage, #itemDetailPage')||target.querySelector?.('.itemDetailPage, #itemDetailPage')){
+    if(isCinemaLayout()&&(target.matches?.('.itemDetailPage, #itemDetailPage')||target.querySelector?.('.itemDetailPage, #itemDetailPage'))){
+      target.classList.add('tvl-native-hidden');
+      target.setAttribute('aria-hidden','true');
+    }
     refreshNavigation();
     if(document.body.classList.contains('tvl-home'))void homeCollections?.refreshSettings();
   }
@@ -505,15 +540,165 @@ const hashChanged=(event:HashChangeEvent)=>{
   if(dismissed!==location.hash)dismissed='';
   // The offline preview also has native Home/Featured links. Distinguish those
   // entries from a direct detail preview, whose Back dismisses the demo overlay.
-  if(window.TvItemLayoutDemo&&/^#\/home(?:\?|$)/.test(new URL(event.oldURL,location.href).hash)&&/^#\/details\?/.test(location.hash)){
+  if(window.TvItemLayoutDemo&&/^#[!]?\/home(?:\?|$)/.test(new URL(event.oldURL,location.href).hash)&&/^#[!]?\/details(?:\?|$)/.test(location.hash)){
     detailOrigins.add(location.hash);
     if(detailOrigins.size>100)detailOrigins.delete(detailOrigins.values().next().value!);
   }
+  if(/^#!?\/(?:details|item)/i.test(location.hash)){
+    const clean='#/'+location.hash.replace(/^#[!/]*/,'');
+    if(location.hash!==clean)history.replaceState(history.state,'',clean);
+  }
   refreshNavigation();
 };
+let longPressActive=false;
+let longPressTimer:number|undefined;
+let pointerDownTimestamp=0;
+let pointerStartX=0;
+let pointerStartY=0;
+const onPointerDown=(event:PointerEvent|MouseEvent)=>{
+  if(event.button!==0)return;
+  window.clearTimeout(longPressTimer);
+  longPressActive=false;
+  pointerDownTimestamp=Date.now();
+  pointerStartX=(event as MouseEvent).clientX||0;
+  pointerStartY=(event as MouseEvent).clientY||0;
+  const target=event.target as HTMLElement|null;
+  const card=target?.closest<HTMLElement>('.card[data-id], .card[data-itemid], [data-action="link"]');
+  if(card){
+    longPressTimer=window.setTimeout(()=>{longPressActive=true;},350);
+  }
+};
+const onPointerMove=(event:PointerEvent|MouseEvent)=>{
+  if(!pointerDownTimestamp)return;
+  const deltaX=Math.abs(((event as MouseEvent).clientX||0)-pointerStartX);
+  const deltaY=Math.abs(((event as MouseEvent).clientY||0)-pointerStartY);
+  if(deltaX>=10||deltaY>=10){
+    window.clearTimeout(longPressTimer);
+    longPressActive=false;
+    pointerDownTimestamp=0;
+  }
+};
+const onPointerUp=()=>{
+  window.clearTimeout(longPressTimer);
+  const wasLong=longPressActive||(pointerDownTimestamp>0&&Date.now()-pointerDownTimestamp>=350);
+  if(wasLong){
+    longPressActive=true;
+    window.setTimeout(()=>{longPressActive=false;pointerDownTimestamp=0;},400);
+  }else{
+    longPressActive=false;
+    pointerDownTimestamp=0;
+  }
+};
+const onPointerCancel=()=>{
+  window.clearTimeout(longPressTimer);
+  longPressActive=false;
+  pointerDownTimestamp=0;
+};
+const isMultiSelectActive=(target?:HTMLElement|null):boolean=>{
+  if(document.querySelector('.selectionCommandsPanel, .itemSelectionPanel, .withMultiSelect, .chkItemSelect, [data-multiselect="true"]'))return true;
+  if(target){
+    if(target.closest('.itemSelectionPanel, .selectionCommandsPanel, .chkItemSelect, .checkboxContainer, .multiSelectCheckboxOutline, .withMultiSelect, [data-multiselect="true"]'))return true;
+    const card=target.closest<HTMLElement>('.card');
+    if(card){
+      if(card.querySelector('.itemSelectionPanel, .chkItemSelect, .withMultiSelect'))return true;
+      if(card.classList.contains('withMultiSelect')||card.classList.contains('selected')||card.classList.contains('itemSelection-selected'))return true;
+      if(card.getAttribute('aria-selected')==='true')return true;
+    }
+    const container=target.closest<HTMLElement>('.itemsContainer, [data-multiselect]');
+    if(container&&(container.dataset.multiselect==='true'||container.getAttribute('data-multiselect')==='true'||container.classList.contains('withMultiSelect')))return true;
+  }
+  return false;
+};
+const isCardActionControl=(target:HTMLElement|null):HTMLElement|null=>{
+  if(!target)return null;
+  return target.closest<HTMLElement>(
+    'button:not(.card):not(.tvl-home-row-card):not(.tvl-library-card):not(.tvl-collection-card):not(.tvl-browse-card), '+
+    '[role="button"]:not(.card):not(.tvl-home-row-card):not(.tvl-library-card):not(.tvl-collection-card):not(.tvl-browse-card), '+
+    '.cardOverlayButton, .cardOverlayFab, .cardOverlayContainer, '+
+    '.itemAction:not(.card), [data-action]:not([data-action="link"]), '+
+    '.btnPlay, .btnUserData, .btnUserRating, .btnCardOptions, .btnPlaystate, .btnMoreCommands, '+
+    '.itemSelectionPanel, .chkItemSelect, .checkboxContainer, .multiSelectCheckboxOutline, '+
+    '.selectionCommandsPanel, .btnCloseSelectionPanel, .btnSelectionPanelOptions, '+
+    '.tvl-admin-item, [data-admin-item]'
+  );
+};
+const interceptClicks=(event:MouseEvent)=>{
+  if(!isCinemaLayout())return;
+  if(longPressActive||isMultiSelectActive(event.target as HTMLElement|null))return;
+  const target=event.target as HTMLElement|null;
+  if(!target||target.closest('#tv-layout, .tvl-root'))return;
+  if(isCardActionControl(target))return;
+  const anchor=target.closest<HTMLAnchorElement>('a[href]');
+  if(anchor){
+    if(isCardActionControl(target))return;
+    const href=anchor.getAttribute('href')||'';
+    const match=href.match(/#[!]?\/(?:details|item|items|itemdetailpage)(?:[\/?]([^\s]+))?/i);
+    if(match){
+      const queryStr=match[1]||'';
+      const params=new URLSearchParams(queryStr.startsWith('?')?queryStr.slice(1):queryStr);
+      const id=params.get('id')||params.get('itemId')||(match[1]&&!match[1].startsWith('?')?match[1]:null);
+      if(id){
+        event.preventDefault();
+        event.stopPropagation();
+        navigate(id);
+        return;
+      }
+    }
+  }
+  const card=target.closest<HTMLElement>('.card[data-id], .card[data-itemid], [data-action="link"][data-id], [data-action="link"][data-itemid]');
+  if(card){
+    if(isCardActionControl(target))return;
+    const id=card.dataset.id||card.dataset.itemid;
+    const type=card.dataset.type;
+    if(id&&(!type||['Movie','Series','Episode','Season','TvChannel','Program','BoxSet'].includes(type))){
+      event.preventDefault();
+      event.stopPropagation();
+      navigate(id);
+      return;
+    }
+  }
+};
+const nativeDetailObserver=new MutationObserver(mutations=>{
+  if(!isCinemaLayout())return;
+  for(const mutation of mutations){
+    for(const node of Array.from(mutation.addedNodes)){
+      if(node instanceof HTMLElement){
+        if(node.matches?.('.itemDetailPage, #itemDetailPage')||node.querySelector?.('.itemDetailPage, #itemDetailPage')){
+          const detail=node.matches?.('.itemDetailPage, #itemDetailPage')?node:node.querySelector<HTMLElement>('.itemDetailPage, #itemDetailPage')!;
+          detail.classList.add('tvl-native-hidden');
+          detail.setAttribute('aria-hidden','true');
+          refreshNavigation();
+          return;
+        }
+      }
+    }
+    if(mutation.target instanceof HTMLElement){
+      if(mutation.target.matches?.('.itemDetailPage:not(.tvl-native-hidden):not(.hide):not([hidden]), #itemDetailPage:not(.tvl-native-hidden):not(.hide):not([hidden])')){
+        mutation.target.classList.add('tvl-native-hidden');
+        mutation.target.setAttribute('aria-hidden','true');
+        refreshNavigation();
+        return;
+      }
+    }
+  }
+});
+nativeDetailObserver.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','style','hidden']});
+const pointerDownEvent=typeof window!=='undefined'&&'PointerEvent' in window?'pointerdown':'mousedown';
+const pointerUpEvent=typeof window!=='undefined'&&'PointerEvent' in window?'pointerup':'mouseup';
+const pointerCancelEvent=typeof window!=='undefined'&&'PointerEvent' in window?'pointercancel':'mouseleave';
+const pointerMoveEvent=typeof window!=='undefined'&&'PointerEvent' in window?'pointermove':'mousemove';
+document.addEventListener(pointerDownEvent,onPointerDown,true);
+document.addEventListener(pointerMoveEvent,onPointerMove,true);
+window.addEventListener(pointerUpEvent,onPointerUp,true);
+window.addEventListener(pointerCancelEvent,onPointerCancel,true);
 window.addEventListener('hashchange',hashChanged);window.addEventListener('popstate',refreshNavigation);
-document.addEventListener('viewshow',show,true);document.addEventListener('viewbeforehide',hide,true);
+document.addEventListener('viewshow',show,true);
+document.addEventListener('pageshow',show,true);
+document.addEventListener('viewbeforeshow',show,true);
+document.addEventListener('pagebeforeshow',show,true);
+document.addEventListener('viewbeforehide',hide,true);
 document.addEventListener('tabchange',refreshNavigation,true);
+document.addEventListener('click',interceptClicks,true);
 const observer=new MutationObserver(schedule);
 observer.observe(document.documentElement,{attributes:true,attributeFilter:['class']});
 observer.observe(document.body,{attributes:true,attributeFilter:['class']});
@@ -530,5 +715,5 @@ const scopeTimer=window.setInterval(()=>{
   if(scopeOf(api)!==accountScope)refresh();
   else if(!api)interfaceBranding.update(null,isCinemaLayout());
 },1000);
-window.TvItemLayout={refresh,destroy(){disposed=true;probeRevision++;pendingHash='';stopPauseScreen();nativeRecordingsTheme.destroy();profileMenu.destroy();desktopPlayer.destroy();nativeFolderTheme.destroy();nativeLoginTheme.destroy();nativeUserPages.destroy();interfaceBranding.destroy();trailerActions.destroy();channelZapper.destroy();playerBrowser.destroy();playerContext.destroy();close(true,true);clearHomeSession();sheet.remove();observer.disconnect();document.body.classList.remove('tvl-layout');window.clearTimeout(timer);window.clearInterval(scopeTimer);window.removeEventListener('hashchange',hashChanged);window.removeEventListener('popstate',refreshNavigation);document.removeEventListener('viewshow',show,true);document.removeEventListener('viewbeforehide',hide,true);document.removeEventListener('tabchange',refreshNavigation,true);}};
+window.TvItemLayout={refresh,destroy(){disposed=true;probeRevision++;pendingHash='';stopPauseScreen();nativeRecordingsTheme.destroy();profileMenu.destroy();desktopPlayer.destroy();nativeFolderTheme.destroy();nativeLoginTheme.destroy();nativeUserPages.destroy();interfaceBranding.destroy();trailerActions.destroy();channelZapper.destroy();playerBrowser.destroy();playerContext.destroy();close(true,true);clearHomeSession();sheet.remove();observer.disconnect();nativeDetailObserver.disconnect();document.body.classList.remove('tvl-layout');window.clearTimeout(timer);window.clearTimeout(longPressTimer);window.clearInterval(scopeTimer);document.removeEventListener(pointerDownEvent,onPointerDown,true);document.removeEventListener(pointerMoveEvent,onPointerMove,true);window.removeEventListener(pointerUpEvent,onPointerUp,true);window.removeEventListener(pointerCancelEvent,onPointerCancel,true);window.removeEventListener('hashchange',hashChanged);window.removeEventListener('popstate',refreshNavigation);document.removeEventListener('viewshow',show,true);document.removeEventListener('pageshow',show,true);document.removeEventListener('viewbeforeshow',show,true);document.removeEventListener('pagebeforeshow',show,true);document.removeEventListener('viewbeforehide',hide,true);document.removeEventListener('tabchange',refreshNavigation,true);document.removeEventListener('click',interceptClicks,true);}};
 refreshNavigation();

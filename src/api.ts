@@ -294,7 +294,7 @@ export function createJellyfinApi(): MediaApi | null {
     if (!data || !Array.isArray(data.Items) || !data.Items.every(item => item && typeof item.Id === 'string' && typeof item.Name === 'string'
       && (query.type === 'Mixed' ? item.Type === 'Movie' || item.Type === 'Series' : item.Type === query.type))
       || ![data.TotalRecordCount, data.Pending, data.Total].every(value => Number.isInteger(value) && value >= 0)
-      || !['ready', 'refreshing', 'unavailable'].includes(data.Status) || data.Region !== 'GB')
+      || !['ready', 'refreshing', 'unavailable'].includes(data.Status) || data.Region !== 'BR')
       throw new Error('Jellyfin returned an invalid provider catalogue. Try again.');
     return { ...data, Items: data.Items.filter(available) };
   };
@@ -329,7 +329,7 @@ export function createJellyfinApi(): MediaApi | null {
           && typeof item.Name === 'string' && item.Name.length <= 120 && item.Name.trim().length > 0
           && !/[\u0000-\u001f\u007f-\u009f]/.test(item.Name))
         && new Set(items.map(item => item.Id)).size === items.length;
-      if (!data || data.Region !== 'GB' || !valid(data.Movies) || !valid(data.Shows)) {
+      if (!data || data.Region !== 'BR' || !valid(data.Movies) || !valid(data.Shows)) {
         throw new Error('Jellyfin returned an invalid streaming service list. Try again.');
       }
       return data;
@@ -353,6 +353,21 @@ export function createJellyfinApi(): MediaApi | null {
         ...(query.watchlist ? { watchlist: true } : {})
       }), data: JSON.stringify(config), contentType: 'application/json', dataType: 'json' }) as ProviderItemsPage;
       return providerCatalogue(data, query);
+    }),
+    getProviderTrending: (provider, type, limit = 20) => read(async () => {
+      if (!validProviderId(provider) || !['Movie', 'Series'].includes(type)) throw new Error('Unknown streaming provider or media type.');
+      const data = await client.getJSON(client.getUrl(`TvItemLayout/Providers/${encodeURIComponent(provider)}/Trending`, {
+        type, limit: Math.max(1, Math.min(100, Math.floor(limit || 20)))
+      })) as ProviderItemsPage;
+      return providerCatalogue(data, { type });
+    }),
+    previewProviderTrending: (provider, type, limit = 20) => read(async () => {
+      const config = parseProviderHomes({ ...defaultProviderHomes(), providers: [provider] }).providers[0];
+      if (!['Movie', 'Series'].includes(type)) throw new Error('Unknown media type.');
+      const data = await client.ajax({ type: 'POST', url: client.getUrl('TvItemLayout/Providers/Trending/Preview', {
+        mediaType: type, limit: Math.max(1, Math.min(100, Math.floor(limit || 20)))
+      }), data: JSON.stringify(config), contentType: 'application/json', dataType: 'json' }) as ProviderItemsPage;
+      return providerCatalogue(data, { type });
     }),
     getItem: id => read(async () => {
       const item = await client.getItem(userId, id);

@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { cloneProviderHomes, defaultProviderHomes, defaultProviderRows, defaultProviderConfig, defaultCustomProvider, parseProviderHomes, providerHomesKey, validProviderId, maxProviders } from '../src/provider-settings.ts';
 
-test('provider defaults contain each UK service and distinct ranked charts and catalogue rows', () => {
+test('provider defaults contain each Brazilian service and distinct ranked charts and catalogue rows', () => {
   const settings = defaultProviderHomes();
-  assert.deepEqual(settings.providers.map(provider => provider.id), ['netflix', 'prime', 'disney', 'apple', 'now', 'paramount', 'bbc', 'itvx', 'channel4']);
+  assert.deepEqual(settings.providers.map(provider => provider.id), ['netflix', 'prime', 'max', 'globoplay', 'disney', 'crunchyroll', 'apple', 'viki']);
   assert.equal(settings.version, 2); assert.equal(settings.tileScale, 100); assert.equal(settings.showNames, true);
   for (const provider of settings.providers.slice(0, 6)) {
     assert.equal(provider.enabled, true); assert.equal(provider.hero, true);
@@ -13,8 +13,8 @@ test('provider defaults contain each UK service and distinct ranked charts and c
     assert.ok(provider.rows.filter(row => !row.source.startsWith('trending')).every(row => !row.ranked && row.itemSort === 'title'));
   }
   settings.providers[0].rows[0].title = 'Changed';
-  assert.equal(settings.providers[1].rows[0].title, 'Trending films');
-  assert.equal(defaultProviderHomes().providers[0].rows[0].title, 'Trending films');
+  assert.equal(settings.providers[1].rows[0].title, 'Filmes em Alta');
+  assert.equal(defaultProviderHomes().providers[0].rows[0].title, 'Filmes em Alta');
 });
 test('strict parser preserves explicit hidden services, empty pages, row order and blank titles', () => {
   const settings = defaultProviderHomes(); settings.enabled = false; settings.title = '';
@@ -73,22 +73,23 @@ const legacy = () => {
   return { version: 1, enabled: defaults.enabled, title: defaults.title, placement: defaults.placement,
     providers: defaults.providers.slice(0, 6).map(({ id, enabled, hero, rows }) => ({ id, enabled, hero, rows })) };
 };
-test('v1 migrates names, IDs and appearance while preserving choices and appending the three UK broadcasters', () => {
+test('v1 migrates names, IDs and appearance while preserving choices and appending regional broadcasters', () => {
   const saved = legacy(); saved.enabled = false; saved.providers.reverse(); saved.providers[0].enabled = false;
   saved.providers[1].hero = false; saved.providers[1].rows = [];
   const migrated = parseProviderHomes(saved);
   assert.equal(saved.version, 1); assert.equal(migrated.version, 2); assert.equal(migrated.enabled, false);
   assert.deepEqual(migrated.providers.slice(0, 6).map(({ id, enabled, hero, rows }) => ({ id, enabled, hero, rows })), saved.providers);
-  assert.deepEqual(migrated.providers.slice(6).map(provider => provider.id), ['bbc', 'itvx', 'channel4']);
+  assert.deepEqual(migrated.providers.slice(6).map(provider => provider.id), ['discovery', 'wetv', 'brasilparalelo']);
   for (const provider of migrated.providers.slice(6)) {
-    assert.deepEqual(provider.offerTypes, ['free', 'ads']); assert.deepEqual(provider.rows.map(row => row.source), ['movies', 'shows']);
+    assert.deepEqual(provider.offerTypes, ['flatrate']); assert.deepEqual(provider.rows.map(row => row.source), ['trending-movies', 'trending-shows', 'movies', 'shows']);
   }
   assert.deepEqual(parseProviderHomes({ ...saved, providers: [] }).providers, []);
-  assert.deepEqual(defaultProviderConfig('now').movieProviderIds, [591]); assert.deepEqual(defaultProviderConfig('now').showProviderIds, [39]);
+  assert.deepEqual(defaultProviderConfig('globoplay').movieProviderIds, [307]); assert.deepEqual(defaultProviderConfig('globoplay').showProviderIds, [307]);
+  assert.deepEqual(defaultProviderConfig('viki').movieProviderIds, [344, 1390]); assert.deepEqual(defaultProviderConfig('viki').showProviderIds, [344, 1390]);
   assert.deepEqual(parseProviderHomes(migrated), migrated); // migration appends once only
 });
 test('custom services preserve exact user definitions and ID limits without borrowing built-in catalogue membership', () => {
-  const custom = defaultCustomProvider('custom-local-service'); assert.equal(custom.name, 'New service');
+  const custom = defaultCustomProvider('custom-local-service'); assert.equal(custom.name, 'Novo serviço');
   assert.deepEqual(custom.rows, []); assert.deepEqual(custom.movieProviderIds, []); assert.deepEqual(custom.showProviderIds, []);
   const settings = defaultProviderHomes(); settings.tileScale = 150; settings.showNames = false;
   custom.name = 'My archive'; custom.logoUrl = 'https://example.com/logo.png?size=300'; custom.accent = '#ABCDEF';
@@ -101,5 +102,55 @@ test('custom services preserve exact user definitions and ID limits without borr
   settings.providers = Array.from({ length: maxProviders }, (_, i) => defaultCustomProvider(`custom-${i}`));
   assert.deepEqual(parseProviderHomes(settings), settings);
   settings.providers.push(defaultCustomProvider('custom-overflow')); assert.throws(() => parseProviderHomes(settings), /invalid/);
-  assert.throws(() => defaultCustomProvider('netflix'), /Invalid/);
+  assert.throws(() => defaultCustomProvider('netflix'), /Invalid|inválido/i);
 });
+
+test('retired legacy streaming services migrate gracefully without throwing invalid errors', () => {
+  const ukV2 = {
+    version: 2,
+    enabled: true,
+    title: 'Streaming services',
+    placement: 'start',
+    tileScale: 100,
+    showNames: true,
+    providers: [
+      { id: 'netflix', name: 'Netflix', logoUrl: '', accent: '#e50914', movieProviderIds: [8, 175, 1796], showProviderIds: [8, 175, 1796], offerTypes: ['flatrate'], enabled: true, hero: true, rows: [] },
+      { id: 'bbc', name: 'BBC iPlayer', logoUrl: '', accent: '#f54997', movieProviderIds: [38], showProviderIds: [38], offerTypes: ['free'], enabled: true, hero: true, rows: [] },
+      { id: 'now', name: 'NOW', logoUrl: '', accent: '#002b49', movieProviderIds: [591], showProviderIds: [39], offerTypes: ['flatrate'], enabled: true, hero: true, rows: [] }
+    ]
+  };
+  const migratedV2 = parseProviderHomes(ukV2);
+  assert.equal(migratedV2.title, 'Serviços de Streaming');
+  assert.deepEqual(migratedV2.providers.map(p => p.id), ['netflix']);
+
+  const ukV1 = {
+    version: 1,
+    enabled: true,
+    title: 'Streaming services',
+    placement: 'start',
+    providers: [
+      { id: 'netflix', enabled: true, hero: true, rows: [] },
+      { id: 'now', enabled: true, hero: true, rows: [] }
+    ]
+  };
+  const migratedV1 = parseProviderHomes(ukV1);
+  assert.equal(migratedV1.title, 'Serviços de Streaming');
+  assert.deepEqual(migratedV1.providers.map(p => p.id), ['netflix', 'discovery', 'wetv', 'brasilparalelo']);
+
+  const onlyUk = {
+    version: 2,
+    enabled: true,
+    title: 'Streaming services',
+    placement: 'start',
+    tileScale: 100,
+    showNames: true,
+    providers: [
+      { id: 'bbc', name: 'BBC iPlayer', logoUrl: '', accent: '#f54997', movieProviderIds: [38], showProviderIds: [38], offerTypes: ['free'], enabled: true, hero: true, rows: [] }
+    ]
+  };
+  const fallbackOnlyUk = parseProviderHomes(onlyUk);
+  assert.equal(fallbackOnlyUk.title, 'Serviços de Streaming');
+  assert.equal(fallbackOnlyUk.providers.length, 8);
+  assert.ok(fallbackOnlyUk.providers.some(p => p.id === 'viki'));
+});
+

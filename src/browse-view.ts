@@ -1,6 +1,6 @@
 import type { Item, ItemPage, MediaApi, SuggestionSection } from './types';
 import type { MusicKind } from './browse-api';
-import { button, el, icon, picture, replace } from './dom';
+import { button, el, icon, picture, replace, isCardAction } from './dom';
 import { attachRemote } from './remote';
 import { plainText, resumePosition, runtime } from './utils';
 import { AdminItemActions } from './admin-item-actions';
@@ -42,7 +42,7 @@ export class BrowseView {
   private restored = false;
   private removeRemote: () => void;
   private adminActions: AdminItemActions;
-  private get title(): string { return this.options.kind === 'music' ? 'Music' : 'Recordings'; }
+  private get title(): string { return this.options.kind === 'music' ? 'Música' : 'Gravações'; }
   private get playlist(): boolean { return this.options.item?.Type === 'Playlist'; }
   private entryKey(item: Item): string { return this.playlist ? item.PlaylistItemId || item.Id : item.Id; }
 
@@ -54,12 +54,12 @@ export class BrowseView {
     this.element.classList.toggle('tvl-browse-music', options.kind === 'music');
     this.element.classList.toggle('tvl-browse-playlist', this.playlist);
     this.element.setAttribute('role', 'dialog'); this.element.setAttribute('aria-modal', 'true');
-    this.element.setAttribute('aria-label', options.item ? `${options.item.Name} details` : this.title);
+    this.element.setAttribute('aria-label', options.item ? `Detalhes de ${options.item.Name}` : this.title);
     const header = el('header', 'tvl-header');
-    const back = button('Back', 'back', 'tvl-back', options.back); back.dataset.focusId = 'back';
+    const back = button('Voltar', 'back', 'tvl-back', options.back); back.dataset.focusId = 'back';
     header.append(back, el('span', 'tvl-browse-page-title', this.title));
     if (options.kind === 'music') {
-      const queue=button('Now playing','play','',()=>options.navigateRoute('#/queue'));queue.dataset.focusId='now-playing';header.append(queue);
+      const queue=button('Reproduzindo agora','play','',()=>options.navigateRoute('#/queue'));queue.dataset.focusId='now-playing';header.append(queue);
     }
     this.status.setAttribute('role', 'status');
     this.content.append(header, this.hero, this.controls, this.status, this.results); this.element.append(this.content);
@@ -97,39 +97,39 @@ export class BrowseView {
   private renderControls(): void {
     replace(this.controls);
     if (this.options.item) return;
-    const nav = el('nav', 'tvl-browse-tabs'); nav.setAttribute('aria-label', `Browse ${this.title.toLowerCase()}`);
+    const nav = el('nav', 'tvl-browse-tabs'); nav.setAttribute('aria-label', `Navegar em ${this.title.toLowerCase()}`);
     const tabs: [BrowseTab,string][] = this.options.kind === 'recordings'
-      ? [['all','All recordings'],['active','Recording now'],['completed','Completed']]
-      : [['albums','Albums'],['suggestions','Suggestions'],['albumArtists','Album artists'],['artists','Artists'],['songs','Songs'],['genres','Genres'],['playlists','Playlists']];
+      ? [['all','Todas as gravações'],['active','Gravando agora'],['completed','Concluídas']]
+      : [['albums','Álbuns'],['suggestions','Sugestões'],['albumArtists','Artistas do álbum'],['artists','Artistas'],['songs','Músicas'],['genres','Gêneros'],['playlists','Playlists']];
     for (const [tab,label] of tabs) {
       const control = button(label, '', 'tvl-browse-tab', () => this.change({ tab, search: '', letter: '', genreId: undefined, genreName: undefined }, `tab:${tab}`));
       control.dataset.focusId = `tab:${tab}`; control.setAttribute('aria-pressed', String(this.state.tab === tab)); nav.append(control);
     }
     const nativeLinks = this.options.kind === 'recordings'
-      ? [['TV guide','#/livetv?tab=1'],['Schedule','#/livetv?tab=4'],['Series recordings','#/livetv?tab=5']]
+      ? [['Guia de TV','#/livetv?tab=1'],['Programação','#/livetv?tab=4'],['Gravações de séries','#/livetv?tab=5']]
       : [];
     for (const [label,route] of nativeLinks) {
       const link=button(label,'','tvl-browse-tab',()=>this.options.navigateRoute(route));link.dataset.focusId=`native:${label}`;nav.append(link);
     }
     if (this.options.kind === 'music') {
-      const favorites = button('Favourites', 'heart', 'tvl-browse-tab', () => this.change({ favorite: !this.state.favorite,
+      const favorites = button('Favoritos', 'heart', 'tvl-browse-tab', () => this.change({ favorite: !this.state.favorite,
         tab: this.state.tab === 'genres' || this.state.tab === 'suggestions' ? 'albums' : this.state.tab }, 'favorites'));
       favorites.dataset.focusId = 'favorites'; favorites.setAttribute('aria-pressed', String(!!this.state.favorite)); nav.append(favorites);
     }
     const form = el('form', 'tvl-browse-search'); form.setAttribute('role', 'search');
-    const input = el('input'); input.type = 'search'; input.placeholder = `Search ${this.title.toLowerCase()}`;
+    const input = el('input'); input.type = 'search'; input.placeholder = `Buscar em ${this.title.toLowerCase()}`;
     input.setAttribute('aria-label', input.placeholder); input.value = this.state.search; input.dataset.focusId = 'search'; input.autocomplete = 'off';
-    const submit = button('Search', '', 'tvl-browse-submit', () => {}); submit.type = 'submit'; submit.dataset.focusId = 'search-submit';
+    const submit = button('Buscar', '', 'tvl-browse-submit', () => {}); submit.type = 'submit'; submit.dataset.focusId = 'search-submit';
     form.append(input, submit); form.addEventListener('submit', event => {
       event.preventDefault(); this.change({ search: input.value.trim(), letter: '',
         tab: this.state.tab === 'genres' || this.state.tab === 'suggestions' ? 'albums' : this.state.tab }, 'search');
     });
-    if (this.state.search) { const clear = button('Clear search', 'close', '', () => this.change({ search: '' }, 'search')); clear.dataset.focusId = 'clear-search'; form.append(clear); }
+    if (this.state.search) { const clear = button('Limpar busca', 'close', '', () => this.change({ search: '' }, 'search')); clear.dataset.focusId = 'clear-search'; form.append(clear); }
     this.controls.append(nav, form);
     if (this.options.kind === 'music' && !['genres','suggestions'].includes(this.state.tab)) {
-      const alphabet = el('nav', 'tvl-browse-alphabet'); alphabet.setAttribute('aria-label', 'Browse by title');
+      const alphabet = el('nav', 'tvl-browse-alphabet'); alphabet.setAttribute('aria-label', 'Navegar por título');
       for (const letter of ['', '#', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ']) {
-        const control = button(letter || 'All', '', '', () => this.change({ letter }, `letter:${letter || 'all'}`));
+        const control = button(letter || 'Todos', '', '', () => this.change({ letter }, `letter:${letter || 'all'}`));
         control.dataset.focusId = `letter:${letter || 'all'}`; control.setAttribute('aria-pressed', String(this.state.letter === letter)); alphabet.append(control);
       }
       this.controls.append(alphabet);
@@ -152,10 +152,10 @@ export class BrowseView {
     const requestedFocus = this.initialFocus; this.initialFocus = '';
     this.loading = true; this.results.setAttribute('aria-busy','true');
     const oldCount = this.items.length;
-    if (!append) { replace(this.results, el('p','tvl-loading',`Loading ${this.title.toLowerCase()}…`)); if (!this.element.contains(document.activeElement)) this.focus('back'); }
+    if (!append) { replace(this.results, el('p','tvl-loading',`Carregando ${this.title.toLowerCase()}…`)); if (!this.element.contains(document.activeElement)) this.focus('back'); }
     try {
       if (this.options.item && !['MusicAlbum','MusicArtist','Playlist'].includes(this.options.item.Type || '')) {
-        replace(this.results, el('p','tvl-browse-detail-note', this.options.item.Type === 'Audio' ? 'Ready to listen.' : 'Ready to watch.'));
+        replace(this.results, el('p','tvl-browse-detail-note', this.options.item.Type === 'Audio' ? 'Pronto para ouvir.' : 'Pronto para assistir.'));
       } else if (!this.options.item && this.state.tab === 'suggestions') {
         const sections = await this.api.getMusicSuggestions(this.options.parentId); if (!current()) return; this.renderSections(sections);
       } else if (!this.options.item && this.state.tab === 'genres') {
@@ -188,8 +188,8 @@ export class BrowseView {
       if (!current()) return;
       this.loading = false; this.results.removeAttribute('aria-busy');
       const error = el('div', 'tvl-browse-empty');
-      const retry = button('Try again', '', 'tvl-primary', () => { this.initialFocus = requestedFocus; void this.fetch(append); }); retry.dataset.focusId = 'retry';
-      error.append(el('h2','',`${this.title} unavailable`), el('p','','Check your connection and try again.'), retry);
+      const retry = button('Tentar novamente', '', 'tvl-primary', () => { this.initialFocus = requestedFocus; void this.fetch(append); }); retry.dataset.focusId = 'retry';
+      error.append(el('h2','',`${this.title} indisponível`), el('p','','Verifique sua conexão e tente novamente.'), retry);
       if (append) { this.results.querySelector('.tvl-browse-more')?.remove(); this.results.querySelector('.tvl-browse-empty')?.remove(); this.results.append(error); }
       else replace(this.results,error);
       if (focusRevision === this.focusRevision && (this.element.contains(document.activeElement) || document.activeElement === document.body)) this.focus('retry');
@@ -198,7 +198,7 @@ export class BrowseView {
   private renderSections(sections: SuggestionSection[]): void {
     replace(this.results,...sections.filter(section => section.items.length).map((section,index)=>this.section(section,`section-${index}`)));
     const first = sections.find(section => section.items.length)?.items[0]; this.renderHero(first);
-    if (!first) this.results.append(this.empty('Nothing here yet','Your listening history and recently added music will appear here.'));
+    if (!first) this.results.append(this.empty('Nada aqui ainda','Seu histórico de reprodução e músicas adicionadas recentemente aparecerão aqui.'));
   }
   private section(section: SuggestionSection, prefix: string): HTMLElement {
     const group = el('section','tvl-browse-section'); group.setAttribute('aria-label',section.title);
@@ -210,20 +210,20 @@ export class BrowseView {
       const card = button(genre.Name,'chevron','tvl-browse-genre',()=>this.change({tab:'albums',genreId:genre.Id,genreName:genre.Name},''));
       card.dataset.genreId=genre.Id; card.dataset.focusId=`genre:${genre.Id}`; grid.append(card);
     }
-    replace(this.results,el('h2','','Browse genres'),genres.length?grid:this.empty('No genres yet','Music genres will appear here.'));
+    replace(this.results,el('h2','','Navegar por gêneros'),genres.length?grid:this.empty('Nenhum gênero ainda','Os gêneros musicais aparecerão aqui.'));
   }
   private renderItems(): void {
-    const name = this.playlist ? this.options.item?.MediaType === 'Video' ? 'Titles' : 'Tracks'
-      : this.options.item?.Type === 'MusicAlbum' ? 'Tracks' : this.options.item?.Type === 'MusicArtist' ? 'Albums'
-      : this.state.search ? `Results for “${this.state.search}”` : this.state.genreName || (this.state.tab === 'playlists' ? 'Playlists' : this.state.tab === 'songs' ? 'Songs' : this.options.kind === 'recordings' ? 'Your recordings' : this.state.tab === 'artists' || this.state.tab === 'albumArtists' ? 'Artists' : 'Albums');
-    const heading = el('div','tvl-browse-section-heading'); heading.append(el('h2','',name),el('span','',`${this.total} ${this.total===1?'item':'items'}`));
+    const name = this.playlist ? this.options.item?.MediaType === 'Video' ? 'Títulos' : 'Faixas'
+      : this.options.item?.Type === 'MusicAlbum' ? 'Faixas' : this.options.item?.Type === 'MusicArtist' ? 'Álbuns'
+      : this.state.search ? `Resultados para “${this.state.search}”` : this.state.genreName || (this.state.tab === 'playlists' ? 'Playlists' : this.state.tab === 'songs' ? 'Músicas' : this.options.kind === 'recordings' ? 'Suas gravações' : this.state.tab === 'artists' || this.state.tab === 'albumArtists' ? 'Artistas' : 'Álbuns');
+    const heading = el('div','tvl-browse-section-heading'); heading.append(el('h2','',name),el('span','',`${this.total} ${this.total===1?'item':'itens'}`));
     replace(this.results,heading);
-    if (this.state.genreId) { const clear = button('All genres','back','',()=>this.change({tab:'genres',genreId:undefined,genreName:undefined},'tab:genres')); clear.dataset.focusId='all-genres'; heading.append(clear); }
+    if (this.state.genreId) { const clear = button('Todos os gêneros','back','',()=>this.change({tab:'genres',genreId:undefined,genreName:undefined},'tab:genres')); clear.dataset.focusId='all-genres'; heading.append(clear); }
     if (this.items.length) this.results.append(this.grid(this.items,'item',false));
-    else this.results.append(this.empty(this.playlist?'This playlist is empty':this.state.favorite?'No favourites found':'Nothing found',this.state.search||this.state.genreId||this.state.letter?'Try a different search or filter.':this.playlist?'Available items in this playlist will appear here.':'Items in your Jellyfin library will appear here.'));
+    else this.results.append(this.empty(this.playlist?'Esta playlist está vazia':this.state.favorite?'Nenhum favorito encontrado':'Nada encontrado',this.state.search||this.state.genreId||this.state.letter?'Tente uma busca ou filtro diferente.':this.playlist?'Os itens disponíveis nesta playlist aparecerão aqui.':'Os itens da sua biblioteca do Jellyfin aparecerão aqui.'));
     if (this.playlist) { const play = this.hero.querySelector<HTMLButtonElement>('[data-focus-id=play]'); if (play) play.disabled = !this.items.length; }
     if (this.nextStart < this.total) {
-      const more = button('Show more','','tvl-primary',()=>{void this.fetch(true);}); more.dataset.focusId='show-more';
+      const more = button('Mostrar mais','','tvl-primary',()=>{void this.fetch(true);}); more.dataset.focusId='show-more';
       const footer=el('div','tvl-browse-more');footer.append(more);this.results.append(footer);
     }
     if (!this.options.item) this.renderHero(this.items[0]);
@@ -232,20 +232,28 @@ export class BrowseView {
     const grid = el('div',this.playlist?'tvl-browse-tracks':row?'tvl-browse-grid tvl-browse-row':'tvl-browse-grid'); grid.setAttribute('role','list');
     for (const [index,item] of items.entries()) {
       const entry=el('div','tvl-browse-entry');entry.setAttribute('role','listitem');
-      const card=el('button','tvl-browse-card');card.type='button';card.dataset.browseItem=item.Id;card.dataset.itemType=item.Type||'';card.dataset.focusId=`${prefix}:${this.entryKey(item)}`;
+      const card=el('button','tvl-browse-card');card.type='button';card.dataset.browseItem=item.Id;card.dataset.itemId=item.Id;card.dataset.id=item.Id;card.dataset.itemType=item.Type||'';card.dataset.focusId=`${prefix}:${this.entryKey(item)}`;
       if(this.playlist){card.dataset.playlistEntry=item.PlaylistItemId||'';card.append(el('span','tvl-browse-track-number',String(index+1)));}
       const episode=item.Type==='Episode';const label=episode&&item.SeriesName?`${item.SeriesName}: ${item.Name}`:item.Name;
-      card.setAttribute('aria-label',this.playlist||this.options.item?.Type==='MusicAlbum'?`Play ${label}`:label);
+      card.setAttribute('aria-label',this.playlist||this.options.item?.Type==='MusicAlbum'?`Reproduzir ${label}`:label);
       card.append(picture(this.api.image(item,'thumb'),'tvl-browse-art'));
       const copy=el('div','tvl-browse-caption');copy.append(el('h3','',episode&&item.SeriesName?item.SeriesName:item.Name));
       const sub=episode?[item.ParentIndexNumber!=null?`S${item.ParentIndexNumber}`:'',item.IndexNumber!=null?`E${item.IndexNumber}`:'',item.Name].filter(Boolean).join(' · ')
-        : item.AlbumArtist || item.Artists?.join(', ') || (item.ProductionYear?String(item.ProductionYear):item.Type==='MusicArtist'?'Artist':'');
+        : item.AlbumArtist || item.Artists?.join(', ') || (item.ProductionYear?String(item.ProductionYear):item.Type==='MusicArtist'?'Artista':'');
       if(sub)copy.append(el('p','',sub));
-      if(item.IsInProgress||item.Status==='InProgress')copy.append(el('span','tvl-browse-live','Recording now'));
-      if(item.UserData?.IsFavorite){const favorite=el('span','tvl-browse-heart');favorite.setAttribute('aria-label','Favourite');favorite.append(icon('heart'));card.append(favorite);}
+      if(item.IsInProgress||item.Status==='InProgress')copy.append(el('span','tvl-browse-live','Gravando agora'));
+      if(item.UserData?.IsFavorite){const favorite=el('span','tvl-browse-heart');favorite.setAttribute('aria-label','Favorito');favorite.append(icon('heart'));card.append(favorite);}
       card.append(copy);if(this.playlist){const duration=item.RunTimeTicks?Math.floor(item.RunTimeTicks/10_000_000):0;card.append(el('span','tvl-browse-track-duration',duration?`${Math.floor(duration/60)}:${String(duration%60).padStart(2,'0')}`:''));}
       card.addEventListener('focus',()=>{if(!this.options.item)this.renderHero(item);});
-      card.addEventListener('click',()=>{if(this.disposed)return;this.save();if(this.playlist)void this.play(this.options.item!,item.PlaylistItemId);else if(this.options.item?.Type==='MusicAlbum')void this.play(item);else this.options.navigate(item.Id);});
+      card.addEventListener('click',(event: MouseEvent)=>{
+        const target = event.target as HTMLElement | null;
+        if (isCardAction(target, card)) {
+          event.stopPropagation();
+          event.preventDefault();
+          return;
+        }
+        if(this.disposed)return;this.save();if(this.playlist)void this.play(this.options.item!,item.PlaylistItemId);else if(this.options.item?.Type==='MusicAlbum')void this.play(item);else this.options.navigate(item.Id);
+      });
       entry.append(card, this.adminActions.button(item));grid.append(entry);
     }
     return grid;
@@ -254,21 +262,21 @@ export class BrowseView {
     this.selected=item;replace(this.hero);
     const backdrop=picture(item?this.api.image(item,'backdrop')||this.api.image(item,'thumb'):null,'tvl-browse-backdrop');backdrop.setAttribute('aria-hidden','true');
     const copy=el('div','tvl-browse-hero-copy');
-    copy.append(el('p','tvl-browse-eyebrow',this.playlist?'PLAYLIST':this.options.item?.Type==='MusicArtist'?'ARTIST':this.options.item?.Type==='MusicAlbum'?'ALBUM':this.title.toUpperCase()));
+    copy.append(el('p','tvl-browse-eyebrow',this.playlist?'PLAYLIST':this.options.item?.Type==='MusicArtist'?'ARTISTA':this.options.item?.Type==='MusicAlbum'?'ÁLBUM':this.title.toUpperCase()));
     copy.append(el('h1','',item?.Type==='Episode'&&item.SeriesName?item.SeriesName:item?.Name||this.title));
     if(item){
-      const meta=[item.Type==='Episode'?item.Name:'',item.AlbumArtist||item.Artists?.join(', ')||'',item.ProductionYear?String(item.ProductionYear):'',runtime(item.RunTimeTicks),item.IsInProgress||item.Status==='InProgress'?'Recording now':''].filter(Boolean);
+      const meta=[item.Type==='Episode'?item.Name:'',item.AlbumArtist||item.Artists?.join(', ')||'',item.ProductionYear?String(item.ProductionYear):'',runtime(item.RunTimeTicks),item.IsInProgress||item.Status==='InProgress'?'Gravando agora':''].filter(Boolean);
       if(meta.length)copy.append(el('p','tvl-browse-meta',meta.join(' · ')));
       const overview=plainText(item.Overview);if(overview)copy.append(el('p','tvl-browse-overview',overview));
       const actions=el('div','tvl-browse-actions');
-      if(playable(item)){const play=button(item.Type==='Playlist'?'Play playlist':resumePosition(item)?'Resume':item.Type==='MusicAlbum'?'Play album':'Play','play','tvl-primary',()=>{void this.play(item);});play.dataset.focusId='play';actions.append(play);}
-      if(!this.options.item){const details=button('Details','info','',()=>this.options.navigate(item.Id));details.dataset.focusId='details';actions.append(details);}
+      if(playable(item)){const play=button(item.Type==='Playlist'?'Reproduzir playlist':resumePosition(item)?'Retomar':item.Type==='MusicAlbum'?'Reproduzir álbum':'Reproduzir','play','tvl-primary',()=>{void this.play(item);});play.dataset.focusId='play';actions.append(play);}
+      if(!this.options.item){const details=button('Detalhes','info','',()=>this.options.navigate(item.Id));details.dataset.focusId='details';actions.append(details);}
       if(this.options.item && this.options.kind==='music'){
-        const favorite=button(item.UserData?.IsFavorite?'Remove from favourites':'Add to favourites','heart','',()=>{void this.favorite(item);});favorite.dataset.focusId='favorite-item';actions.append(favorite);
+        const favorite=button(item.UserData?.IsFavorite?'Remover dos favoritos':'Adicionar aos favoritos','heart','',()=>{void this.favorite(item);});favorite.dataset.focusId='favorite-item';actions.append(favorite);
       }
       actions.append(this.adminActions.button(item));
       copy.append(actions);
-    } else copy.append(el('p','tvl-browse-overview','Explore your Jellyfin library.'));
+    } else copy.append(el('p','tvl-browse-overview','Explore sua biblioteca do Jellyfin.'));
     this.hero.append(backdrop,copy);
   }
   private async play(item: Item, entryId?: string): Promise<void> {
@@ -276,21 +284,21 @@ export class BrowseView {
     const revision=++this.launchRevision;
     const current=()=>!this.disposed&&this.launching&&revision===this.launchRevision;
     const focused=document.activeElement as HTMLElement|null;focused?.setAttribute('aria-busy','true');
-    this.status.textContent=`Starting ${item.Name}…`;
+    this.status.textContent=`Iniciando ${item.Name}…`;
     const finish=(message:string)=>{if(!current())return;window.clearTimeout(this.launchTimer);this.launching=false;focused?.removeAttribute('aria-busy');this.status.textContent=message;};
-    this.launchTimer=window.setTimeout(()=>finish('Playback has not started. Please try again.'),15_000);
+    this.launchTimer=window.setTimeout(()=>finish('A reprodução não foi iniciada. Tente novamente.'),15_000);
     try {
       if(item.Type==='Playlist')await this.api.playPlaylist(item,entryId,current);
       else await this.api.play(item,resumePosition(item),current);
       // Audio remains on this page. Dispatch is not confirmation of playback;
       // native Now playing exposes the current device's actual playback state.
-      if(['Audio','MusicAlbum','Playlist'].includes(item.Type||''))finish('Playback requested.');
-    } catch(error) {finish(error instanceof Error?error.message:'Unable to start playback. Try again.');}
+      if(['Audio','MusicAlbum','Playlist'].includes(item.Type||''))finish('Reprodução solicitada.');
+    } catch(error) {finish(error instanceof Error?error.message:'Não foi possível iniciar a reprodução. Tente novamente.');}
   }
   private async favorite(item: Item): Promise<void> {
     if(this.launching||this.disposed)return;this.launching=true;const next=!item.UserData?.IsFavorite;
-    try{await this.api.setFavorite(item.Id,next);if(this.disposed)return;item.UserData={...item.UserData,IsFavorite:next};this.renderHero(item);this.focus('favorite-item');this.status.textContent=next?'Added to favourites.':'Removed from favourites.';}
-    catch{if(!this.disposed)this.status.textContent='Unable to update favourites. Try again.';}finally{this.launching=false;}
+    try{await this.api.setFavorite(item.Id,next);if(this.disposed)return;item.UserData={...item.UserData,IsFavorite:next};this.renderHero(item);this.focus('favorite-item');this.status.textContent=next?'Adicionado aos favoritos.':'Removido dos favoritos.';}
+    catch{if(!this.disposed)this.status.textContent='Não foi possível atualizar os favoritos. Tente novamente.';}finally{this.launching=false;}
   }
   private async refreshMetadata(): Promise<void> {
     if (this.disposed) return;

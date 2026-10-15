@@ -11,9 +11,9 @@ import { decorateSeasonalRow } from './home-seasonal-appearance';
 import { dailyAdvent } from './home-advent';
 
 const watchlistSource = '@watchlist';
-const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const monthDays = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-const seasonDateLabel = (value: string): string => validSeasonDate(value) ? `${Number(value.slice(3))} ${months[Number(value.slice(0, 2)) - 1]}` : 'Choose a date';
+const seasonDateLabel = (value: string): string => validSeasonDate(value) ? `${Number(value.slice(3))} de ${months[Number(value.slice(0, 2)) - 1]}` : 'Escolha uma data';
 
 
 type OrderEntry = { row: HomeCollectionRow } | { anchor: HomeAnchor };
@@ -64,18 +64,18 @@ export class HomeCollectionEditor {
     this.anchors = native.length ? native.map(({ key, label }) => ({ key, label })) : cachedHomeRows(this.key);
     this.selectedId = this.draft.rows[0]?.id || '';
     this.element.setAttribute('role', 'dialog'); this.element.setAttribute('aria-modal', 'true');
-    this.element.setAttribute('aria-label', 'Customize Home rows');
-    this.sidebar.setAttribute('aria-label', 'Your Home rows');
+    this.element.setAttribute('aria-label', 'Personalizar fileiras da Página Inicial');
+    this.sidebar.setAttribute('aria-label', 'Suas fileiras da Página Inicial');
     const panel = el('div', 'tvl-home-editor-panel');
     const header = el('header', 'tvl-home-editor-header');
-    const title = el('div'); title.append(el('p', 'tvl-home-editor-eyebrow', 'PERSONALISE HOME'), el('h1', '', 'Your Home rows'));
+    const title = el('div'); title.append(el('p', 'tvl-home-editor-eyebrow', 'PERSONALIZAR PÁGINA INICIAL'), el('h1', '', 'Suas fileiras da Página Inicial'));
     const actions = el('div', 'tvl-home-editor-actions');
-    const cancel = button('Cancel', 'close', '', () => this.close()); cancel.dataset.editorFocus = 'cancel';
-    this.saveButton = button('Save rows', 'check', 'tvl-primary', () => { void this.save(); }); this.saveButton.disabled = true; this.saveButton.dataset.editorFocus = 'save';
+    const cancel = button('Cancelar', 'close', '', () => this.close()); cancel.dataset.editorFocus = 'cancel';
+    this.saveButton = button('Salvar fileiras', 'check', 'tvl-primary', () => { void this.save(); }); this.saveButton.disabled = true; this.saveButton.dataset.editorFocus = 'save';
     actions.append(cancel, this.saveButton); header.append(title, actions);
-    this.status.setAttribute('role', 'status'); this.status.textContent = 'Loading collections…';
+    this.status.setAttribute('role', 'status'); this.status.textContent = 'Carregando coleções…';
     const layout = el('div', 'tvl-home-editor-layout'); layout.append(this.sidebar, this.workspace);
-    panel.append(header, el('p', 'tvl-home-editor-intro', this.store.synced ? 'Saved rows follow this Jellyfin account across your devices.' : 'This preview saves choices on this device.'), this.status, layout);
+    panel.append(header, el('p', 'tvl-home-editor-intro', this.store.synced ? 'As fileiras salvas acompanham esta conta do Jellyfin em todos os seus dispositivos.' : 'Esta pré-visualização salva as opções neste dispositivo.'), this.status, layout);
     this.element.append(panel);
     this.removeRemote = attachRemote(this.element, () => this.close());
     this.removeWatchlist = subscribeWatchlist(api, () => {
@@ -92,16 +92,16 @@ export class HomeCollectionEditor {
     if (this.disposed || this.loadingSettings || this.saving) return;
     this.loadingSettings = true; this.ready = false; this.saveButton.disabled = true;
     this.disposePreviewAppearance?.(); this.disposePreviewAppearance = undefined;
-    this.status.textContent = 'Loading collections and saved rows…'; replace(this.sidebar); replace(this.workspace);
+    this.status.textContent = 'Carregando coleções e fileiras salvas…'; replace(this.sidebar); replace(this.workspace);
     try {
       const [collections, settings] = await Promise.all([this.api.getCollectionList(), this.store.load()]); if (this.disposed) return;
       this.draft = settings; this.selectedId = this.draft.rows[0]?.id || '';
       this.collections = collections; this.ready = true; this.saveButton.disabled = false;
-      this.status.textContent = collections.length ? '' : 'No collections are available for this account yet.'; this.redraw();
+      this.status.textContent = collections.length ? '' : 'Nenhuma coleção disponível para esta conta ainda.'; this.redraw();
     } catch (error) {
       if (this.disposed) return;
-      replace(this.workspace, button('Retry collections', '', 'tvl-primary', () => { void this.loadCollections(); }));
-      this.status.textContent = error instanceof HomeCollectionSyncError ? error.message : 'Collections and saved rows could not be loaded. Check your connection and try again.';
+      replace(this.workspace, button('Tentar novamente', '', 'tvl-primary', () => { void this.loadCollections(); }));
+      this.status.textContent = error instanceof HomeCollectionSyncError ? error.message : 'Não foi possível carregar as coleções e fileiras salvas. Verifique sua conexão e tente novamente.';
     } finally { this.loadingSettings = false; }
   }
   private control(label: string, focus: string, action: () => void, className = ''): HTMLButtonElement {
@@ -114,8 +114,8 @@ export class HomeCollectionEditor {
     return this.draft.rows.find(group => group.kind === 'seasonal' && group.children?.includes(row));
   }
   private name(row: HomeCollectionRow): string {
-    if (row.kind === 'seasonal') return 'Seasonal group';
-    return row.title.trim() || (row.kind === 'watchlist' ? 'Watchlist' : row.kind === 'collections' ? 'Collections' : this.collections.find(item => item.Id === homeCollectionTabs(row)[0].collectionId)?.Name || 'New collection row');
+    if (row.kind === 'seasonal') return 'Grupo sazonal';
+    return row.title.trim() || (row.kind === 'watchlist' ? 'Minha Lista' : row.kind === 'collections' ? 'Coleções' : this.collections.find(item => item.Id === homeCollectionTabs(row)[0].collectionId)?.Name || 'Nova fileira de coleção');
   }
   private source(row: HomeCollectionRow): HomeCollectionTab | undefined {
     return row.tabs?.find(tab => tab.id === this.selectedTabs.get(row.id)) || row.tabs?.[0];
@@ -144,41 +144,41 @@ export class HomeCollectionEditor {
       }, `tvl-home-row-choice${child ? ' tvl-home-season-choice' : ''}`);
       entry.dataset.editorRow = row.id;
       entry.setAttribute('aria-pressed', String(row.id === this.selectedId));
-      entry.append(el('small', '', row.kind === 'seasonal' ? `${row.children?.length || 0} seasonal row${row.children?.length === 1 ? '' : 's'} · one Home position`
+      entry.append(el('small', '', row.kind === 'seasonal' ? `${row.children?.length || 0} fileira${row.children?.length === 1 ? '' : 's'} sazonal${row.children?.length === 1 ? '' : 'is'} · uma posição na Home`
         : child && row.season ? `${seasonDateLabel(row.season.start)} – ${seasonDateLabel(row.season.end)}`
-        : row.kind === 'watchlist' ? 'Saved movies and TV shows' : row.kind === 'collections' ? `${row.collectionIds.length} selected collections`
-        : `${row.ranked ? 'Ranked' : 'Poster'} item row${row.tabs ? ` · ${row.tabs.length} tabs` : ''}`));
+        : row.kind === 'watchlist' ? 'Filmes e séries salvos' : row.kind === 'collections' ? `${row.collectionIds.length} coleções selecionadas`
+        : `Fileira de itens em ${row.ranked ? 'destaque numerado' : 'pôster'}${row.tabs ? ` · ${row.tabs.length} abas` : ''}`));
       this.sidebar.append(entry);
     };
     for (const row of this.draft.rows) { sidebarEntry(row); if (row.kind === 'seasonal') row.children?.forEach(child => sidebarEntry(child, true)); }
     const add = el('div', 'tvl-home-editor-add');
     for (const kind of ['collections', 'items', 'watchlist', 'seasonal'] as const) {
-      const control = this.control(kind === 'seasonal' ? 'Add seasonal group' : kind === 'watchlist' ? 'Add Watchlist row' : kind === 'collections' ? 'Add Collections row' : 'Add collection items row', `add:${kind}`, () => {
+      const control = this.control(kind === 'seasonal' ? 'Adicionar grupo sazonal' : kind === 'watchlist' ? 'Adicionar fileira da Minha Lista' : kind === 'collections' ? 'Adicionar fileira de coleções' : 'Adicionar fileira de itens de coleção', `add:${kind}`, () => {
         const row = this.newRow(kind);
         this.draft.rows.push(row); this.selectedId = row.id; this.tab = 'content'; this.search = ''; this.redraw(kind === 'seasonal' ? 'add-season:items' : 'title');
       }); control.disabled = this.draft.rows.length >= 12; add.append(control);
     }
     this.sidebar.append(add);
     const row = this.selectedRow();
-    if (!row) this.workspace.append(el('h2', '', 'Make Home your own'), el('p', '', 'Add your Watchlist, favourite collections, or seasonal rows that appear at the right time of year.'));
+    if (!row) this.workspace.append(el('h2', '', 'Personalize sua Página Inicial'), el('p', '', 'Adicione sua Minha Lista, coleções favoritas ou fileiras sazonais que aparecem na época certa do ano.'));
     else {
       const parent = this.parentOf(row);
       if (!parent && this.tab === 'appearance') this.tab = 'content';
       if (parent) {
-        this.workspace.append(this.control('Back to seasonal group', 'season:back', () => { this.selectedId = parent.id; this.tab = 'content'; this.redraw(`row:${parent.id}`); }, 'tvl-home-season-back'));
+        this.workspace.append(this.control('Voltar ao grupo sazonal', 'season:back', () => { this.selectedId = parent.id; this.tab = 'content'; this.redraw(`row:${parent.id}`); }, 'tvl-home-season-back'));
         if (this.tab === 'position') this.tab = 'content';
       }
       const heading = el('div', 'tvl-home-editor-heading');
-      heading.append(el('h2', '', this.name(row)), this.control(row.kind === 'seasonal' ? 'Remove seasonal group' : 'Remove row', 'remove', () => {
+      heading.append(el('h2', '', this.name(row)), this.control(row.kind === 'seasonal' ? 'Remover grupo sazonal' : 'Remover fileira', 'remove', () => {
         const siblings = parent ? parent.children! : this.draft.rows;
         const index = siblings.indexOf(row); siblings.splice(index, 1);
         this.selectedId = parent?.id || siblings[Math.min(index, siblings.length - 1)]?.id || ''; this.tab = 'content';
         this.redraw(this.selectedId ? `row:${this.selectedId}` : 'add:collections');
       }));
-      const tabs = el('nav', 'tvl-home-editor-tabs'); tabs.setAttribute('aria-label', 'Row settings');
-      const choices = row.kind === 'seasonal' ? [['content', 'Seasonal rows'], ['position', 'Home position']] as const
-        : parent ? [['content', 'Content'], ['order', 'Item order'], ['appearance', 'Appearance']] as const
-        : [['content', 'Content'], ['order', 'Item order'], ['position', 'Home position']] as const;
+      const tabs = el('nav', 'tvl-home-editor-tabs'); tabs.setAttribute('aria-label', 'Configurações da fileira');
+      const choices = row.kind === 'seasonal' ? [['content', 'Fileiras sazonais'], ['position', 'Posição na Home']] as const
+        : parent ? [['content', 'Conteúdo'], ['order', 'Ordem dos itens'], ['appearance', 'Aparência']] as const
+        : [['content', 'Conteúdo'], ['order', 'Ordem dos itens'], ['position', 'Posição na Home']] as const;
       if (row.kind === 'seasonal' && this.tab === 'order') this.tab = 'content';
       for (const [tab, label] of choices) {
         const control = this.control(label, `tab:${tab}`, () => { this.tab = tab; this.redraw(`tab:${tab}`); }); control.setAttribute('aria-pressed', String(this.tab === tab)); tabs.append(control);
@@ -189,8 +189,8 @@ export class HomeCollectionEditor {
         if (this.tab === 'position') this.renderPosition(row, content); else this.renderSeasons(row, content);
       } else {
         if (parent && this.tab === 'content') this.renderSeasonDates(row, this.workspace);
-        const content = el('div', 'tvl-home-editor-row'); content.setAttribute('role', 'group'); content.setAttribute('aria-label', row.kind === 'watchlist' ? 'Watchlist row' : row.kind === 'collections' ? 'Collections row' : 'Collection items row');
-        this.preview = el('aside', 'tvl-home-preview'); this.preview.setAttribute('aria-label', 'Home row preview'); this.preview.tabIndex = -1; this.preview.dataset.editorFocus = 'preview';
+        const content = el('div', 'tvl-home-editor-row'); content.setAttribute('role', 'group'); content.setAttribute('aria-label', row.kind === 'watchlist' ? 'Fileira da Minha Lista' : row.kind === 'collections' ? 'Fileira de coleções' : 'Fileira de itens de coleção');
+        this.preview = el('aside', 'tvl-home-preview'); this.preview.setAttribute('aria-label', 'Pré-visualização da fileira'); this.preview.tabIndex = -1; this.preview.dataset.editorFocus = 'preview';
         const body = el('div', 'tvl-home-editor-body'); body.append(content, this.preview); this.workspace.append(body);
         const sourceSwitch = row.kind === 'items' && this.tab !== 'appearance' ? this.sourceSwitch(row) : undefined;
         if (this.tab === 'appearance') this.renderAppearance(row, content);
@@ -214,16 +214,16 @@ export class HomeCollectionEditor {
   }
   private newRow(kind: HomeCollectionRow['kind']): HomeCollectionRow {
     const row: HomeCollectionRow = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, kind,
-      title: kind === 'watchlist' ? 'Watchlist' : kind === 'collections' ? 'Collections' : '',
+      title: kind === 'watchlist' ? 'Minha Lista' : kind === 'collections' ? 'Coleções' : '',
       collectionIds: [], ranked: false, placement: 'end', itemSort: 'collection', itemOrder: [] };
     if (kind === 'seasonal') row.children = [];
     return row;
   }
   private renderAppearance(row: HomeCollectionRow, content: HTMLElement): void {
     content.classList.add('tvl-home-seasonal-appearance-editor');
-    content.append(el('p', 'tvl-home-editor-help', 'Give this seasonal row its own scenery and reveal. All choices are optional and apply only while this row is in season.'));
-    const themes = el('div', 'tvl-home-seasonal-themes'); themes.setAttribute('role', 'group'); themes.setAttribute('aria-label', 'Seasonal theme');
-    for (const [theme, name] of [['normal', 'Normal'], ['halloween', 'Halloween'], ['christmas', 'Christmas']] as const) {
+    content.append(el('p', 'tvl-home-editor-help', 'Dê a esta fileira sazonal seu próprio cenário e efeito de revelação. Todas as opções são opcionais e são aplicadas apenas quando a fileira estiver na temporada ativa.'));
+    const themes = el('div', 'tvl-home-seasonal-themes'); themes.setAttribute('role', 'group'); themes.setAttribute('aria-label', 'Tema sazonal');
+    for (const [theme, name] of [['normal', 'Normal'], ['halloween', 'Halloween'], ['christmas', 'Natal']] as const) {
       const choice = this.control(name, `appearance:theme:${theme}`, () => {
         if (theme === 'normal') delete row.appearance;
         else row.appearance = row.appearance ? { ...row.appearance, theme } : defaultSeasonalAppearance(theme);
@@ -240,9 +240,9 @@ export class HomeCollectionEditor {
       choice.setAttribute('aria-pressed', String((row.appearance?.theme || 'normal') === theme));
       themes.append(choice);
     }
-    content.append(el('h3', '', 'Theme'), themes);
+    content.append(el('h3', '', 'Tema'), themes);
     if (!row.appearance) {
-      content.append(el('p', 'tvl-home-editor-help', 'Normal keeps the standard Home row, with no scenery, frames or reveal.'));
+      content.append(el('p', 'tvl-home-editor-help', 'Normal mantém a fileira padrão da Home, sem cenários, molduras ou revelação.'));
       return;
     }
     const appearance = row.appearance;
@@ -265,8 +265,8 @@ export class HomeCollectionEditor {
     const artStyle = (key: 'backgroundStyle' | 'frameStyle' | 'coverStyle', name: string) => {
       const label = el('label', 'tvl-home-seasonal-select tvl-home-seasonal-art-style', name), select = el('select');
       select.dataset.editorFocus = `appearance:${key}`;
-      const styles: [HomeSeasonalArtStyle, string][] = [['classic', 'Illustrated'], ['storybook', 'Playful / family'], ['photoreal', key === 'coverStyle' && appearance.reveal === 'advent' ? 'Gilded winter wood' : 'Photorealistic']];
-      if (appearance.theme === 'halloween') styles.push(['nightmare', 'Nightmare — very scary']);
+      const styles: [HomeSeasonalArtStyle, string][] = [['classic', 'Ilustrado'], ['storybook', 'Lúdico / infantil'], ['photoreal', key === 'coverStyle' && appearance.reveal === 'advent' ? 'Madeira de inverno dourada' : 'Fotorrealista']];
+      if (appearance.theme === 'halloween') styles.push(['nightmare', 'Pesadelo — muito assustador']);
       for (const [value, text] of styles) { const option = el('option', '', text); option.value = value; select.append(option); }
       select.value = appearance[key] || 'classic';
       select.addEventListener('change', () => {
@@ -275,23 +275,23 @@ export class HomeCollectionEditor {
       });
       label.append(select); content.append(label);
       if (appearance[key] === 'nightmare' && !nightmareNoteShown) {
-        content.append(el('p', 'tvl-home-seasonal-setting-help', 'Nightmare is designed for adult horror collections.'));
+        content.append(el('p', 'tvl-home-seasonal-setting-help', 'O estilo Pesadelo foi projetado para coleções de terror adulto.'));
         nightmareNoteShown = true;
       }
     };
-    option('background', 'Background', [['none', 'None'], ['static', 'Static scenery'], ['parallax', 'Parallax scenery']], 'Static scenery stays still. Parallax scenery moves gently behind the items as the row scrolls.');
-    if (appearance.background !== 'none') artStyle('backgroundStyle', 'Scenery style');
-    option('expansion', 'Height when focused', [['none', 'Standard height'], ['medium', 'Roomier · up to 1.5×'], ['large', 'Immersive · up to 2×'], ['fullscreen', 'Full screen']], 'Returns to normal when focus leaves. Full screen fills the available screen space and enlarges the title in a font matching the scenery style. Posters keep their size.');
+    option('background', 'Plano de fundo', [['none', 'Nenhum'], ['static', 'Cenário estático'], ['parallax', 'Cenário parallax']], 'O cenário estático permanece fixo. O cenário parallax se move suavemente atrás dos itens conforme a fileira rola.');
+    if (appearance.background !== 'none') artStyle('backgroundStyle', 'Estilo do cenário');
+    option('expansion', 'Altura ao focar', [['none', 'Altura padrão'], ['medium', 'Espaçoso · até 1.5×'], ['large', 'Imersivo · até 2×'], ['fullscreen', 'Tela cheia']], 'Retorna ao normal ao remover o foco. Tela cheia preenche o espaço disponível da tela e amplia o título com uma fonte correspondente ao estilo do cenário. Os pôsteres mantêm seu tamanho.');
     const frameLabel = el('label', 'tvl-home-seasonal-frame-toggle');
     const frame = el('input'); frame.type = 'checkbox'; frame.checked = appearance.frame; frame.dataset.editorFocus = 'appearance:frame';
     frame.addEventListener('change', () => { appearance.frame = frame.checked; this.redraw('appearance:frame'); });
-    frameLabel.append(frame, el('span', '', 'Themed item frames')); content.append(frameLabel);
-    if (appearance.frame) artStyle('frameStyle', 'Frame style');
+    frameLabel.append(frame, el('span', '', 'Molduras temáticas para itens')); content.append(frameLabel);
+    if (appearance.frame) artStyle('frameStyle', 'Estilo da moldura');
     if (row.kind === 'items' && row.ranked) {
-      const label = el('label', 'tvl-home-seasonal-select tvl-home-seasonal-art-style', 'Rank number style'), select = el('select');
+      const label = el('label', 'tvl-home-seasonal-select tvl-home-seasonal-art-style', 'Estilo da numeração de classificação'), select = el('select');
       select.dataset.editorFocus = 'appearance:rankStyle';
-      const styles = [['match', 'Match frame style'], ['standard', 'Standard numbers'], ['classic', 'Illustrated'], ['storybook', 'Playful / family'], ['photoreal', 'Textured']];
-      if (appearance.theme === 'halloween') styles.push(['nightmare', 'Nightmare — very scary']);
+      const styles = [['match', 'Combinar com a moldura'], ['standard', 'Números padrão'], ['classic', 'Ilustrado'], ['storybook', 'Lúdico / infantil'], ['photoreal', 'Texturizado']];
+      if (appearance.theme === 'halloween') styles.push(['nightmare', 'Pesadelo — muito assustador']);
       for (const [value, text] of styles) { const option = el('option', '', text); option.value = value; select.append(option); }
       select.value = appearance.rankStyle || 'match';
       select.addEventListener('change', () => {
@@ -301,55 +301,55 @@ export class HomeCollectionEditor {
       });
       label.append(select); content.append(label);
       if (appearance.rankStyle === 'nightmare' && !nightmareNoteShown) {
-        content.append(el('p', 'tvl-home-seasonal-setting-help', 'Nightmare is designed for adult horror collections.'));
+        content.append(el('p', 'tvl-home-seasonal-setting-help', 'O estilo Pesadelo foi projetado para coleções de terror adulto.'));
         nightmareNoteShown = true;
       }
     } else if (row.kind === 'items') {
-      content.append(el('p', 'tvl-home-seasonal-setting-help', 'Enable Ranked artwork in Content to theme the rank numbers.'));
+      content.append(el('p', 'tvl-home-seasonal-setting-help', 'Ative Arte de classificação em Conteúdo para aplicar temas aos números.'));
     }
-    const reveals: [HomeSeasonalAppearance['reveal'], string][] = [['none', 'Always visible'], ['doors', 'Opening doors'], ['shutters', 'Opening window shutters'], ['curtains', 'Drawing curtains']];
-    if (appearance.theme === 'christmas' && row.kind === 'items') reveals.push(['advent', 'Advent calendar doors']);
-    option('reveal', 'Item reveal', reveals, 'Doors, shutters or curtains hide the artwork and title until that item is focused or hovered. They close when you move away.');
+    const reveals: [HomeSeasonalAppearance['reveal'], string][] = [['none', 'Sempre visível'], ['doors', 'Portas se abrindo'], ['shutters', 'Persianas de janela se abrindo'], ['curtains', 'Cortinas se abrindo']];
+    if (appearance.theme === 'christmas' && row.kind === 'items') reveals.push(['advent', 'Portas do calendário do advento']);
+    option('reveal', 'Revelação do item', reveals, 'Portas, persianas ou cortinas ocultam a arte e o título até que o item seja focado ou passe o cursor. Elas se fecham ao afastar o foco.');
     if (appearance.reveal === 'advent') {
-      const label = el('label', 'tvl-home-seasonal-select', 'Door opening'), select = el('select');
+      const label = el('label', 'tvl-home-seasonal-select', 'Abertura das portas'), select = el('select');
       select.dataset.editorFocus = 'appearance:adventUnlock';
-      for (const [value, text] of [['daily', 'Daily from season start'], ['focus', 'Open any door on focus']]) {
+      for (const [value, text] of [['daily', 'Diário a partir do início da temporada'], ['focus', 'Abrir qualquer porta ao focar']]) {
         const choice = el('option', '', text); choice.value = value; select.append(choice);
       }
       select.value = appearance.adventUnlock || 'focus';
       select.addEventListener('change', () => { appearance.adventUnlock = select.value as 'daily' | 'focus'; this.redraw('appearance:adventUnlock'); });
       const openingHelp = dailyAdvent(row)
-        ? 'Door 1 opens on the season start date, with one more film available each day. Start on 1 December for a traditional advent calendar. Films follow Item order; Shuffle on load is ignored so each film keeps its door number.'
-        : 'Every door can open when focused or hovered, with no daily restriction. Film positions follow Item order unless Shuffle on load is enabled.';
-      label.append(select); content.append(label, el('p', 'tvl-home-seasonal-setting-help', `${openingHelp} Preview doors always open, whatever today’s date.`));
-      artStyle('coverStyle', 'Advent door style');
-    } else if (appearance.reveal === 'doors' || appearance.reveal === 'shutters') artStyle('coverStyle', 'Door or shutter style');
+        ? 'A Porta 1 se abre na data de início da temporada, com mais um filme disponível a cada dia. Comece em 1º de dezembro para um calendário do advento tradicional. Os filmes seguem a Ordem dos itens; a ordem aleatória é ignorada para que cada filme mantenha o número de sua porta.'
+        : 'Cada porta pode ser aberta quando focada ou com o cursor em cima, sem restrição diária. As posições dos filmes seguem a Ordem dos itens, a menos que a ordem aleatória esteja ativada.';
+      label.append(select); content.append(label, el('p', 'tvl-home-seasonal-setting-help', `${openingHelp} As portas de pré-visualização sempre se abrem, independentemente da data de hoje.`));
+      artStyle('coverStyle', 'Estilo da porta do advento');
+    } else if (appearance.reveal === 'doors' || appearance.reveal === 'shutters') artStyle('coverStyle', 'Estilo de porta ou persiana');
   }
   private renderSeasons(group: HomeCollectionRow, content: HTMLElement): void {
-    content.append(el('p', 'tvl-home-editor-help', 'Give seasonal rows one shared Home position. Only rows whose dates are active appear, in the order below. The group has no heading and takes no space when none are active.'));
-    const list = el('ol', 'tvl-home-season-list'); list.setAttribute('aria-label', 'Seasonal rows');
+    content.append(el('p', 'tvl-home-editor-help', 'Dê às fileiras sazonais uma posição compartilhada na Home. Apenas as fileiras com datas ativas aparecem, na ordem abaixo. O grupo não possui cabeçalho e não ocupa espaço quando nenhuma estiver ativa.'));
+    const list = el('ol', 'tvl-home-season-list'); list.setAttribute('aria-label', 'Fileiras sazonais');
     const children = group.children ||= [];
     children.forEach((row, index) => {
       const line = el('li'); line.dataset.seasonRow = row.id;
       const choose = this.control(this.name(row), `season:edit:${row.id}`, () => { this.selectedId = row.id; this.tab = 'content'; this.search = ''; this.visibleItems = 60; this.redraw('title'); }, 'tvl-home-season-edit');
-      choose.setAttribute('aria-label', `Edit ${this.name(row)}`);
-      choose.append(el('small', '', row.season ? `${seasonDateLabel(row.season.start)} – ${seasonDateLabel(row.season.end)} every year` : 'Choose season dates'));
+      choose.setAttribute('aria-label', `Editar ${this.name(row)}`);
+      choose.append(el('small', '', row.season ? `${seasonDateLabel(row.season.start)} – ${seasonDateLabel(row.season.end)} todos os anos` : 'Escolha as datas da temporada'));
       line.append(choose);
       const actions = el('div', 'tvl-home-editor-actions');
-      for (const [delta, direction] of [[-1, 'up'], [1, 'down']] as const) {
-        const move = this.control(`Move ${this.name(row)} ${direction}`, `season:move:${row.id}:${delta}`, () => {
+      for (const [delta, direction] of [[-1, 'para cima'], [1, 'para baixo']] as const) {
+        const move = this.control(`Mover ${this.name(row)} ${direction}`, `season:move:${row.id}:${delta}`, () => {
           [children[index], children[index + delta]] = [children[index + delta], children[index]];
           this.redraw(`season:move:${row.id}:${-delta}`);
-        }); move.setAttribute('aria-label', `Move ${this.name(row)} ${direction}`); move.querySelector('span')!.textContent = delta < 0 ? '↑' : '↓';
+        }); move.setAttribute('aria-label', `Mover ${this.name(row)} ${direction}`); move.querySelector('span')!.textContent = delta < 0 ? '↑' : '↓';
         move.disabled = index + delta < 0 || index + delta >= children.length; actions.append(move);
       }
-      const remove = this.control(`Remove ${this.name(row)}`, `season:remove:${row.id}`, () => { children.splice(index, 1); this.redraw('add-season:items'); });
+      const remove = this.control(`Remover ${this.name(row)}`, `season:remove:${row.id}`, () => { children.splice(index, 1); this.redraw('add-season:items'); });
       actions.append(remove); line.append(actions); list.append(line);
     });
     content.append(list);
-    if (!children.length) content.append(el('p', 'tvl-home-season-empty', 'Add a row for Halloween, Christmas, or any season you choose.'));
-    const add = el('div', 'tvl-home-season-add'); add.setAttribute('role', 'group'); add.setAttribute('aria-label', 'Add a seasonal row');
-    for (const [kind, label] of [['collections', 'Add seasonal collections row'], ['items', 'Add seasonal collection items row'], ['watchlist', 'Add seasonal Watchlist row']] as const) {
+    if (!children.length) content.append(el('p', 'tvl-home-season-empty', 'Adicione uma fileira para Halloween, Natal ou qualquer época que você desejar.'));
+    const add = el('div', 'tvl-home-season-add'); add.setAttribute('role', 'group'); add.setAttribute('aria-label', 'Adicionar fileira sazonal');
+    for (const [kind, label] of [['collections', 'Adicionar fileira de coleções sazonal'], ['items', 'Adicionar fileira de itens de coleção sazonal'], ['watchlist', 'Adicionar fileira da Minha Lista sazonal']] as const) {
       const control = this.control(label, `add-season:${kind}`, () => {
         const row = this.newRow(kind), month = new Date().getMonth() + 1;
         const monthText = String(month).padStart(2, '0');
@@ -360,17 +360,17 @@ export class HomeCollectionEditor {
     content.append(add);
   }
   private renderSeasonDates(row: HomeCollectionRow, content: HTMLElement): void {
-    const dates = el('section', 'tvl-home-season-dates'); dates.setAttribute('aria-label', 'Season dates');
-    const summary = el('p', 'tvl-home-editor-help', 'Shown every year, including both dates. An end date before the start continues into the following year.');
+    const dates = el('section', 'tvl-home-season-dates'); dates.setAttribute('aria-label', 'Datas da temporada');
+    const summary = el('p', 'tvl-home-editor-help', 'Exibido todos os anos, incluindo ambas as datas. Uma data de término anterior ao início continua no ano seguinte.');
     dates.append(summary);
     const fields = el('div', 'tvl-home-season-date-fields');
-    for (const [key, title] of [['start', 'Start'], ['end', 'End']] as const) {
+    for (const [key, title] of [['start', 'Início'], ['end', 'Término']] as const) {
       const value = row.season?.[key] || '', month = Number(value.slice(0, 2)), day = Number(value.slice(3));
       const field = el('fieldset'); field.append(el('legend', '', title));
-      const monthLabel = el('label', '', 'Month'), monthInput = el('select'); monthInput.setAttribute('aria-label', `${title} month`); monthInput.dataset.editorFocus = `season:${key}:month`;
+      const monthLabel = el('label', '', 'Mês'), monthInput = el('select'); monthInput.setAttribute('aria-label', `${title} - Mês`); monthInput.dataset.editorFocus = `season:${key}:month`;
       months.forEach((name, index) => { const option = el('option', '', name); option.value = String(index + 1); monthInput.append(option); });
       monthInput.value = month >= 1 && month <= 12 ? String(month) : '1';
-      const dayLabel = el('label', '', 'Day'), dayInput = el('select'); dayInput.setAttribute('aria-label', `${title} day`); dayInput.dataset.editorFocus = `season:${key}:day`;
+      const dayLabel = el('label', '', 'Dia'), dayInput = el('select'); dayInput.setAttribute('aria-label', `${title} - Dia`); dayInput.dataset.editorFocus = `season:${key}:day`;
       for (let number = 1; number <= (monthDays[month - 1] || 31); number++) { const option = el('option', '', String(number)); option.value = String(number); dayInput.append(option); }
       dayInput.value = day >= 1 && day <= (monthDays[month - 1] || 31) ? String(day) : '1';
       const update = (focus: string) => {
@@ -386,8 +386,8 @@ export class HomeCollectionEditor {
     dates.append(fields); content.append(dates);
   }
   private renderContent(row: HomeCollectionRow, content: HTMLElement): void {
-    const label = el('label', '', 'Row title'); const title = el('input'); title.type = 'text'; title.maxLength = 80;
-    title.value = row.title; title.placeholder = row.kind === 'watchlist' ? 'Watchlist' : row.kind === 'collections' ? 'Collections' : 'Collection name'; title.dataset.editorFocus = 'title';
+    const label = el('label', '', 'Título da fileira'); const title = el('input'); title.type = 'text'; title.maxLength = 80;
+    title.value = row.title; title.placeholder = row.kind === 'watchlist' ? 'Minha Lista' : row.kind === 'collections' ? 'Coleções' : 'Nome da coleção'; title.dataset.editorFocus = 'title';
     title.addEventListener('input', () => {
       row.title = title.value;
       this.workspace.querySelector('h2')!.textContent = this.name(row);
@@ -395,22 +395,22 @@ export class HomeCollectionEditor {
       this.renderPreview(row);
     }); label.append(title); content.append(label);
     if (row.kind === 'watchlist') {
-      content.append(el('p', 'tvl-home-editor-help', 'Movies and TV shows saved to your Watchlist appear together here. Add titles from their details or while watching a trailer.')); return;
+      content.append(el('p', 'tvl-home-editor-help', 'Filmes e séries salvos na sua Minha Lista aparecem juntos aqui. Adicione títulos na tela de detalhes ou ao assistir a um trailer.')); return;
     }
     if (row.kind === 'items') {
-      const rank = this.control('Ranked artwork', 'ranked', () => {
+      const rank = this.control('Arte de classificação', 'ranked', () => {
         row.ranked = !row.ranked; rank.setAttribute('aria-pressed', String(row.ranked)); this.renderPreview(row);
-        if (!this.parentOf(row)) this.sidebar.querySelector('.tvl-home-row-choice[aria-pressed="true"]>small')!.textContent = `${row.ranked ? 'Ranked' : 'Poster'} item row${row.tabs ? ` · ${row.tabs.length} tabs` : ''}`;
+        if (!this.parentOf(row)) this.sidebar.querySelector('.tvl-home-row-choice[aria-pressed="true"]>small')!.textContent = `Fileira de itens em ${row.ranked ? 'destaque numerado' : 'pôster'}${row.tabs ? ` · ${row.tabs.length} abas` : ''}`;
       });
-      rank.setAttribute('aria-pressed', String(row.ranked)); content.append(rank, el('p', 'tvl-home-editor-help', 'Large number images beside the posters, following your chosen item order.'));
+      rank.setAttribute('aria-pressed', String(row.ranked)); content.append(rank, el('p', 'tvl-home-editor-help', 'Números grandes ao lado dos pôsteres, seguindo a ordem de itens escolhida.'));
       if (!row.tabs) {
-        content.append(this.control('Add collection tabs', 'add-tabs', () => {
-          row.tabs = [{ ...homeCollectionTabs(row)[0], label: 'Movies', itemOrder: row.itemOrder.slice() }, { id: `tab-${Date.now()}`, label: 'Shows', collectionId: '', itemSort: 'collection', itemOrder: [] }];
+        content.append(this.control('Adicionar abas de coleção', 'add-tabs', () => {
+          row.tabs = [{ ...homeCollectionTabs(row)[0], label: 'Filmes', itemOrder: row.itemOrder.slice() }, { id: `tab-${Date.now()}`, label: 'Séries', collectionId: '', itemSort: 'collection', itemOrder: [] }];
           this.selectedTabs.set(row.id, row.tabs[1].id); this.search = ''; this.redraw('tab-label');
-        }), el('p', 'tvl-home-editor-help', 'Show several collections in one row, with a switch such as Movies / Shows.'));
+        }), el('p', 'tvl-home-editor-help', 'Exiba várias coleções em uma única fileira, com alternância como Filmes / Séries.'));
       } else {
         const source = this.source(row)!;
-        const tabLabel = el('label', '', 'Tab label'); const input = el('input'); input.type = 'text'; input.maxLength = 40; input.value = source.label; input.placeholder = 'Collection name'; input.dataset.editorFocus = 'tab-label';
+        const tabLabel = el('label', '', 'Rótulo da aba'); const input = el('input'); input.type = 'text'; input.maxLength = 40; input.value = source.label; input.placeholder = 'Nome da coleção'; input.dataset.editorFocus = 'tab-label';
         input.addEventListener('input', () => {
           source.label = input.value;
           const control = Array.from(this.workspace.querySelectorAll<HTMLElement>('.tvl-home-editor-row [data-source-tab]')).find(node => node.dataset.sourceTab === source.id);
@@ -418,11 +418,11 @@ export class HomeCollectionEditor {
           this.renderPreview(row);
         }); tabLabel.append(input); content.append(tabLabel);
         const actions = el('div', 'tvl-home-editor-actions');
-        const add = this.control('Add tab', 'add-tab', () => {
+        const add = this.control('Adicionar aba', 'add-tab', () => {
           const tab: HomeCollectionTab = { id: `tab-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, label: '', collectionId: '', itemSort: 'collection', itemOrder: [] };
           row.tabs!.push(tab); this.selectedTabs.set(row.id, tab.id); this.search = ''; this.redraw('tab-label');
         }); add.disabled = row.tabs.length >= maxHomeCollectionTabs;
-        const remove = this.control('Remove tab', 'remove-tab', () => {
+        const remove = this.control('Remover aba', 'remove-tab', () => {
           const at = row.tabs!.indexOf(source); row.tabs!.splice(at, 1);
           const remaining = row.tabs![Math.min(at, row.tabs!.length - 1)]; this.selectedTabs.set(row.id, remaining.id);
           if (row.tabs!.length === 1) { row.collectionIds = remaining.collectionId ? [remaining.collectionId] : []; row.itemSort = remaining.itemSort; row.itemOrder = remaining.itemOrder.slice(); delete row.tabs; }
@@ -430,18 +430,18 @@ export class HomeCollectionEditor {
         }); remove.disabled = row.tabs.length < 2;
         actions.append(add, remove);
         const at = row.tabs.indexOf(source);
-        for (const [delta, label] of [[-1, 'Move tab left'], [1, 'Move tab right']] as const) {
+        for (const [delta, label] of [[-1, 'Mover aba para a esquerda'], [1, 'Mover aba para a direita']] as const) {
           const move = this.control(label, `tab-move:${delta}`, () => {
             [row.tabs![at], row.tabs![at + delta]] = [row.tabs![at + delta], row.tabs![at]];
             this.redraw(`tab-move:${-delta}`);
           }); move.disabled = at + delta < 0 || at + delta >= row.tabs.length; actions.append(move);
         }
-        content.append(actions, el('p', 'tvl-home-editor-help', 'Each tab keeps its own collection and item order. The first tab opens by default.'));
+        content.append(actions, el('p', 'tvl-home-editor-help', 'Cada aba mantém sua própria coleção e ordem de itens. A primeira aba abre por padrão.'));
       }
     }
-    content.append(el('h3', '', row.kind === 'collections' ? 'Choose collections' : 'Choose one collection'));
-    const search = el('input'); search.type = 'search'; search.placeholder = 'Find collections'; search.setAttribute('aria-label', 'Find collections'); search.value = this.search; search.dataset.editorFocus = 'collection-search';
-    const choices = el('div', 'tvl-home-collection-choices'); choices.setAttribute('role', 'group'); choices.setAttribute('aria-label', row.kind === 'collections' ? 'Choose collections' : 'Choose one collection');
+    content.append(el('h3', '', row.kind === 'collections' ? 'Escolher coleções' : 'Escolher uma coleção'));
+    const search = el('input'); search.type = 'search'; search.placeholder = 'Buscar coleções'; search.setAttribute('aria-label', 'Buscar coleções'); search.value = this.search; search.dataset.editorFocus = 'collection-search';
+    const choices = el('div', 'tvl-home-collection-choices'); choices.setAttribute('role', 'group'); choices.setAttribute('aria-label', row.kind === 'collections' ? 'Escolher coleções' : 'Escolher uma coleção');
     const drawChoices = () => {
       replace(choices);
       for (const collection of this.collections.filter(item => item.Name.toLocaleLowerCase().includes(this.search.toLocaleLowerCase()))) {
@@ -459,7 +459,7 @@ export class HomeCollectionEditor {
         }, 'tvl-home-collection-choice'); choice.setAttribute('aria-pressed', String(selected));
         choice.prepend(picture(this.api.image(collection, 'thumb'), 'tvl-home-choice-art')); choices.append(choice);
       }
-      if (!choices.childElementCount) choices.append(el('p', '', 'No matching collections.'));
+      if (!choices.childElementCount) choices.append(el('p', '', 'Nenhuma coleção correspondente.'));
     };
     search.addEventListener('input', () => { this.search = search.value; drawChoices(); }); drawChoices(); content.append(search, choices);
   }
@@ -489,15 +489,15 @@ export class HomeCollectionEditor {
     if (this.preview.contains(document.activeElement)) this.preview.focus({ preventScroll: true });
     replace(this.preview);
     const header = el('div', 'tvl-home-preview-header');
-    header.append(el('p', 'tvl-home-editor-eyebrow', 'HOME PREVIEW'), el('span', 'tvl-home-preview-draft', 'Unsaved draft'));
+    header.append(el('p', 'tvl-home-editor-eyebrow', 'PRÉ-VISUALIZAÇÃO DA HOME'), el('span', 'tvl-home-preview-draft', 'Rascunho não salvo'));
     this.preview.append(header);
     const sequence = combinedHomeOrder(this.draft.rows, this.anchors);
     const parent = this.parentOf(row), positionedRow = parent || row;
     const at = sequence.findIndex(entry => 'row' in entry && entry.row === positionedRow);
     const label = (entry: OrderEntry) => 'row' in entry ? this.name(entry.row) : entry.anchor.label;
-    const before = this.anchors.length ? at > 0 ? `After ${label(sequence[at - 1])}` : 'Top of Home'
-      : positionedRow.placement === 'start' ? 'Top of Home' : positionedRow.placement === 'end' ? 'After existing Home rows' : 'Home position preview';
-    if (parent && row.season) this.preview.append(el('p', 'tvl-home-preview-season', `${seasonDateLabel(row.season.start)} – ${seasonDateLabel(row.season.end)} every year · ${isSeasonActive(row.season) ? 'Visible today' : 'Hidden today; preview only'}`));
+    const before = this.anchors.length ? at > 0 ? `Depois de ${label(sequence[at - 1])}` : 'Topo da Página Inicial'
+      : positionedRow.placement === 'start' ? 'Topo da Página Inicial' : positionedRow.placement === 'end' ? 'Depois das fileiras existentes da Home' : 'Pré-visualização da posição na Home';
+    if (parent && row.season) this.preview.append(el('p', 'tvl-home-preview-season', `${seasonDateLabel(row.season.start)} – ${seasonDateLabel(row.season.end)} todos os anos · ${isSeasonActive(row.season) ? 'Visível hoje' : 'Oculto hoje; apenas pré-visualização'}`));
     this.preview.append(el('p', 'tvl-home-preview-neighbour', parent ? `${before} · shared seasonal position` : before));
     const section = el('section', 'tvl-home-collection-row'); section.setAttribute('aria-label', this.name(row));
     section.append(el('h3', 'tvl-home-row-title', this.name(row)));
@@ -505,8 +505,8 @@ export class HomeCollectionEditor {
     if (sourceSwitch) section.append(sourceSwitch);
     const panel = el('div'); panel.id = 'tvl-home-preview-items';
     if (sourceSwitch) { panel.setAttribute('role', 'tabpanel'); panel.setAttribute('aria-labelledby', `tvl-home-preview-tab-${encodeURIComponent(this.source(row)!.id)}`); }
-    const cards = el('div', 'tvl-home-row-cards'); cards.setAttribute('role', 'list'); cards.setAttribute('aria-label', 'Preview items'); panel.append(cards); section.append(panel);
-    const after = this.anchors.length ? at < sequence.length - 1 ? `Before ${label(sequence[at + 1])}` : 'End of Home' : 'Visit Home once to see neighbouring rows.';
+    const cards = el('div', 'tvl-home-row-cards'); cards.setAttribute('role', 'list'); cards.setAttribute('aria-label', 'Itens da pré-visualização'); panel.append(cards); section.append(panel);
+    const after = this.anchors.length ? at < sequence.length - 1 ? `Antes de ${label(sequence[at + 1])}` : 'Fim da Página Inicial' : 'Acesse a Página Inicial uma vez para ver as fileiras vizinhas.';
     this.preview.append(section, el('p', 'tvl-home-preview-neighbour', after));
     if (focusedSource) Array.from(this.preview.querySelectorAll<HTMLElement>('[data-source-tab]')).find(control => control.dataset.sourceTab === focusedSource)?.focus({ preventScroll: true });
     const status = (message: string) => {
@@ -516,17 +516,17 @@ export class HomeCollectionEditor {
     const selectedIds = row.kind === 'items' ? [this.sourceCollection(row)].filter(Boolean) : row.collectionIds;
     const chosen = selectedIds.map(id => this.collections.find(item => item.Id === id)).filter((item): item is Item => !!item);
     if (row.kind !== 'watchlist' && !chosen.length) {
-      status(selectedIds.length ? 'The selected collection is unavailable. Choose another in Content.' : row.kind === 'items' ? 'Choose a collection to preview its items.' : 'Choose collections to see them here.');
+      status(selectedIds.length ? 'A coleção selecionada não está disponível. Escolha outra em Conteúdo.' : row.kind === 'items' ? 'Escolha uma coleção para pré-visualizar seus itens.' : 'Escolha coleções para vê-las aqui.');
       return;
     }
     let items = chosen;
     if (row.kind === 'items' || row.kind === 'watchlist') {
       const id = row.kind === 'watchlist' ? watchlistSource : chosen[0].Id;
       if (this.errors.has(id)) {
-        status(row.kind === 'watchlist' ? 'Your Watchlist could not be loaded.' : 'The preview could not load these collection items.');
-        cards.append(this.control('Retry preview', 'retry-preview', () => { void this.loadItems(id); this.renderPreview(row); })); return;
+        status(row.kind === 'watchlist' ? 'Não foi possível carregar sua Minha Lista.' : 'A pré-visualização não pôde carregar os itens desta coleção.');
+        cards.append(this.control('Tentar novamente', 'retry-preview', () => { void this.loadItems(id); this.renderPreview(row); })); return;
       }
-      if (!this.items.has(id)) { status('Loading preview…'); void this.loadItems(id); return; }
+      if (!this.items.has(id)) { status('Carregando pré-visualização…'); void this.loadItems(id); return; }
       items = orderHomeItems(this.items.get(id)!, this.source(row) || row);
     }
     if (row.shuffle && !dailyAdvent(row)) {
@@ -544,86 +544,86 @@ export class HomeCollectionEditor {
       if (row.appearance) card.dataset.editorFocus = `preview:item:${item.Id}`;
       entry.append(card); cards.append(entry);
     });
-    if (!items.length) { status(row.kind === 'watchlist' ? 'Your Watchlist is empty. Save a movie or TV show to see it here.' : 'This collection is empty. Items added to it will appear here.'); return; }
+    if (!items.length) { status(row.kind === 'watchlist' ? 'Sua Minha Lista está vazia. Salve um filme ou série para ver aqui.' : 'Esta coleção está vazia. Os itens adicionados a ela aparecerão aqui.'); return; }
     this.disposePreviewAppearance = decorateSeasonalRow(section, cards, row);
-    if (row.appearance) this.preview.append(this.control('Focus preview', 'preview:focus', () => {
+    if (row.appearance) this.preview.append(this.control('Focar na pré-visualização', 'preview:focus', () => {
       cards.querySelector<HTMLElement>('.tvl-home-row-card')?.focus();
     }, 'tvl-home-seasonal-preview-focus'));
     const footer = el('div', 'tvl-home-preview-footer');
-    const noun = row.kind === 'collections' ? 'collection' : 'item';
-    footer.append(el('p', 'tvl-home-preview-count', items.length > 60 ? `First 60 of ${items.length} items${row.kind === 'watchlist' ? '' : ' · Home also shows View full collection'}` : `${items.length} ${noun}${items.length === 1 ? '' : 's'}`));
+    const noun = row.kind === 'collections' ? (items.length === 1 ? 'coleção' : 'coleções') : (items.length === 1 ? 'item' : 'itens');
+    footer.append(el('p', 'tvl-home-preview-count', items.length > 60 ? `Primeiros 60 de ${items.length} itens${row.kind === 'watchlist' ? '' : ' · A Home também exibe Ver coleção completa'}` : `${items.length} ${noun}`));
     if (items.length > 1) {
-      const actions = el('div', 'tvl-home-preview-scroll'); actions.setAttribute('role', 'group'); actions.setAttribute('aria-label', 'Scroll the preview');
+      const actions = el('div', 'tvl-home-preview-scroll'); actions.setAttribute('role', 'group'); actions.setAttribute('aria-label', 'Rolar a pré-visualização');
       for (const [direction, glyph] of [[-1, '←'], [1, '→']] as const) {
-        const scroll = this.control(direction < 0 ? 'Previous preview items' : 'Next preview items', `preview:${direction}`, () => { cards.scrollBy({ left: cards.clientWidth * .8 * direction, behavior: 'auto' }); });
-        scroll.setAttribute('aria-label', direction < 0 ? 'Previous preview items' : 'Next preview items'); scroll.querySelector('span')!.textContent = glyph; actions.append(scroll);
+        const scroll = this.control(direction < 0 ? 'Itens anteriores da pré-visualização' : 'Próximos itens da pré-visualização', `preview:${direction}`, () => { cards.scrollBy({ left: cards.clientWidth * .8 * direction, behavior: 'auto' }); });
+        scroll.setAttribute('aria-label', direction < 0 ? 'Itens anteriores da pré-visualização' : 'Próximos itens da pré-visualização'); scroll.querySelector('span')!.textContent = glyph; actions.append(scroll);
       }
       footer.append(actions);
     }
-    this.preview.append(footer, el('p', 'tvl-home-preview-note', dailyAdvent(row) ? 'Films follow Item order. Preview doors always open; Home follows the season dates.' : row.shuffle ? 'Sample shuffled order. A fresh Home visit reshuffles; Back from an item keeps the current order.' : 'Updates as you edit. Save rows to apply to Home.'));
+    this.preview.append(footer, el('p', 'tvl-home-preview-note', dailyAdvent(row) ? 'Os filmes seguem a Ordem dos itens. As portas de pré-visualização sempre se abrem; a Home segue as datas da temporada.' : row.shuffle ? 'Exemplo de ordem aleatória. Uma nova visita à Home reordena aleatoriamente; voltar de um item mantém a ordem atual.' : 'Atualiza conforme você edita. Salve as fileiras para aplicar à Página Inicial.'));
   }
   private renderOrder(row: HomeCollectionRow, content: HTMLElement): void {
-    const shuffle = this.control('Shuffle on load', 'shuffle', () => {
+    const shuffle = this.control('Ordem aleatória ao carregar', 'shuffle', () => {
       row.shuffle = !row.shuffle; shuffle.setAttribute('aria-pressed', String(row.shuffle)); this.renderPreview(row);
     }); shuffle.setAttribute('aria-pressed', String(!!row.shuffle));
     shuffle.disabled = dailyAdvent(row);
-    content.append(shuffle, el('p', 'tvl-home-editor-help', dailyAdvent(row) ? 'Daily advent doors use the item order below. Shuffle on load is ignored so each film keeps its door number.' : 'Shuffle on a fresh Home visit. Back from an item keeps the current order. Your saved order below stays unchanged.'));
-    content.append(el('p', 'tvl-home-editor-help', 'This changes the order in this Home row only. Other views keep their existing order.'));
+    content.append(shuffle, el('p', 'tvl-home-editor-help', dailyAdvent(row) ? 'As portas diárias do advento usam a ordem de itens abaixo. A ordem aleatória é ignorada para que cada filme mantenha o número de sua porta.' : 'Ordem aleatória ao acessar a Home. Voltar de um item mantém a ordem atual. Sua ordem salva abaixo permanece inalterada.'));
+    content.append(el('p', 'tvl-home-editor-help', 'Isso altera a ordem apenas nesta fileira da Home. Outras telas mantêm a ordem existente.'));
     let items: Item[];
     if (row.kind === 'collections') items = row.collectionIds.map(id => this.collections.find(item => item.Id === id)).filter((item): item is Item => !!item);
     else {
       const id = row.kind === 'watchlist' ? watchlistSource : this.sourceCollection(row);
-      if (row.kind !== 'watchlist' && (!id || !this.collections.some(item => item.Id === id))) { content.append(el('p', '', 'Choose an accessible collection in Content first.')); return; }
-      const sorts: [HomeItemSort, string][] = [['collection', row.kind === 'watchlist' ? 'Watchlist order' : 'Collection order'], ['title', 'Title A–Z'], ['title-desc', 'Title Z–A'], ['newest', 'Newest year first'], ['oldest', 'Oldest year first'], ['custom', 'Custom order']];
-      const options = el('div', 'tvl-home-sort-options'); options.setAttribute('role', 'group'); options.setAttribute('aria-label', 'Sort items');
+      if (row.kind !== 'watchlist' && (!id || !this.collections.some(item => item.Id === id))) { content.append(el('p', '', 'Escolha uma coleção acessível em Conteúdo primeiro.')); return; }
+      const sorts: [HomeItemSort, string][] = [['collection', row.kind === 'watchlist' ? 'Ordem da Minha Lista' : 'Ordem da coleção'], ['title', 'Título A–Z'], ['title-desc', 'Título Z–A'], ['newest', 'Mais recentes primeiro'], ['oldest', 'Mais antigos primeiro'], ['custom', 'Ordem personalizada']];
+      const options = el('div', 'tvl-home-sort-options'); options.setAttribute('role', 'group'); options.setAttribute('aria-label', 'Ordenar itens');
       for (const [sort, label] of sorts) {
         const source = this.source(row) || row;
         const control = this.control(label, `sort:${sort}`, () => { source.itemSort = sort; this.redraw(`sort:${sort}`); }); control.setAttribute('aria-pressed', String(source.itemSort === sort)); options.append(control);
       }
       content.append(options);
-      if (this.errors.has(id)) { content.append(this.control(row.kind === 'watchlist' ? 'Retry Watchlist' : 'Retry collection items', 'retry-items', () => { void this.loadItems(id); this.redraw('tab:order'); })); return; }
-      if (!this.items.has(id)) { content.append(el('p', '', row.kind === 'watchlist' ? 'Loading Watchlist…' : 'Loading collection items…')); void this.loadItems(id); return; }
+      if (this.errors.has(id)) { content.append(this.control(row.kind === 'watchlist' ? 'Tentar carregar Minha Lista novamente' : 'Tentar carregar itens da coleção novamente', 'retry-items', () => { void this.loadItems(id); this.redraw('tab:order'); })); return; }
+      if (!this.items.has(id)) { content.append(el('p', '', row.kind === 'watchlist' ? 'Carregando Minha Lista…' : 'Carregando itens da coleção…')); void this.loadItems(id); return; }
       items = orderHomeItems(this.items.get(id)!, this.source(row) || row);
     }
-    if (!items.length) { content.append(el('p', '', 'No items to arrange yet.')); return; }
-    const list = el('ol', 'tvl-home-item-order'); list.setAttribute('aria-label', 'Items in display order');
+    if (!items.length) { content.append(el('p', '', 'Nenhum item para organizar ainda.')); return; }
+    const list = el('ol', 'tvl-home-item-order'); list.setAttribute('aria-label', 'Itens na ordem de exibição');
     items.slice(0, this.visibleItems).forEach((item, index) => {
       const line = el('li'); line.dataset.orderedItem = item.Id;
       line.append(el('span', 'tvl-home-item-number', String(index + 1)), picture(this.api.image(item, 'thumb'), 'tvl-home-order-art'), el('span', 'tvl-home-order-name', item.Name));
       const actions = el('div', 'tvl-home-editor-actions');
-      for (const [delta, direction] of [[-1, 'earlier'], [1, 'later']] as const) {
-        const control = this.control(`Move ${item.Name} ${direction}`, `move:${item.Id}:${direction}`, () => {
+      for (const [delta, direction] of [[-1, 'para cima'], [1, 'para baixo']] as const) {
+        const control = this.control(`Mover ${item.Name} ${direction}`, `move:${item.Id}:${direction}`, () => {
           const ordered = items.map(item => item.Id); [ordered[index], ordered[index + delta]] = [ordered[index + delta], ordered[index]];
           if (row.kind === 'collections') row.collectionIds = ordered; else { const source = this.source(row) || row; source.itemSort = 'custom'; source.itemOrder = ordered.slice(0, 2000); }
           this.visibleItems = Math.max(this.visibleItems, index + delta + 1);
-          const focusDirection = index + delta === 0 ? 'later' : index + delta === items.length - 1 ? 'earlier' : direction;
+          const focusDirection = index + delta === 0 ? 'para baixo' : index + delta === items.length - 1 ? 'para cima' : direction;
           this.redraw(`move:${item.Id}:${focusDirection}`);
-        }, 'tvl-home-move-item'); control.setAttribute('aria-label', `Move ${item.Name} ${direction}`); control.querySelector('span')!.textContent = delta < 0 ? '↑' : '↓';
+        }, 'tvl-home-move-item'); control.setAttribute('aria-label', `Mover ${item.Name} ${direction}`); control.querySelector('span')!.textContent = delta < 0 ? '↑' : '↓';
         control.disabled = index + delta < 0 || index + delta >= Math.min(items.length, 2000); actions.append(control);
       }
       line.append(actions); list.append(line);
     }); content.append(list);
-    if (items.length > this.visibleItems) content.append(this.control('Show more items', 'more-items', () => {
+    if (items.length > this.visibleItems) content.append(this.control('Mostrar mais itens', 'more-items', () => {
       const firstNew = items[this.visibleItems]; this.visibleItems += 60;
-      this.redraw(firstNew ? `move:${firstNew.Id}:earlier` : 'tab:order');
+      this.redraw(firstNew ? `move:${firstNew.Id}:para cima` : 'tab:order');
     }));
   }
   private renderPosition(row: HomeCollectionRow, content: HTMLElement): void {
-    content.append(el('p', 'tvl-home-editor-help', 'Move this row between your existing Home sections. Jellyfin and Featured keep control of their own rows.'));
-    if (!this.anchors.length) content.append(el('p', '', 'Visit Home once to see its available sections here.'));
+    content.append(el('p', 'tvl-home-editor-help', 'Mova esta fileira entre as seções existentes da sua Página Inicial. O Jellyfin e os Destaques mantêm o controle de suas próprias fileiras.'));
+    if (!this.anchors.length) content.append(el('p', '', 'Acesse a Página Inicial uma vez para ver as seções disponíveis aqui.'));
     const quick = el('div', 'tvl-home-editor-actions');
-    quick.append(this.control('Move to top', 'position:top', () => { row.placement = 'start'; this.draft.rows = [row, ...this.draft.rows.filter(item => item !== row)]; this.redraw('position:top'); }),
-      this.control('Move to bottom', 'position:bottom', () => { row.placement = 'end'; this.draft.rows = [...this.draft.rows.filter(item => item !== row), row]; this.redraw('position:bottom'); })); content.append(quick);
+    quick.append(this.control('Mover para o topo', 'position:top', () => { row.placement = 'start'; this.draft.rows = [row, ...this.draft.rows.filter(item => item !== row)]; this.redraw('position:top'); }),
+      this.control('Mover para o fim', 'position:bottom', () => { row.placement = 'end'; this.draft.rows = [...this.draft.rows.filter(item => item !== row), row]; this.redraw('position:bottom'); })); content.append(quick);
     const sequence = combinedHomeOrder(this.draft.rows, this.anchors);
-    const list = el('ol', 'tvl-home-position-order'); list.setAttribute('aria-label', 'Home row order');
+    const list = el('ol', 'tvl-home-position-order'); list.setAttribute('aria-label', 'Ordem das fileiras da Página Inicial');
     sequence.forEach((entry, index) => {
       const line = el('li');
-      if ('anchor' in entry) { line.className = 'tvl-home-native-position'; line.append(el('span', '', entry.anchor.label), el('small', '', 'Existing Home row')); }
+      if ('anchor' in entry) { line.className = 'tvl-home-native-position'; line.append(el('span', '', entry.anchor.label), el('small', '', 'Fileira existente da Página Inicial')); }
       else {
         line.dataset.positionRow = entry.row.id; line.classList.toggle('tvl-home-position-selected', entry.row === row);
         line.append(this.control(this.name(entry.row), `position:${entry.row.id}`, () => { this.selectedId = entry.row.id; this.redraw(`position:${entry.row.id}`); }));
         if (entry.row === row) {
-          for (const [delta, label] of [[-1, 'Move row up'], [1, 'Move row down']] as const) {
+          for (const [delta, label] of [[-1, 'Mover fileira para cima'], [1, 'Mover fileira para baixo']] as const) {
             const control = this.control(label, `position:move:${delta}`, () => {
               [sequence[index], sequence[index + delta]] = [sequence[index + delta], sequence[index]];
               sequence.forEach((entry, i) => { if ('row' in entry) entry.row.placement = sequence.slice(i + 1).find((next): next is {anchor: HomeAnchor} => 'anchor' in next)?.anchor.key || 'end'; });
@@ -639,22 +639,22 @@ export class HomeCollectionEditor {
     if (!this.ready || this.disposed || this.saving) return;
     const datedRows = this.draft.rows.flatMap(row => row.kind === 'seasonal' ? row.children || [] : []);
     const invalidSeason = datedRows.find(row => !row.season || !validSeasonDate(row.season.start) || !validSeasonDate(row.season.end));
-    if (invalidSeason) { this.status.textContent = 'Choose a valid start and end date for each seasonal row.'; this.selectedId = invalidSeason.id; this.tab = 'content'; this.redraw('season:start:month'); return; }
+    if (invalidSeason) { this.status.textContent = 'Escolha uma data de início e término válida para cada fileira sazonal.'; this.selectedId = invalidSeason.id; this.tab = 'content'; this.redraw('season:start:month'); return; }
     const next = parseHomeCollections(this.draft);
     const invalid = next.rows.flatMap(row => row.kind === 'seasonal' ? row.children || [] : [row]).find(row => row.kind !== 'watchlist' && (row.tabs ? row.tabs.some(tab => !tab.collectionId) : !row.collectionIds.length));
-    if (invalid) { this.status.textContent = 'Choose at least one collection for each row and each tab, or remove the empty entry.'; this.selectedId = invalid.id; this.tab = 'content'; if (invalid.tabs) this.selectedTabs.set(invalid.id, invalid.tabs.find(tab => !tab.collectionId)!.id); this.redraw('title'); return; }
-    this.saving = true; this.status.textContent = this.store.synced ? 'Saving Home rows to Jellyfin…' : 'Saving Home rows…';
+    if (invalid) { this.status.textContent = 'Escolha pelo menos uma coleção para cada fileira e cada aba, ou remova a entrada vazia.'; this.selectedId = invalid.id; this.tab = 'content'; if (invalid.tabs) this.selectedTabs.set(invalid.id, invalid.tabs.find(tab => !tab.collectionId)!.id); this.redraw('title'); return; }
+    this.saving = true; this.status.textContent = this.store.synced ? 'Salvando fileiras da Home no Jellyfin…' : 'Salvando fileiras da Home…';
     const controls = Array.from(this.element.querySelectorAll<HTMLInputElement | HTMLButtonElement>('input,button,select,textarea'))
       .map(control => ({ control, disabled: control.disabled }));
     controls.forEach(({ control }) => { control.disabled = true; });
     try { await this.store.save(next); this.saving = false; if (!this.disposed) this.close(); }
     catch (error) {
       if (this.disposed) return;
-      this.status.textContent = error instanceof Error ? error.message : 'Home rows could not be saved. Try again.';
+      this.status.textContent = error instanceof Error ? error.message : 'Não foi possível salvar as fileiras da Página Inicial. Tente novamente.';
       if (error instanceof HomeCollectionSyncError && error.kind === 'conflict') {
         this.ready = false;
-        this.status.append(button('Reload saved rows', '', '', () => {
-          this.saveButton.disabled = true; this.status.textContent = 'Loading saved rows…'; void this.loadCollections();
+        this.status.append(button('Recarregar fileiras salvas', '', '', () => {
+          this.saveButton.disabled = true; this.status.textContent = 'Carregando fileiras salvas…'; void this.loadCollections();
         }));
       }
     } finally {

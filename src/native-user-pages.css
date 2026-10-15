@@ -7,60 +7,94 @@ body.tvl-native-search, body.tvl-native-settings { background:#101112;color:#f5f
 .tvl-native-search #searchPage .padded-right, .tvl-native-settings .userPreferencesPage .padded-right { padding-right:5.5vw; }
 
 .tvl-native-search #searchPage .searchFields { padding-top:1.5em;padding-bottom:1.4em; }
-.tvl-native-search #searchPage .searchFieldsInner { flex-direction:row;max-width:70rem;box-sizing:border-box;margin:0 auto;padding:1em 1.3em;background:#19241d;border:1px solid #d3e7de25;border-radius:10px; }
-.tvl-native-search #searchPage .searchfields-icon { color:#b9c4bd;align-self:center;flex-shrink:0;margin-left:0;margin-right:.6em;padding:0; }
+.tvl-native-search #searchPage .searchFieldsInner { flex-direction:row;max-width:70rem;box-sizing:border-box;margin:0 auto;padding:1em 1.3em;background:#16171a;border:1px solid #ffffff1c;border-radius:10px; }
+.tvl-native-search #searchPage .searchfields-icon { color:#b9bcbf;align-self:center;flex-shrink:0;margin-left:0;margin-right:.6em;padding:0; }
 .tvl-native-search #searchPage .inputContainer { min-width:0; }
-.tvl-native-search #searchPage .searchfields-txtSearch { box-sizing:border-box;width:100%;min-height:2.6em;padding:.6em .8em !important;background:#101913;border:1px solid #536159;border-radius:6px;color:#f5f5f2;font-size:1.15em; }
-.tvl-native-search #searchPage .searchfields-txtSearch::placeholder { color:#b9c4bd;opacity:1; }
+.tvl-native-search #searchPage .searchfields-txtSearch { box-sizing:border-box;width:100%;min-height:2.6em;padding:.6em .8em !important;background:#121316;border:1px solid #45474e;border-radius:6px;color:#f5f5f2;font-size:1.15em; }
+.tvl-native-search #searchPage .searchfields-txtSearch::placeholder { color:#8a8d94;opacity:1; }
 .tvl-native-search #searchPage .alphaPicker { max-width:100%;margin:1.2em auto 0; }
 .tvl-native-search #searchPage .alphaPickerRow { flex-wrap:wrap; }
-.tvl-native-search #searchPage .alphaPickerButton { box-sizing:border-box;min-width:2em;min-height:2.5em;flex:0 0 auto;margin:.2em;padding:.25em .5em;border-radius:5px;background:#223029;color:#f5f5f2; }
-.tvl-native-search #searchPage .alphaPickerButton:hover { background:#35483b; }
-.tvl-native-search #searchPage .alphaPickerButton:focus { outline:2px solid #f2faf4 !important;outline-offset:2px;background:#35483b;transform:none; }
+.tvl-native-search #searchPage .alphaPickerButton { box-sizing:border-box;min-width:2em;min-height:2.5em;flex:0 0 auto;margin:.2em;padding:.25em .5em;border-radius:5px;background:#22242a;color:#f5f5f2; }
+.tvl-native-search #searchPage .alphaPickerButton:hover { background:#32343d; }
+.tvl-native-search #searchPage .alphaPickerButton:focus { outline:2px solid #e50914 !important;outline-offset:2px;background:#e50914;color:#ffffff;transform:none; }
 .tvl-native-search #searchPage .searchResults { padding-top:1.2em; }
 .tvl-native-search #searchPage .verticalSection { margin-bottom:2em; }
 .tvl-native-search #searchPage .sectionTitle { color:#f5f5f2;font-weight:600;letter-spacing:-.02em; }
 .tvl-native-search #searchPage .searchSuggestionsList { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-gap:.7em;max-width:70rem;margin:1em auto 0; }
 .tvl-native-search #searchPage .searchSuggestionsList>div { min-width:0; }
-.tvl-native-search #searchPage .searchSuggestionsList .button-link { box-sizing:border-box;width:100%;height:100%;padding:.9em 1em !important;background:#19241d;color:#f5f5f2;border:1px solid #d3e7de20;border-radius:7px;text-align:left;text-decoration:none; }
-.tvl-native-search #searchPage .searchSuggestionsList .button-link:hover { background:#293a30; }
+.tvl-native-search #searchPage .searchSuggestionsList .button-link { box-sizing:border-box;width:100%;height:100%;padding:.9em 1em !important;background:#16171a;color:#f5f5f2;border:1px solid #ffffff18;border-radius:7px;text-align:left;text-decoration:none; }
+.tvl-native-search #searchPage .searchSuggestionsList .button-link:hover { background:#25262c; }
 .tvl-native-search #searchPage .cardBox { background:transparent;border-radius:7px;box-shadow:none; }
-.tvl-native-search #searchPage .cardScalable, .tvl-native-search #searchPage .cardImageContainer { border-radius:7px;background-color:#22302a; }
+.tvl-native-search #searchPage .cardScalable, .tvl-native-search #searchPage .cardImageContainer { border-radius:7px;background-color:#202228; }
 .tvl-native-search #searchPage .cardFooter, .tvl-native-search #searchPage .cardText { background:transparent;color:#f5f5f2;text-align:left; }
 .tvl-native-search #searchPage .cardText { padding-left:.4em;padding-right:.4em; }
-.tvl-native-search #searchPage .cardText-secondary { color:#b9c4bd; }
+.tvl-native-search #searchPage .cardText-secondary { color:#b9bcbf; }
 .tvl-native-search #searchPage .cardText:last-child { padding-bottom:.7em; }
-.tvl-native-search #searchPage .card:focus .cardBox { outline:2px solid #f2faf4;outline-offset:3px; }
-.tvl-native-search #searchPage .noItemsMessage { color:#b9c4bd; }
+.tvl-native-search #searchPage .card:focus .cardBox { outline:2px solid #e50914;outline-offset:3px; }
+.tvl-native-search #searchPage .noItemsMessage { color:#b9bcbf; }
 
 .tvl-native-settings #myPreferencesMenuPage .readOnlyContent { display:grid;grid-template-columns:minmax(0,2fr) minmax(15rem,1fr);grid-gap:2rem;align-items:start;max-width:76rem; }
 .tvl-native-settings #myPreferencesMenuPage .readOnlyContent>.verticalSection { min-width:0;margin:0;padding:0; }
 .tvl-native-settings #myPreferencesMenuPage .readOnlyContent>.verticalSection:first-child { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-gap:.65rem;grid-column:1;grid-row:1 / span 3; }
 .tvl-native-settings #myPreferencesMenuPage .readOnlyContent>.verticalSection:not(:first-child) { grid-column:2; }
 .tvl-native-settings #myPreferencesMenuPage .readOnlyContent>.verticalSection>h2 { grid-column:1 / -1;margin:.2em 0 .7em;padding-left:0 !important; }
-.tvl-native-settings #myPreferencesMenuPage .listItem-border { box-sizing:border-box;margin:0 0 .65em !important;border:1px solid #d3e7de25;border-color:#d3e7de25 !important;border-radius:8px;background:#19241d;color:#f5f5f2;overflow:visible;text-decoration:none; }
+.tvl-native-settings #myPreferencesMenuPage .listItem-border { box-sizing:border-box;margin:0 0 .65em !important;border:1px solid #ffffff1c;border-color:#ffffff1c !important;border-radius:8px;background:#16171a;color:#f5f5f2;overflow:visible;text-decoration:none; }
 .tvl-native-settings #myPreferencesMenuPage .listItem { box-sizing:border-box;min-height:4.2em;padding:.85em 1em !important; }
 .tvl-native-settings #myPreferencesMenuPage .listItemBody { min-width:0; }
-.tvl-native-settings #myPreferencesMenuPage .listItemIcon { color:#b9d0c2;background:transparent; }
+.tvl-native-settings #myPreferencesMenuPage .listItemIcon { color:#e50914;background:transparent; }
 .tvl-native-settings #myPreferencesMenuPage .listItemBodyText { color:#f5f5f2;white-space:normal; }
-.tvl-native-settings #myPreferencesMenuPage .listItem-border:hover { background:#293a30; }
+.tvl-native-settings #myPreferencesMenuPage .listItem-border:hover { background:#25262c; }
 .tvl-native-settings #myPreferencesMenuPage .listItem-border:hover .listItem { background:transparent !important; }
 .tvl-native-settings #myPreferencesMenuPage .listItem:hover .listItemBodyText { color:#f5f5f2 !important; }
 .tvl-native-settings #myPreferencesMenuPage .listItem-border:focus,
-.tvl-native-search #searchPage .searchSuggestionsList .button-link:focus { background:#34453c !important;color:#f5f5f2 !important; }
+.tvl-native-search #searchPage .searchSuggestionsList .button-link:focus { background:#331418 !important;color:#f5f5f2 !important;outline:2px solid #e50914 !important;outline-offset:2px; }
 .tvl-native-settings #myPreferencesMenuPage .tvl-settings-dashboard { display:block;padding:0; }
-.tvl-native-settings #myPreferencesMenuPage .btnLogout { color:#ffded4; }
+.tvl-native-settings #myPreferencesMenuPage .btnLogout { color:#ff8088; }
 .tvl-native-settings .userPreferencesPage .sectionTitle { color:#f5f5f2;font-weight:600;letter-spacing:-.02em; }
-.tvl-native-settings .userPreferencesPage .fieldDescription, .tvl-native-settings .userPreferencesPage .inputLabel { color:#b9c4bd; }
-.tvl-native-settings .userPreferencesPage .emby-input, .tvl-native-settings .userPreferencesPage .emby-select, .tvl-native-settings .userPreferencesPage .emby-textarea { background:#1b2620;color:#f5f5f2;border-color:#536159;border-radius:6px; }
-.tvl-native-settings .userPreferencesPage .raised { background:#26352e;color:#f5f5f2;border-radius:6px;box-shadow:none; }
-.tvl-native-settings .userPreferencesPage .button-submit { background:#f5f5f2;color:#101112; }
+.tvl-native-settings .userPreferencesPage .fieldDescription, .tvl-native-settings .userPreferencesPage .inputLabel { color:#b9bcbf; }
+.tvl-native-settings .userPreferencesPage .emby-input, .tvl-native-settings .userPreferencesPage .emby-select, .tvl-native-settings .userPreferencesPage .emby-textarea { background:#141518;color:#f5f5f2;border-color:#45474e;border-radius:6px; }
+.tvl-native-settings .userPreferencesPage .raised { background:#24252a;color:#f5f5f2;border-radius:6px;box-shadow:none; }
+.tvl-native-settings .userPreferencesPage .raised:hover { background:#32343d; }
+.tvl-native-settings .userPreferencesPage .button-submit { background:#e50914 !important;color:#ffffff !important;border-color:#e50914 !important;font-weight:600; }
+.tvl-native-settings .userPreferencesPage .button-submit:hover { background:#b20710 !important;border-color:#b20710 !important;color:#ffffff !important; }
 .tvl-native-search #searchPage input:focus, .tvl-native-search #searchPage a:focus,
 .tvl-native-settings .userPreferencesPage a:focus, .tvl-native-settings .userPreferencesPage button:focus,
-.tvl-native-settings .userPreferencesPage input:focus, .tvl-native-settings .userPreferencesPage select:focus, .tvl-native-settings .userPreferencesPage textarea:focus { outline:2px solid #f2faf4 !important;outline-offset:3px; }
+.tvl-native-settings .userPreferencesPage input:focus, .tvl-native-settings .userPreferencesPage select:focus, .tvl-native-settings .userPreferencesPage textarea:focus { outline:2px solid #e50914 !important;outline-offset:3px; }
 .tvl-native-search #searchPage .emby-input:focus,
 .tvl-native-settings .userPreferencesPage .emby-input:focus, .tvl-native-settings .userPreferencesPage .emby-select:focus,
-.tvl-native-settings .userPreferencesPage .emby-textarea:focus { border-color:#d3e7de !important; }
+.tvl-native-settings .userPreferencesPage .emby-textarea:focus { border-color:#e50914 !important; }
+
+/* Global Checkboxes, Sliders, Switches & Active Controls (Red & Black) */
+input[type=checkbox] { accent-color:#e50914 !important; }
+input[type=range] { accent-color:#e50914 !important; }
+input[type=radio] { accent-color:#e50914 !important; }
+
+.emby-checkbox-label .checkboxOutline,
+.checkboxOutline { border-color:#555860 !important; border-radius:4px; }
+.emby-checkbox:checked + span + .checkboxOutline,
+.emby-checkbox:checked + .checkboxOutline,
+.md-checkbox:checked + span + .checkboxOutline,
+.md-checkbox:checked + .checkboxOutline,
+.paper-checkbox[checked] .checkboxOutline { background-color:#e50914 !important; border-color:#e50914 !important; color:#ffffff !important; }
+.emby-checkbox:focus + span + .checkboxOutline,
+.emby-checkbox:focus + .checkboxOutline,
+.md-checkbox:focus + span + .checkboxOutline,
+.md-checkbox:focus + .checkboxOutline { border-color:#e50914 !important; outline:2px solid #e50914 !important; outline-offset:2px; }
+
+.emby-slider-background-lower,
+.mdl-slider-background-lower { background-color:#e50914 !important; }
+.emby-slider::-webkit-slider-thumb,
+.mdl-slider::-webkit-slider-thumb { background:#f5f5f2 !important; }
+.emby-slider::-moz-range-thumb,
+.mdl-slider::-moz-range-thumb { background:#f5f5f2 !important; }
+.sliderBubble { background-color:#e50914 !important; color:#ffffff !important; }
+
+.emby-toggle:checked + span + .toggleButtonSlider,
+.emby-toggle:checked + .toggleButtonSlider { background-color:#e50914 !important; }
+
+.emby-tab-button.emby-tab-button-active,
+.emby-tab-button[aria-selected="true"] { color:#ffffff !important; background-color:#e50914 !important; }
+
 @media(max-width:1000px) {
   .tvl-native-settings #myPreferencesMenuPage .readOnlyContent { display:block; }
   .tvl-native-settings #myPreferencesMenuPage .readOnlyContent>.verticalSection { margin-bottom:1.8em; }

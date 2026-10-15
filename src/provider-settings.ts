@@ -8,20 +8,25 @@ export type ProviderRow = { id: string; title: string; source: ProviderRowSource
 export type ProviderId = string;
 export const providerOfferTypes = ['flatrate', 'free', 'ads'] as const;
 export type ProviderOfferType = typeof providerOfferTypes[number];
-const legacyProviderIds = ['netflix', 'prime', 'disney', 'apple', 'now', 'paramount'];
-const broadcastProviderIds = ['bbc', 'itvx', 'channel4'] as const;
+const legacyProviderIds = ['netflix', 'prime', 'max', 'globoplay', 'disney', 'crunchyroll', 'apple', 'paramount', 'now', 'discovery', 'wetv', 'brasilparalelo', 'viki'];
+const broadcastProviderIds: readonly ProviderBrandId[] = ['discovery', 'wetv', 'brasilparalelo'];
+export const retiredProviderIds = ['now', 'bbc', 'itvx', 'channel4'] as const;
 export type ProviderHomeConfig = { id: ProviderId; name: string; logoUrl: string; accent: string; movieProviderIds: number[]; showProviderIds: number[]; offerTypes: ProviderOfferType[]; enabled: boolean; hero: boolean; rows: ProviderRow[] };
 export type ProviderHomesSettings = { version: 2; enabled: boolean; title: string; placement: string; tileScale: number; showNames: boolean; providers: ProviderHomeConfig[] };
 export const maxProviders = 24;
 export const maxProviderRows = 12;
 export const maxProviderSettingsBytes = 128 * 1024 - 1024;
 
+export const defaultHomeProviderIds: ProviderBrandId[] = [
+  'netflix', 'prime', 'max', 'globoplay', 'disney', 'crunchyroll', 'apple', 'viki'
+];
+
 export function defaultProviderRows(): ProviderRow[] {
   return [
-    { id: 'trending-movies', title: 'Trending films', source: 'trending-movies', collectionId: '', enabled: true, ranked: true, itemSort: 'collection' },
-    { id: 'trending-shows', title: 'Trending TV shows', source: 'trending-shows', collectionId: '', enabled: true, ranked: true, itemSort: 'collection' },
-    { id: 'movies', title: 'Films', source: 'movies', collectionId: '', enabled: true, ranked: false, itemSort: 'title' },
-    { id: 'shows', title: 'TV shows', source: 'shows', collectionId: '', enabled: true, ranked: false, itemSort: 'title' }
+    { id: 'trending-movies', title: 'Filmes em Alta', source: 'trending-movies', collectionId: '', enabled: true, ranked: true, itemSort: 'collection' },
+    { id: 'trending-shows', title: 'Séries em Alta', source: 'trending-shows', collectionId: '', enabled: true, ranked: true, itemSort: 'collection' },
+    { id: 'movies', title: 'Filmes', source: 'movies', collectionId: '', enabled: true, ranked: false, itemSort: 'title' },
+    { id: 'shows', title: 'Séries', source: 'shows', collectionId: '', enabled: true, ranked: false, itemSort: 'title' }
   ];
 }
 export function validProviderId(value: unknown): value is ProviderId {
@@ -29,17 +34,33 @@ export function validProviderId(value: unknown): value is ProviderId {
 }
 export function defaultProviderConfig(id: ProviderBrandId): ProviderHomeConfig {
   const brand = providerBrands.find(brand => brand.id === id)!;
-  const ids: Record<ProviderBrandId, number[]> = { netflix: [8, 175, 1796], prime: [9, 2100], disney: [337], apple: [350], now: [591], paramount: [531, 2303, 2304], bbc: [38], itvx: [41], channel4: [103] };
-  return { id, name: brand.name, logoUrl: '', accent: brand.accent, movieProviderIds: [...ids[id]],
-    showProviderIds: id === 'now' ? [39] : [...ids[id]], offerTypes: broadcastProviderIds.some(value => value === id) ? ['free', 'ads'] : ['flatrate'], enabled: true, hero: true, rows: broadcastProviderIds.some(value => value === id) ? defaultProviderRows().filter(row => !row.source.startsWith('trending')) : defaultProviderRows() };
+  const ids: Record<ProviderBrandId, number[]> = {
+    netflix: [8, 175, 1796],
+    prime: [119, 9, 2100],
+    max: [1899],
+    globoplay: [307],
+    disney: [337],
+    crunchyroll: [283],
+    apple: [350],
+    paramount: [531, 2303, 2304],
+    discovery: [524],
+    wetv: [623],
+    brasilparalelo: [6265],
+    viki: [344, 1390]
+  };
+  return {
+    id, name: brand.name, logoUrl: '', accent: brand.accent, movieProviderIds: [...ids[id]],
+    showProviderIds: [...ids[id]], offerTypes: ['flatrate'], enabled: true, hero: true,
+    rows: defaultProviderRows()
+  };
 }
 export function defaultCustomProvider(id: string): ProviderHomeConfig {
-  if (!validProviderId(id) || !id.startsWith('custom-')) throw new Error('Invalid custom service ID.');
-  return { id, name: 'New service', logoUrl: '', accent: '#9fb8a8', movieProviderIds: [], showProviderIds: [], offerTypes: ['flatrate'], enabled: true, hero: true, rows: [] };
+  if (!validProviderId(id) || !id.startsWith('custom-')) throw new Error('ID de serviço personalizado inválido.');
+  return { id, name: 'Novo serviço', logoUrl: '', accent: '#e50914', movieProviderIds: [], showProviderIds: [], offerTypes: ['flatrate'], enabled: true, hero: true, rows: [] };
 }
 export function defaultProviderHomes(): ProviderHomesSettings {
-  return { version: 2, enabled: true, title: 'Streaming services', placement: 'start', tileScale: 100, showNames: true,
-    providers: providerBrands.map(({ id }) => defaultProviderConfig(id)) };
+  return { version: 2, enabled: true, title: 'Serviços de Streaming', placement: 'start', tileScale: 100, showNames: true,
+    providers: defaultHomeProviderIds.map(id => defaultProviderConfig(id)) };
 }
 export function providerHomesKey(server: string, user: string): string {
   return `jellyfin-cinema.provider-homes.v1:${encodeURIComponent(server)}:${encodeURIComponent(user)}`;
@@ -71,8 +92,11 @@ export function parseProviderHomes(value: unknown): ProviderHomesSettings {
     || !Array.isArray(value.providers) || value.providers.length > (legacy ? legacyProviderIds.length : maxProviders)
     || !legacy && (!Number.isInteger(value.tileScale) || (value.tileScale as number) < 70 || (value.tileScale as number) > 150 || typeof value.showNames !== 'boolean')) throw invalid();
   const seen = new Set<string>();
-  const providers: ProviderHomeConfig[] = value.providers.map(provider => {
-    if (!record(provider) || !keys(provider, legacy ? ['id', 'enabled', 'hero', 'rows']
+  const providers: ProviderHomeConfig[] = [];
+  for (const provider of value.providers) {
+    if (!record(provider)) throw invalid();
+    if (typeof provider.id === 'string' && (retiredProviderIds as readonly string[]).includes(provider.id)) continue;
+    if (!keys(provider, legacy ? ['id', 'enabled', 'hero', 'rows']
       : ['id', 'name', 'logoUrl', 'accent', 'movieProviderIds', 'showProviderIds', 'offerTypes', 'enabled', 'hero', 'rows'])
       || !validProviderId(provider.id) || legacy && !legacyProviderIds.includes(provider.id) || seen.has(provider.id)
       || typeof provider.enabled !== 'boolean' || typeof provider.hero !== 'boolean'
@@ -97,10 +121,12 @@ export function parseProviderHomes(value: unknown): ProviderHomesSettings {
       id: provider.id, name: provider.name as string, logoUrl: provider.logoUrl as string, accent: provider.accent as string,
       movieProviderIds: [...provider.movieProviderIds as number[]], showProviderIds: [...provider.showProviderIds as number[]], offerTypes: [...provider.offerTypes as ProviderOfferType[]]
     };
-    return { ...config, enabled: provider.enabled, hero: provider.hero, rows };
-  });
+    providers.push({ ...config, enabled: provider.enabled, hero: provider.hero, rows });
+  }
   if (legacy && providers.length) providers.push(...broadcastProviderIds.map(id => defaultProviderConfig(id)));
-  const settings: ProviderHomesSettings = { version: 2, enabled: value.enabled, title: value.title, placement: value.placement,
+  if (!providers.length && value.providers.length > 0) providers.push(...defaultHomeProviderIds.map(id => defaultProviderConfig(id)));
+  const title = value.title === 'Streaming services' ? 'Serviços de Streaming' : value.title;
+  const settings: ProviderHomesSettings = { version: 2, enabled: value.enabled, title, placement: value.placement,
     tileScale: legacy ? 100 : value.tileScale as number, showNames: legacy ? true : value.showNames as boolean, providers };
   if (new TextEncoder().encode(JSON.stringify(settings)).length > maxProviderSettingsBytes) throw invalid();
   return settings;

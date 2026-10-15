@@ -39,7 +39,7 @@ public sealed partial class TmdbProviderSource
             catch (Exception error) when (!cancellationToken.IsCancellationRequested
                 && error is ProviderLookupException or HttpRequestException or IOException or JsonException or OperationCanceledException)
             {
-                // Names and IDs are public metadata. Keep the last complete UK list
+                // Names and IDs are public metadata. Keep the last complete BR list
                 // during a temporary upstream failure; never expose an HTTP URI/key.
                 directoryRefreshAfter = directoryTime.GetUtcNow().AddMinutes(5);
                 if (directory is not null) return directory;
@@ -54,7 +54,7 @@ public sealed partial class TmdbProviderSource
         // Both documented endpoints support watch_region; film and TV IDs must
         // remain separate because a provider can use different regional IDs.
         using var request = new HttpRequestMessage(HttpMethod.Get,
-            $"https://api.themoviedb.org/3/watch/providers/{type}?watch_region={Region}&language=en-GB&api_key={Uri.EscapeDataString(apiKey)}");
+            $"https://api.themoviedb.org/3/watch/providers/{type}?watch_region={Region}&language=pt-BR&api_key={Uri.EscapeDataString(apiKey)}");
         using var response = await clients.CreateClient("JellyfinCinemaProviders").SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         if (!response.IsSuccessStatusCode) throw new ProviderLookupException("Streaming service list request failed.");
         await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);

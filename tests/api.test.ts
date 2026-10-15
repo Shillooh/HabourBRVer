@@ -192,7 +192,7 @@ test('watched write failures keep actionable access and missing-item errors', as
   }
   const failure = new Error('The Jellyfin server is unavailable.');
   const api = client({ markPlayed: async () => { throw failure; } });
-  await assert.rejects(api.setPlayed!('movie', true), error => error === failure);
+  await assert.rejects(api.setPlayed!('movie', true), (error: unknown) => error === failure);
 });
 
 test('collection writes use native endpoints and fresh collection permissions', async () => {
@@ -1001,7 +1001,7 @@ test('closed pages and inaccessible movies cannot click native Trailer controls'
 test('custom catalogue and draft preview use authenticated endpoints with bounded queries and validated drafts', async () => {
   let current = 'user-a';
   const calls: { type?: string; url: string; data?: string }[] = [];
-  const data = { Items: [{ Id: 'film', Name: 'Film', Type: 'Movie' }], TotalRecordCount: 1, Pending: 0, Total: 1, Status: 'ready', Region: 'GB', UpdatedAt: null };
+  const data = { Items: [{ Id: 'film', Name: 'Film', Type: 'Movie' }], TotalRecordCount: 1, Pending: 0, Total: 1, Status: 'ready', Region: 'BR', UpdatedAt: null };
   const api = client({ getCurrentUserId: () => current,
     getUrl: (path: string, query: Record<string, string> = {}) => path + '?' + new URLSearchParams(query),
     getJSON: async (url: string) => { calls.push({ url }); return data; },
@@ -1016,16 +1016,16 @@ test('custom catalogue and draft preview use authenticated endpoints with bounde
   current = 'user-b'; await assert.rejects(api.previewProviderItems!(draft, { type: 'Movie' }), /account changed/i); assert.equal(calls.length, 2);
 });
 
-test('named streaming service directory uses the authenticated endpoint and separate GB lists', async () => {
+test('named streaming service directory uses the authenticated endpoint and separate BR lists', async () => {
   const requests: string[] = [];
-  const data = { Region: 'GB', Movies: [{ Id: 591, Name: 'NOW Cinema' }], Shows: [{ Id: 39, Name: 'NOW' }] };
+  const data = { Region: 'BR', Movies: [{ Id: 591, Name: 'NOW Cinema' }], Shows: [{ Id: 39, Name: 'NOW' }] };
   const api = client({ getUrl: (path: string) => path, getJSON: async (url: string) => { requests.push(url); return data; } });
   assert.equal(await api.getProviderDirectory!(), data);
   assert.deepEqual(requests, ['TvItemLayout/Providers/Catalogue']);
 });
 
 test('named service directory rejects foreign, malformed and unbounded entries', async () => {
-  const valid = { Region: 'GB', Movies: [{ Id: 8, Name: 'Netflix' }], Shows: [] };
+  const valid = { Region: 'BR', Movies: [{ Id: 8, Name: 'Netflix' }], Shows: [] };
   for (const value of [null, {}, { ...valid, Region: 'US' }, { ...valid, Shows: null },
     ...[null, {}, { Id: 0, Name: 'Invalid' }, { Id: 1000001, Name: 'Invalid' }, { Id: 1.5, Name: 'Invalid' },
       { Id: 8, Name: '' }, { Id: 8, Name: '  ' }, { Id: 8, Name: 'Bad\nname' }, { Id: 8, Name: 'a'.repeat(121) }]
@@ -1043,7 +1043,7 @@ test('named service directory rejects responses after account changes and preser
   const api = client({ getCurrentUserId: () => user, getUrl: (path: string) => path,
     getJSON: () => { calls++; return new Promise(done => { resolve = done; }); } });
   const request = api.getProviderDirectory!(); user = 'user-b';
-  resolve({ Region: 'GB', Movies: [], Shows: [] });
+  resolve({ Region: 'BR', Movies: [], Shows: [] });
   await assert.rejects(request, /account changed/i);
   await assert.rejects(api.getProviderDirectory!(), /account changed/i);
   assert.equal(calls, 1);

@@ -6,7 +6,7 @@ import type { ProviderId, ProviderHomeConfig } from './provider-settings';
 import type { ProviderItemsQuery, ProviderItemsPage } from './provider-data';
 
 export type ProviderDirectoryEntry = { Id: number; Name: string };
-export type ProviderDirectory = { Region: 'GB'; Movies: ProviderDirectoryEntry[]; Shows: ProviderDirectoryEntry[] };
+export type ProviderDirectory = { Region: 'BR'; Movies: ProviderDirectoryEntry[]; Shows: ProviderDirectoryEntry[] };
 
 export type ItemUserData = {
   ItemId?: string; Key?: string;
@@ -77,6 +77,8 @@ export interface MediaApi extends BrowseApi {
   getProviderDirectory?(): Promise<ProviderDirectory>;
   getProviderItems?(provider: ProviderId, query: ProviderItemsQuery): Promise<ProviderItemsPage>;
   previewProviderItems?(provider: ProviderHomeConfig, query: ProviderItemsQuery): Promise<ProviderItemsPage>;
+  getProviderTrending?(provider: ProviderId, type: 'Movie' | 'Series', limit?: number): Promise<ProviderItemsPage>;
+  previewProviderTrending?(provider: ProviderHomeConfig, type: 'Movie' | 'Series', limit?: number): Promise<ProviderItemsPage>;
   getItem(id: string): Promise<Item>;
   getPlaybackContext?(): Promise<PlaybackContext | null>;
   getTrailerDetails?(expected: TrailerIdentity): Promise<TrailerDetailsContext | null>;

@@ -3,11 +3,12 @@
 .tvl-home-editor .tvl-home-seasonal-theme { flex:1;min-width:5.6rem;padding:.7rem .65rem; }
 .tvl-home-editor .tvl-home-seasonal-theme-halloween:not([aria-pressed=true]) { border-color:#b5754370;background:#36291f; }
 .tvl-home-editor .tvl-home-seasonal-theme-christmas:not([aria-pressed=true]) { border-color:#8aab7770;background:#26392d; }
-.tvl-home-seasonal-select select { display:block;width:100%;min-width:0;max-width:100%;margin-top:.5rem;padding:.65rem .75rem;min-height:2.7rem;border:1px solid #65776a;border-radius:6px;background:#111813;color:#f5f5f2;font:inherit; }
-.tvl-home-seasonal-select select:focus,.tvl-home-seasonal-frame-toggle input:focus { outline:3px solid #f3f7ed;outline-offset:3px; }
+.tvl-home-seasonal-select select { display:block;width:100%;min-width:0;max-width:100%;margin-top:.5rem;padding:.65rem .75rem;min-height:2.7rem;border:1px solid #45474e;border-radius:6px;background:#121316;color:#f5f5f2;font:inherit; }
+.tvl-home-seasonal-select select:focus,.tvl-home-seasonal-frame-toggle input:focus { outline:3px solid #e50914;outline-offset:3px; }
 .tvl-home-editor .tvl-home-seasonal-select { margin:1.2rem 0 .45rem; }
 .tvl-home-editor .tvl-home-seasonal-setting-help { font-size:.78rem;line-height:1.5;color:#b9c4bd;margin:.25rem 0 1.2rem; }
 .tvl-home-editor .tvl-home-seasonal-frame-toggle { display:flex;align-items:center;gap:.65rem;padding:.6rem 0;margin:1.2rem 0;cursor:pointer; }
-.tvl-home-editor .tvl-home-seasonal-frame-toggle input { display:inline-block;width:1.1rem;height:1.1rem;flex:0 0 1.1rem;margin:0;accent-color:#e3ede5; }
+.tvl-home-editor .tvl-home-seasonal-frame-toggle input { display:inline-block;width:1.1rem;height:1.1rem;flex:0 0 1.1rem;margin:0;accent-color:#e50914; }
 .tvl-home-preview .tvl-home-row-card[data-seasonal-theme] { cursor:pointer; }
 .tvl-home-editor .tvl-home-seasonal-preview-focus { font-size:.75rem;padding:.45rem .7rem;min-height:2.1rem;margin:.6rem 0 0; }
+

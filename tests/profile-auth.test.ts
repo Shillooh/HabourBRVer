@@ -112,8 +112,8 @@ test('aborted deferred logout retains its lock until native completion and canno
   const { dashboard, state, start, controller, finishLogout, session, route } = setup(); dashboard.logout = () => { state.logout++; };
   const work = start(); await tick(); controller.abort(); await tick();
   assert.equal(profileSwitchPending(), true);
-  await assert.rejects(switchPublicProfile(session, 'child', new AbortController().signal, () => {}), /previous profile switch/);
-  await assert.rejects(openProfileLogin(session), /previous profile switch/);
+  await assert.rejects(switchPublicProfile(session, 'child', new AbortController().signal, () => {}), /previous profile switch|troca de perfil anterior/i);
+  await assert.rejects(openProfileLogin(session), /previous profile switch|troca de perfil anterior/i);
   assert.equal(state.logout, 1); assert.deepEqual(state.auth, []);
   finishLogout(); await assert.rejects(work, { name: 'AbortError' }); assert.equal(profileSwitchPending(), false);
   state.user = 'family'; route('#/home'); dashboard.logout = finishLogout;
@@ -122,7 +122,7 @@ test('aborted deferred logout retains its lock until native completion and canno
 
 test('native-login fallback shares the pending logout lock', async () => {
   const { dashboard, state, session, start, finishLogout } = setup(); dashboard.logout = () => { state.logout++; };
-  const work = openProfileLogin(session); await tick(); await assert.rejects(start(), /previous profile switch/);
+  const work = openProfileLogin(session); await tick(); await assert.rejects(start(), /previous profile switch|troca de perfil anterior/i);
   finishLogout(); await work; assert.equal(state.logout, 1); assert.deepEqual(state.auth, []); assert.equal(profileSwitchPending(), false);
 });
 
@@ -142,16 +142,16 @@ for (const change of ['user', 'server', 'route', 'abort'] as const) test(`late a
 
 test('mismatched server or user responses never reach native credential persistence', async () => {
   const { client, state, start, result, route } = setup(); client.ajax = async () => ({ ...result, ServerId: 'different-server' });
-  await assert.rejects(start(), /different profile/); assert.equal(state.adopted, 0);
+  await assert.rejects(start(), /different profile|perfil diferente/i); assert.equal(state.adopted, 0);
   state.user = 'family'; route('#/home'); client.ajax = async () => ({ ...result, User: { Id: 'other' } });
-  await assert.rejects(start(), /different profile/); assert.equal(state.adopted, 0);
+  await assert.rejects(start(), /different profile|perfil diferente/i); assert.equal(state.adopted, 0);
 });
 
 test('missing server identity and empty or malformed tokens never reach native persistence', async () => {
   const { client, state, start, result, route } = setup();
   for (const invalid of [{ ...result, ServerId: undefined }, { ...result, AccessToken: '' }, { ...result, AccessToken: '  ' }, { ...result, AccessToken: 123 }]) {
     state.user = 'family'; route('#/home'); client.ajax = async () => invalid as typeof result;
-    await assert.rejects(start(), /different profile/); assert.equal(state.adopted, 0);
+    await assert.rejects(start(), /different profile|perfil diferente/i); assert.equal(state.adopted, 0);
   }
 });
 

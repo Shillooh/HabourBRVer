@@ -5,3 +5,12 @@ server/**/obj/
 test-results/
 playwright-report/
 .DS_Store
+dist-package/
+*.zip
+*.dll
+*.user
+*.suo
+.vs/
+.vscode/
+.idea/
+Thumbs.db

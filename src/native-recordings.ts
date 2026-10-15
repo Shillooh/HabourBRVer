@@ -25,7 +25,7 @@ export class NativeRecordingsTheme {
   }
 
   private page(): RecordingPage | undefined {
-    const [path, query = ''] = location.hash.replace(/^#\/?/, '').split('?');
+    const [path, query = ''] = location.hash.replace(/^#[!/]*/, '').split('?');
     const params = new URLSearchParams(query);
     if (/^details\/?$/i.test(path) && params.get('seriesTimerId') && !params.has('id')) return 'series-detail';
     if (!/^livetv\/?$/i.test(path)) return;

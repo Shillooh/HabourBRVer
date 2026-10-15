@@ -30,7 +30,7 @@ export function startPauseScreen(options: Options): () => void {
   const overlay = el('section', 'tvl-pause-screen');
   overlay.id = 'tvl-pause-screen'; overlay.hidden = true;
   overlay.setAttribute('role', 'region');
-  overlay.setAttribute('aria-label', 'Paused media details');
+  overlay.setAttribute('aria-label', 'Detalhes da mídia pausada');
   let host: HTMLElement | null = null;
   let video: HTMLVideoElement | null = null;
   let key = '';

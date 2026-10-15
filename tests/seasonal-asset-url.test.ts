@@ -4,21 +4,21 @@ import { resolveSeasonalAssetUrl, seasonalAssetUrl } from '../src/seasonal-asset
 import { parseSeasonalAppearance, defaultSeasonalAppearance } from '../src/home-collection-settings';
 
 test('seasonal artwork follows the injected server base and its content version', () => {
-  assert.equal(resolveSeasonalAssetUrl('halloween-nightmare.webp','https://media.test/jellyfin/TvItemLayout/ClientScript?v=0.2.55.3-hash','https://client.test/web/'),
-    'https://media.test/jellyfin/TvItemLayout/SeasonalAsset/halloween-nightmare.webp?v=0.2.55.3-hash');
+  assert.equal(resolveSeasonalAssetUrl('halloween-nightmare.webp','https://media.test/jellyfin/TvItemLayout/ClientScript?v=1.0.0.0-hash','https://client.test/web/'),
+    'https://media.test/jellyfin/TvItemLayout/SeasonalAsset/halloween-nightmare.webp?v=1.0.0.0-hash');
   assert.equal(resolveSeasonalAssetUrl('christmas-photoreal.webp','https://demo.test/ScreenHarbour/dist/jellyfin-tv-layout.js','https://demo.test/ScreenHarbour/'),
-    'https://demo.test/ScreenHarbour/assets/seasonal/christmas-photoreal.webp?v=0.2.55');
+    'https://demo.test/ScreenHarbour/assets/seasonal/christmas-photoreal.webp?v=1.0.0.0');
 });
 
 test('TV selects smaller bundled artwork while preserving base paths and versions', () => {
   for (const name of ['halloween-photoreal', 'halloween-nightmare', 'christmas-photoreal',
     'halloween-nightmare-door', 'halloween-nightmare-frame', 'christmas-photoreal-door', 'christmas-photoreal-frame']) {
-    assert.equal(resolveSeasonalAssetUrl(`${name}.webp`, 'https://media.test/jellyfin/TvItemLayout/ClientScript?v=0.2.55.3-hash', 'https://client.test/web/', true),
-      `https://media.test/jellyfin/TvItemLayout/SeasonalAsset/${name}-tv.webp?v=0.2.55.3-hash`);
+    assert.equal(resolveSeasonalAssetUrl(`${name}.webp`, 'https://media.test/jellyfin/TvItemLayout/ClientScript?v=1.0.0.0-hash', 'https://client.test/web/', true),
+      `https://media.test/jellyfin/TvItemLayout/SeasonalAsset/${name}-tv.webp?v=1.0.0.0-hash`);
     assert.equal(resolveSeasonalAssetUrl(`${name}.webp`, 'https://demo.test/ScreenHarbour/dist/jellyfin-tv-layout.js', 'https://demo.test/ScreenHarbour/', true),
-      `https://demo.test/ScreenHarbour/assets/seasonal/${name}-tv.webp?v=0.2.55`);
+      `https://demo.test/ScreenHarbour/assets/seasonal/${name}-tv.webp?v=1.0.0.0`);
     assert.equal(resolveSeasonalAssetUrl(`${name}-tv.webp`, 'https://demo.test/ScreenHarbour/dist/jellyfin-tv-layout.js', 'https://demo.test/ScreenHarbour/', true),
-      `https://demo.test/ScreenHarbour/assets/seasonal/${name}-tv.webp?v=0.2.55`);
+      `https://demo.test/ScreenHarbour/assets/seasonal/${name}-tv.webp?v=1.0.0.0`);
   }
 });
 

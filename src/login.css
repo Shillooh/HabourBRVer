@@ -17,7 +17,7 @@ body.tvl-login-native { color:#f5f5f2; }
 .tvl-login-native #loginPage>.padded-left::before {
   content:'SCREENHARBOUR';display:block;margin:0 0 2rem;
   max-width:100%;white-space:normal;overflow-wrap:break-word;word-break:break-word;
-  color:#b9cdbc;font-size:.78rem;font-weight:650;letter-spacing:.3em;text-align:center;
+  color:#e50914;font-size:.78rem;font-weight:650;letter-spacing:.3em;text-align:center;
 }
 .tvl-login-native #loginPage>.padded-left[data-tvl-title]::before { content:attr(data-tvl-title); }
 .tvl-login-native #loginPage>.padded-left[data-tvl-title='']::before { display:none;margin:0; }
@@ -42,19 +42,19 @@ body.tvl-login-native { color:#f5f5f2; }
 .tvl-login-native #divUsers .cardScalable { border-radius:12px;box-shadow:0 12px 30px #0005; }
 .tvl-login-native #divUsers .cardContent,
 .tvl-login-native #divUsers .cardImage,
-.tvl-login-native #divUsers .cardImageContainer { border-radius:12px;background-color:#2a4033; }
-.tvl-login-native #divUsers .cardImageIcon { font-size:5rem;color:#c6d6c9; }
+.tvl-login-native #divUsers .cardImageContainer { border-radius:12px;background-color:#202228; }
+.tvl-login-native #divUsers .cardImageIcon { font-size:5rem;color:#b9bcbf; }
 .tvl-login-native #divUsers .cardFooter,
 .tvl-login-native #divUsers .cardText { background:transparent;color:#f5f5f2; }
 .tvl-login-native #divUsers .cardText {
   height:auto;max-height:none;margin:0;padding:.9rem .2rem .2rem;
   line-height:1.35;font-size:1.05rem;font-weight:600;white-space:normal;overflow-wrap:break-word;
 }
-.tvl-login-native #divUsers .card:hover .cardScalable { box-shadow:0 0 0 2px #8cae98,0 12px 30px #0005; }
-.tvl-login-native #divUsers .card:focus { outline:3px solid #e0f0e4!important;outline-offset:3px; }
+.tvl-login-native #divUsers .card:hover .cardScalable { box-shadow:0 0 0 2px #e50914,0 12px 30px #0005; }
+.tvl-login-native #divUsers .card:focus { outline:3px solid #e50914!important;outline-offset:3px; }
 .tvl-login-native #loginPage .manualLoginForm {
   box-sizing:border-box;width:100%;max-width:30rem;margin:0 auto!important;padding:2rem;
-  background:#19241de6;border:1px solid #c4d9cf30;border-radius:14px;box-shadow:0 18px 70px #0005;
+  background:#15161ae6;border:1px solid #ffffff20;border-radius:14px;box-shadow:0 18px 70px #0005;
 }
 .tvl-login-native #loginPage .manualLoginForm>.padded-left { padding:0; }
 .tvl-login-native #loginPage .manualLoginForm h1 { font-size:2.2rem;margin:0 0 1.8rem!important; }
@@ -64,27 +64,27 @@ body.tvl-login-native { color:#f5f5f2; }
 .tvl-login-native #loginPage .emby-input,
 .tvl-login-native #loginPage input[is=emby-input] {
   box-sizing:border-box;width:100%;min-height:3.2rem;padding:.75rem .85rem!important;
-  background:#101a14;border:1px solid #587060;border-radius:7px;color:#f5f5f2;font:inherit;
+  background:#121316;border:1px solid #45474e;border-radius:7px;color:#f5f5f2;font:inherit;
 }
-.tvl-login-native #loginPage input::placeholder { color:#9eb0a4;opacity:1; }
+.tvl-login-native #loginPage input::placeholder { color:#8a8d94;opacity:1; }
 .tvl-login-native #loginPage .checkboxContainer { color:#c9d6cd;margin:1.1rem 0 1.5rem; }
-.tvl-login-native #loginPage .checkboxOutline { border-color:#9ab6a3;border-radius:4px; }
-.tvl-login-native #loginPage .emby-checkbox:checked+span+.checkboxOutline { background:#cfe2d4;border-color:#cfe2d4;color:#142018; }
-.tvl-login-native #loginPage .emby-checkbox:focus+span+.checkboxOutline { border-color:#e0f0e4!important;outline:2px solid #e0f0e4;outline-offset:3px; }
+.tvl-login-native #loginPage .checkboxOutline { border-color:#555860;border-radius:4px; }
+.tvl-login-native #loginPage .emby-checkbox:checked+span+.checkboxOutline { background:#e50914;border-color:#e50914;color:#ffffff; }
+.tvl-login-native #loginPage .emby-checkbox:focus+span+.checkboxOutline { border-color:#e50914!important;outline:2px solid #e50914;outline-offset:3px; }
 .tvl-login-native #loginPage .raised {
   box-sizing:border-box;min-height:3rem;margin:.35rem 0;padding:.85rem 1rem;
-  background:#26382c;color:#edf4ef;border:1px solid #c4d9cf26;border-radius:7px;
+  background:#22242a;color:#f5f5f2;border:1px solid #ffffff20;border-radius:7px;
   box-shadow:none;font:inherit;font-weight:600;line-height:1.3;white-space:normal;transform:none;
 }
-.tvl-login-native #loginPage .raised:hover { background:#354e3e;color:#fff; }
-.tvl-login-native #loginPage .raised:focus { background:#354e3e!important;color:#f5f5f2!important; }
+.tvl-login-native #loginPage .raised:hover { background:#32343d;color:#fff; }
+.tvl-login-native #loginPage .raised:focus { background:#32343d!important;color:#f5f5f2!important; }
 .tvl-login-native #loginPage .button-submit,
-.tvl-login-native #loginPage .button-submit:focus { background:#f5f5f2!important;color:#101112!important;border-color:#f5f5f2!important; }
-.tvl-login-native #loginPage .button-submit:hover { background:#d3e7de!important;color:#101112!important; }
-.tvl-login-native #loginPage .emby-input:focus { border-color:#9ab6a3!important; }
+.tvl-login-native #loginPage .button-submit:focus { background:#e50914!important;color:#ffffff!important;border-color:#e50914!important; }
+.tvl-login-native #loginPage .button-submit:hover { background:#b20710!important;border-color:#b20710!important;color:#ffffff!important; }
+.tvl-login-native #loginPage .emby-input:focus { border-color:#e50914!important; }
 .tvl-login-native #loginPage button:focus,
 .tvl-login-native #loginPage input:focus,
-.tvl-login-native #loginPage a:focus { outline:2px solid #e0f0e4!important;outline-offset:4px; }
+.tvl-login-native #loginPage a:focus { outline:2px solid #e50914!important;outline-offset:4px; }
 .tvl-login-native #loginPage button:disabled { opacity:.45; }
 .tvl-login-native #loginPage .readOnlyContent {
   box-sizing:border-box;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-gap:.65rem;
@@ -93,20 +93,20 @@ body.tvl-login-native { color:#f5f5f2; }
 .tvl-login-native #loginPage .readOnlyContent>.raised { width:100%;margin:0; }
 .tvl-login-native #loginPage .loginDisclaimerContainer { grid-column:1 / -1;margin:1.2rem 0 0; }
 .tvl-login-native #loginPage .loginDisclaimer { color:#abbdb0;font-size:.9rem;line-height:1.6;overflow-wrap:break-word; }
-.tvl-login-native #loginPage .loginDisclaimer a { color:#d3e7de; }
+.tvl-login-native #loginPage .loginDisclaimer a { color:#e50914; }
 
 /* Quick Connect and failed-login alerts are native dialogs outside loginPage.
    Keep their native roles, text, focus trap and closing actions. */
-.tvl-login-native .dialog.formDialog { background:#101712f5;color:#f5f5f2; }
+.tvl-login-native .dialog.formDialog { background:#141518f5;color:#f5f5f2; }
 .tvl-login-native .formDialog .formDialogHeader,
 .tvl-login-native .formDialog .formDialogFooter { background:transparent;color:#f5f5f2; }
 .tvl-login-native .formDialog .formDialogHeaderTitle { font-size:2rem;line-height:1.2;letter-spacing:-.025em; }
-.tvl-login-native .formDialog .formDialogContent { box-sizing:border-box;max-width:40rem!important;width:calc(100% - 3rem);border:1px solid #c4d9cf30;border-radius:12px;background:#1b2920; }
+.tvl-login-native .formDialog .formDialogContent { box-sizing:border-box;max-width:40rem!important;width:calc(100% - 3rem);border:1px solid #ffffff20;border-radius:12px;background:#16171a; }
 .tvl-login-native .formDialog .dialogContentInner { box-sizing:border-box;padding:1.5rem!important;font-size:1.1rem;line-height:1.65;overflow-wrap:break-word; }
 .tvl-login-native #quickConnectAlert .text { font-size:1.35rem;font-variant-numeric:tabular-nums; }
 .tvl-login-native .formDialog .raised,
-.tvl-login-native .formDialog .raised:focus { background:#f5f5f2!important;color:#101112!important;border-color:#f5f5f2!important;min-height:3rem;padding:.8rem 1.4rem;border-radius:7px;box-shadow:none; }
-.tvl-login-native .formDialog button:focus { outline:2px solid #e0f0e4!important;outline-offset:4px; }
+.tvl-login-native .formDialog .raised:focus { background:#e50914!important;color:#ffffff!important;border-color:#e50914!important;min-height:3rem;padding:.8rem 1.4rem;border-radius:7px;box-shadow:none; }
+.tvl-login-native .formDialog button:focus { outline:2px solid #e50914!important;outline-offset:4px; }
 .tvl-login-native .toast { max-width:calc(100vw - 2rem);min-width:0;background:#352923!important;color:#fff0e5;border:1px solid #caac9766!important;border-radius:9px;line-height:1.5;box-shadow:0 10px 35px #0008; }
 @media(max-width:680px) {
   .tvl-login-native #loginPage { padding-top:4rem!important; }

@@ -19,15 +19,15 @@ body.tvl-home { background:#101112 !important; color:#f5f5f2; }
 .tvl-home #homeTab .tvl-home-library-excluded { display:none !important; }
 .tvl-home #homeTab .sectionTitle:not(.ec-heading):not(.ec-bootstrap-heading) { color:#f5f5f2; font-weight:600; font-size:1.25em !important; letter-spacing:-.015em; }
 .tvl-home #homeTab .sectionTitleTextButton { color:#f5f5f2; }
-.tvl-home #homeTab .sectionTitleTextButton:focus { outline:2px solid #d3e7de; outline-offset:3px; border-radius:4px; }
+.tvl-home #homeTab .sectionTitleTextButton:focus { outline:2px solid #e50914; outline-offset:3px; border-radius:4px; }
 .tvl-home #homeTab .cardBox { background:transparent !important; border-radius:7px !important; box-shadow:none !important; }
 .tvl-home #homeTab .visualCardBox { border:0 !important; overflow:visible; }
 .tvl-home #homeTab .cardScalable { border-radius:7px !important; }
-.tvl-home #homeTab .cardImageContainer { border-radius:7px; background-color:#22302a; }
+.tvl-home #homeTab .cardImageContainer { border-radius:7px; background-color:#1e1f24; }
 /* Fit transparent channel logos inside missing-art TV cards without cropping.
    Keep native progress indicators and play targets in place. */
 .tvl-home #homeTab .tvl-home-channel-logo { position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;box-sizing:border-box;padding:12%;object-fit:contain;pointer-events:none;border-radius:inherit; }
-.tvl-home #homeTab .tvl-home-channel-fallback { background-color:#19241d; }
+.tvl-home #homeTab .tvl-home-channel-fallback { background-color:#16171a; }
 .tvl-home #homeTab .tvl-home-channel-fallback .cardImageIcon,
 .tvl-home #homeTab .tvl-home-channel-fallback .cardDefaultText { visibility:hidden; }
 .tvl-home #homeTab .cardText { color:#f5f5f2; padding-left:.7em; padding-right:.7em; }
@@ -51,24 +51,24 @@ body.tvl-home { background:#101112 !important; color:#f5f5f2; }
 .tvl-home #homeTab .card:focus .cardScalable,
 .tvl-home #homeTab .cardBox:focus-within .cardScalable { border-color:transparent !important; }
 .tvl-home #homeTab .card:focus .cardScalable,
-.tvl-home #homeTab .cardBox:focus-within .cardScalable { outline:2px solid #f2faf4; outline-offset:3px; }
-.tvl-home #homeTab .homeLibraryButton { background:#22302a; border:2px solid #ffffff20; border-radius:7px; color:#f5f5f2; box-shadow:none; }
-.tvl-home #homeTab .homeLibraryButton:hover { background:#29382f; }
-.tvl-home #homeTab .homeLibraryButton:focus { outline:2px solid #f2faf4; outline-offset:3px; background:#2c3731; }
+.tvl-home #homeTab .cardBox:focus-within .cardScalable { outline:2px solid #e50914; outline-offset:3px; }
+.tvl-home #homeTab .homeLibraryButton { background:#22242a; border:2px solid #ffffff20; border-radius:7px; color:#f5f5f2; box-shadow:none; }
+.tvl-home #homeTab .homeLibraryButton:hover { background:#32343d; }
+.tvl-home #homeTab .homeLibraryButton:focus { outline:2px solid #e50914; outline-offset:3px; background:#24252a; }
 
 /* Featured keeps its own height, layout, fades, controls and personalisation.
    Scope palette tokens to its Home instance rather than its global theme. */
 .tvl-home #homeTab .ec-root {
-  --ec-theme-primary:#f6f6f3;
-  --ec-theme-primary-dark:#dfe4e0;
-  --ec-theme-primary-contrast:#101112;
-  --ec-theme-secondary:#d3e7de;
+  --ec-theme-primary:#e50914;
+  --ec-theme-primary-dark:#b20710;
+  --ec-theme-primary-contrast:#ffffff;
+  --ec-theme-secondary:#e50914;
   --ec-theme-background:#101112;
-  --ec-theme-paper:#19241d;
+  --ec-theme-paper:#16171a;
   --ec-theme-text-primary:#f5f5f2;
   --ec-theme-text-secondary:#b9c4bd;
-  --ec-theme-contained:#26342ce6;
-  --ec-theme-contained-hover:#35453a;
+  --ec-theme-contained:#24252ae6;
+  --ec-theme-contained-hover:#32343d;
   --ec-button-radius:7px;
   --ec-on-media-color:#f5f5f2;
   --ec-media-shade:linear-gradient(90deg,rgb(16 17 18 / var(--ec-gradient-strength)) 0%,rgb(16 17 18 / calc(var(--ec-gradient-strength) * .74)) 30%,rgb(16 17 18 / calc(var(--ec-gradient-strength) * .16)) 66%,rgb(16 17 18 / calc(var(--ec-gradient-strength) * .42)) 100%),linear-gradient(0deg,rgb(16 17 18 / calc(var(--ec-gradient-strength) * .74)),transparent 45%);

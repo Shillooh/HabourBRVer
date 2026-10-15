@@ -1,9 +1,9 @@
 /* Native Jellyfin 10.11/12 queue and audio controls. Keep native nodes,
    hidden/disabled states, slider hit areas, playback handlers and queue actions. */
 .tvl-layout .nowPlayingBar {
-  background:linear-gradient(110deg,#1e2923,#141817 65%);
+  background:linear-gradient(110deg,#1f1416,#141518 65%);
   color:#f5f5f2;
-  box-shadow:0 -1px 0 #c3d4c329,0 -12px 36px #0005;
+  box-shadow:0 -1px 0 #ffffff14,0 -12px 36px #0005;
 }
 .tvl-layout .nowPlayingBar .nowPlayingBarText { color:#f5f5f2;font-weight:600; }
 .tvl-layout .nowPlayingBar .nowPlayingBarSecondaryText,
@@ -11,16 +11,16 @@
 .tvl-layout .nowPlayingBar .nowPlayingImage { border-radius:6px; }
 .tvl-layout .nowPlayingBar button { color:#f5f5f2;border-radius:50%; }
 .tvl-layout .nowPlayingBar .playPauseButton { background:#f5f5f2;color:#101112; }
-.tvl-layout .nowPlayingBar button:hover { background:#34413a;color:#f5f5f2; }
-.tvl-layout .nowPlayingBar button:focus { outline:2px solid #d3e7de;outline-offset:2px; }
-.tvl-layout .nowPlayingBar .buttonActive { color:#d3e7de;background:#34413a; }
+.tvl-layout .nowPlayingBar button:hover { background:#32343d;color:#f5f5f2; }
+.tvl-layout .nowPlayingBar button:focus { outline:2px solid #e50914;outline-offset:2px; }
+.tvl-layout .nowPlayingBar .buttonActive { color:#ffffff;background:#e50914; }
 
 /* The native full player is #/queue; desktop also has the mini bar.
    Give this page the same generous artwork, cream type and charcoal surface as
    Cinema's album pages instead of recolouring the stock compact control box. */
 .tvl-layout #nowPlayingPage {
   background:#101112;
-  background-image:radial-gradient(ellipse at 12% 12%,#24362b80,transparent 55%);
+  background-image:radial-gradient(ellipse at 12% 12%,#35141880,transparent 55%);
   color:#f5f5f2;
   font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;
   padding:6.5rem 0 2rem!important;
@@ -50,15 +50,15 @@
   box-shadow:0 20px 60px #0008;
 }
 .tvl-layout #nowPlayingPage .nowPlayingPageImageContainerNoAlbum {
-  overflow:hidden;border-radius:12px;background:#23372b;
+  overflow:hidden;border-radius:12px;background:#241618;
   box-shadow:0 20px 60px #0008;
 }
 .tvl-layout #nowPlayingPage .nowPlayingPageImageContainerNoAlbum .cardImageContainer {
-  background:linear-gradient(145deg,#3f5748,#1a2420);color:#c6d6c9;
+  background:linear-gradient(145deg,#4a1d22,#201416);color:#f5f5f2;
 }
 .tvl-layout #nowPlayingPage .nowPlayingPageImageContainerNoAlbum .cardImageIcon { font-size:6rem; }
-.tvl-layout #nowPlayingPage .nowPlayingPageImageContainer:empty { height:0;padding-bottom:100%;border-radius:12px;background:linear-gradient(145deg,#344b3c,#19231e); }
-.tvl-layout #nowPlayingPage .nowPlayingPageImageContainer:empty::before { content:'♫';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:6rem;color:#b9cdbc; }
+.tvl-layout #nowPlayingPage .nowPlayingPageImageContainer:empty { height:0;padding-bottom:100%;border-radius:12px;background:linear-gradient(145deg,#351418,#141518); }
+.tvl-layout #nowPlayingPage .nowPlayingPageImageContainer:empty::before { content:'♫';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:6rem;color:#b9c4bd; }
 .tvl-layout #nowPlayingPage .nowPlayingInfoControls { display:flex;flex-direction:column;justify-content:center;min-width:0;width:100%;margin:0; }
 .tvl-layout #nowPlayingPage .infoContainer { min-width:0;align-items:flex-start; }
 .tvl-layout #nowPlayingPage .nowPlayingInfoContainerMedia { min-width:0;width:100%;margin:0 0 1.6rem;text-align:start; }
@@ -79,7 +79,7 @@
 .tvl-layout #nowPlayingPage .nowPlayingInfoButtons { justify-content:flex-start;flex-wrap:wrap;font-size:1rem;margin:0; }
 .tvl-layout #nowPlayingPage .nowPlayingSecondaryButtons {
   justify-content:flex-start;margin-top:1.2rem;padding-top:1rem;
-  border-top:1px solid #c4d9cf24;
+  border-top:1px solid #ffffff24;
 }
 .tvl-layout #nowPlayingPage .nowPlayingSecondaryButtons .volumecontrol { margin-inline-start:auto; }
 .tvl-layout #nowPlayingPage .nowPlayingVolumeSliderContainer { width:8rem;max-width:30vw;margin-inline-start:.35rem; }
@@ -91,37 +91,37 @@
 .tvl-layout #nowPlayingPage .nowPlayingInfoButtons .btnPlayPause { color:#101112;background:#f5f5f2!important;border-radius:50%;margin:.3rem .65rem;font-size:1.2rem;padding:.55rem; }
 .tvl-layout #nowPlayingPage .btnPlayPause .material-icons { font-size:2.5rem; }
 .tvl-layout #nowPlayingPage button:hover,
-.tvl-layout #nowPlayingPage .listItem:hover { background-color:#25322b; }
-.tvl-layout #nowPlayingPage .nowPlayingInfoButtons .btnPlayPause:hover { background:#d3e7de!important;color:#101112; }
+.tvl-layout #nowPlayingPage .listItem:hover { background-color:#2a1c1e; }
+.tvl-layout #nowPlayingPage .nowPlayingInfoButtons .btnPlayPause:hover { background:#e50914!important;color:#ffffff; }
 .tvl-layout #nowPlayingPage button:focus,
 .tvl-layout #nowPlayingPage a:focus,
-.tvl-layout #nowPlayingPage input:focus { outline:2px solid #d3e7de!important;outline-offset:3px; }
+.tvl-layout #nowPlayingPage input:focus { outline:2px solid #e50914!important;outline-offset:3px; }
 .tvl-layout #nowPlayingPage button:disabled { opacity:.35; }
-.tvl-layout #nowPlayingPage .buttonActive { color:#d3e7de;background:#34413a; }
-.tvl-layout #nowPlayingPage .playlistSection { margin-top:3rem;padding-top:1rem;border-top:1px solid #c4d9cf24; }
+.tvl-layout #nowPlayingPage .buttonActive { color:#ffffff;background:#e50914; }
+.tvl-layout #nowPlayingPage .playlistSection { margin-top:3rem;padding-top:1rem;border-top:1px solid #ffffff24; }
 .tvl-layout #nowPlayingPage .playlistSectionButton { padding:.3rem .25rem .7rem;background:transparent;color:inherit; }
-.tvl-layout #nowPlayingPage .nowPlayingPlaylist { border-radius:10px;background:#161c18;padding:.5rem; }
+.tvl-layout #nowPlayingPage .nowPlayingPlaylist { border-radius:10px;background:#141518;padding:.5rem; }
 .tvl-layout #nowPlayingPage .nowPlayingPlaylist .listItem {
   min-height:4.8rem;box-sizing:border-box;padding:.5rem .65rem;
-  margin:.2rem 0;border-bottom:1px solid #d3e7de16;border-radius:7px;
+  margin:.2rem 0;border-bottom:1px solid #ffffff14;border-radius:7px;
   background:transparent;color:#f5f5f2;transform:none;
 }
 .tvl-layout #nowPlayingPage .nowPlayingPlaylist .listItem:focus,
-.tvl-layout #nowPlayingPage .nowPlayingPlaylist .listItem:focus-within { background:#2b3d31;color:#f5f5f2;box-shadow:inset 0 0 0 1px #c4d9cf60; }
+.tvl-layout #nowPlayingPage .nowPlayingPlaylist .listItem:focus-within { background:#301418;color:#f5f5f2;box-shadow:inset 0 0 0 1px #e5091480; }
 .tvl-layout #nowPlayingPage .listItemBody { min-width:0; }
 .tvl-layout #nowPlayingPage .listItemBodyText { color:#b9c4bd; }
 .tvl-layout #nowPlayingPage .listItemBodyText:first-child { color:#f5f5f2;font-weight:600; }
 .tvl-layout #nowPlayingPage .listItemImage { width:3.8rem;height:3.8rem;border-radius:5px; }
-.tvl-layout #nowPlayingPage .playlistIndexIndicatorImage { background-color:#34413a;color:#d3e7de; }
+.tvl-layout #nowPlayingPage .playlistIndexIndicatorImage { background-color:#e50914;color:#ffffff; }
 .tvl-layout #nowPlayingPage .contextMenuList a { color:#f5f5f2; }
 
 /* Colour native slider pieces without replacing their geometry or hit areas. */
 .tvl-layout .nowPlayingBar .mdl-slider,
-.tvl-layout #nowPlayingPage .mdl-slider { color:#d3e7de;accent-color:#d3e7de; }
+.tvl-layout #nowPlayingPage .mdl-slider { color:#e50914;accent-color:#e50914; }
 .tvl-layout .nowPlayingBar .mdl-slider-background-lower,
-.tvl-layout #nowPlayingPage .mdl-slider-background-lower { background:#d3e7de; }
+.tvl-layout #nowPlayingPage .mdl-slider-background-lower { background:#e50914; }
 .tvl-layout .nowPlayingBar .mdl-slider-background-upper,
-.tvl-layout #nowPlayingPage .mdl-slider-background-upper { background:#66766b80; }
+.tvl-layout #nowPlayingPage .mdl-slider-background-upper { background:#ffffff2b; }
 .tvl-layout .nowPlayingBar .mdl-slider::-webkit-slider-thumb,
 .tvl-layout #nowPlayingPage .mdl-slider::-webkit-slider-thumb { background:#f5f5f2; }
 .tvl-layout .nowPlayingBar .mdl-slider::-moz-range-thumb,

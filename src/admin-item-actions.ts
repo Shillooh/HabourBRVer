@@ -15,8 +15,8 @@ const dialogs = () => Array.from(document.querySelectorAll<NativeDialog>('.dialo
  * Audited jellyfin-web v12.0/v10.11.0 components/shortcuts.js. */
 export async function dispatchNativeItemMenu(item: Item, serverId: string, anchor: HTMLElement,
   current: () => boolean, updated: () => void): Promise<() => void> {
-  if (!current()) throw new DOMException('This media page has closed.', 'AbortError');
-  if (!item.Id || !serverId || !supported.has(item.Type || '')) throw new Error('This item has no management menu.');
+  if (!current()) throw new DOMException('Esta página de mídia foi fechada.', 'AbortError');
+  if (!item.Id || !serverId || !supported.has(item.Type || '')) throw new Error('Este item não possui menu de gerenciamento.');
   const create = document.createElement as unknown as (tag: string, extension: string) => NativeContainer;
   let host: NativeContainer;
   try { host = create.call(document, 'div', 'emby-itemscontainer'); }
@@ -34,7 +34,7 @@ export async function dispatchNativeItemMenu(item: Item, serverId: string, ancho
   const remove = () => host.remove();
   try {
     await new Promise<void>(resolve => setTimeout(resolve, 0));
-    if (!current()) throw new DOMException('This media page has closed.', 'AbortError');
+    if (!current()) throw new DOMException('Esta página de mídia foi fechada.', 'AbortError');
     // The native menu calls this after metadata/images/identify edits. The
     // bridge owns no media results, so refresh only its current themed view.
     host.notifyRefreshNeeded = () => { if (current()) updated(); };
@@ -47,14 +47,14 @@ export async function dispatchNativeItemMenu(item: Item, serverId: string, ancho
         && !node.closest('#tv-layout, .tvl-home-collection-row, .tvl-home-editor, [data-tvl-admin-bridge], [data-tvl-playback-bridge]')
         && Array.from(node.querySelectorAll<HTMLElement>('[data-id][data-serverid]')).some(card => sameId(card.dataset.serverid, serverId)));
       for (const native of nativeHosts) {
-        if (!current()) throw new DOMException('This media page has closed.', 'AbortError');
+        if (!current()) throw new DOMException('Esta página de mídia foi fechada.', 'AbortError');
         native.append(host);
         const stop = (event: Event) => event.stopPropagation(); native.addEventListener('click', stop);
         try { handled = dispatch(); } finally { native.removeEventListener('click', stop); }
         if (handled) break;
       }
     }
-    if (!handled) throw new Error('The native item menu is unavailable.');
+    if (!handled) throw new Error('O menu nativo do item não está disponível.');
     return remove;
   } catch (error) { remove(); throw error; }
 }
@@ -112,10 +112,10 @@ export class AdminItemActions {
     }
     finally { this.checking = false; }
   }
-  button(item: Item, label = 'More'): HTMLButtonElement {
+  button(item: Item, label = 'Mais'): HTMLButtonElement {
     const control = button(label, '', 'tvl-admin-item', () => { void this.open(item, control); });
     control.prepend(document.createTextNode('⋯ '));
-    control.setAttribute('aria-label', `Manage ${item.Name}`); control.setAttribute('aria-haspopup', 'dialog');
+    control.setAttribute('aria-label', `Gerenciar ${item.Name}`); control.setAttribute('aria-haspopup', 'dialog');
     control.dataset.adminItem = item.Id; control.dataset.focusId = `manage:${item.Id}`;
     control.hidden = !supported.has(item.Type || '') || !this.allowed || !this.current();
     if (supported.has(item.Type || '')) this.buttons.add(control);
@@ -192,7 +192,7 @@ export class AdminItemActions {
       // opening More; never click a cached page's previous-item button.
       if (openMenu) void openOriginalItemMenu(item, account);
     }
-    else this.options.announce?.('Jellyfin’s item menu is unavailable in this client.');
+    else this.options.announce?.('O menu de itens do Jellyfin não está disponível neste cliente.');
   }
   destroy(): void {
     this.disposed = true; this.revision++; this.observer.disconnect(); window.removeEventListener('focus', this.onFocus);
