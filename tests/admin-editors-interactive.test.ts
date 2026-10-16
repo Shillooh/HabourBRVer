@@ -307,16 +307,18 @@ test('ProviderSettingsEditor in Global mode: form controls, sidebar and save but
 
     await editor.load();
 
+    const root = editor.element as unknown as MockElement;
+
     // Check save button
-    const saveButton = editor.element.querySelector<MockElement>('[data-provider-settings-focus="save"]');
+    const saveButton = root.querySelector('[data-provider-settings-focus="save"]');
     assert.ok(saveButton, 'Save button must exist');
     assert.equal(saveButton.disabled, false, 'Save button must NOT be disabled in Global mode');
     assert.equal(saveButton.textContent.includes('Salvar Padrão Global'), true);
 
     // Check sidebar service buttons
-    const sidebar = editor.element.querySelector<MockElement>('.tvl-provider-settings-sidebar');
+    const sidebar = root.querySelector('.tvl-provider-settings-sidebar');
     assert.ok(sidebar, 'Sidebar must exist');
-    const sidebarButtons = sidebar.querySelectorAll<MockElement>('button');
+    const sidebarButtons = sidebar.querySelectorAll('button');
     assert.ok(sidebarButtons.length > 0, 'Sidebar must render service buttons');
     for (const btn of sidebarButtons) {
       if (btn.dataset.providerSettingsFocus !== 'add-service') {
@@ -325,9 +327,9 @@ test('ProviderSettingsEditor in Global mode: form controls, sidebar and save but
     }
 
     // Check workspace inputs (checkboxes, text inputs)
-    const workspace = editor.element.querySelector<MockElement>('.tvl-provider-settings-workspace');
+    const workspace = root.querySelector('.tvl-provider-settings-workspace');
     assert.ok(workspace, 'Workspace must exist');
-    const inputs = workspace.querySelectorAll<MockElement>('input');
+    const inputs = workspace.querySelectorAll('input');
     assert.ok(inputs.length > 0, 'Workspace must contain inputs');
     for (const input of inputs) {
       if (input.disabled) {
@@ -352,14 +354,15 @@ test('ProviderSettingsEditor with targetUserId: controls and dynamic button are 
     });
 
     await editor.load();
+    const root = editor.element as unknown as MockElement;
 
-    const saveButton = editor.element.querySelector<MockElement>('[data-provider-settings-focus="save"]');
+    const saveButton = root.querySelector('[data-provider-settings-focus="save"]');
     assert.ok(saveButton, 'Save button must exist');
     assert.equal(saveButton.disabled, false, 'Save button must not be disabled for target user');
 
-    const sidebar = editor.element.querySelector<MockElement>('.tvl-provider-settings-sidebar');
+    const sidebar = root.querySelector('.tvl-provider-settings-sidebar');
     assert.ok(sidebar, 'Sidebar must exist');
-    const sidebarButtons = sidebar.querySelectorAll<MockElement>('button');
+    const sidebarButtons = sidebar.querySelectorAll('button');
     assert.ok(sidebarButtons.length > 0, 'Sidebar buttons must exist');
     for (const btn of sidebarButtons) {
       if (btn.dataset.providerSettingsFocus !== 'add-service') {
@@ -383,17 +386,18 @@ test('LoadingSettingsEditor in Global and User target modes: inputs, choices and
       scope: 'global'
     });
     await globalEditor.load();
+    const globalRoot = globalEditor.element as unknown as MockElement;
 
-    const globalSave = globalEditor.element.querySelector<MockElement>('.tvl-primary');
+    const globalSave = globalRoot.querySelector('.tvl-primary');
     assert.ok(globalSave, 'Save button in global loading editor must exist');
     assert.equal(globalSave.disabled, false, 'Save button in global loading editor must not be disabled');
 
-    const inputs = globalEditor.element.querySelectorAll<MockElement>('.tvl-loading-settings-fields input');
+    const inputs = globalRoot.querySelectorAll('.tvl-loading-settings-fields input');
     assert.ok(inputs.length >= 2, 'Brand and Message inputs must exist');
     assert.equal(inputs[0].disabled, false, 'Brand input must not be disabled');
     assert.equal(inputs[1].disabled, false, 'Message input must not be disabled');
 
-    const choices = globalEditor.element.querySelectorAll<MockElement>('.tvl-loading-choice');
+    const choices = globalRoot.querySelectorAll('.tvl-loading-choice');
     assert.ok(choices.length > 0, 'Choices must exist');
     for (const choice of choices) {
       assert.equal(choice.disabled, false, 'Animation choice button must not be disabled');
@@ -405,8 +409,9 @@ test('LoadingSettingsEditor in Global and User target modes: inputs, choices and
       targetUserId: 'target-user-456'
     });
     await userEditor.load();
+    const userRoot = userEditor.element as unknown as MockElement;
 
-    const userSave = userEditor.element.querySelector<MockElement>('.tvl-primary');
+    const userSave = userRoot.querySelector('.tvl-primary');
     assert.ok(userSave, 'Save button for target user must exist');
     assert.equal(userSave.disabled, false, 'Save button for target user must not be disabled');
   } finally {
