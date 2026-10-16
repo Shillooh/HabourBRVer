@@ -56,7 +56,7 @@ test('Music genres paginate and suggestions retain native latest/listening-histo
   assert.deepEqual((await api.getMusicGenres('music')).map(i=>i.Id),['ambient','jazz']);
   assert.ok(requests.filter(r=>r.path==='MusicGenres').every(r=>r.query.ParentId==='music'&&r.query.IncludeItemTypes==='MusicAlbum'));
   const sections=await api.getMusicSuggestions('music');
-  assert.deepEqual(sections.map(s=>s.title),['Recently added','Recently played','Frequently played']);
+  assert.deepEqual(sections.map(s=>s.title),['Adicionados recentemente','Tocadas recentemente','Mais tocadas']);
   assert.deepEqual(sections[0].items.map(i=>i.Type),['MusicAlbum','Audio']);
   assert.ok(requests.filter(r=>r.path==='Items').every(r=>r.query.ParentId==='music'&&r.query.Filters==='IsPlayed'&&r.query.IncludeItemTypes==='Audio'));
 });

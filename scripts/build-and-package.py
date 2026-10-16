@@ -8,14 +8,14 @@ import shutil
 
 root = Path(__file__).resolve().parent.parent
 project = root / 'server/Jellyfin.Plugin.TvItemLayout.csproj'
-release_base = "1.0.0"
+release_version = "1.0.0.0"
 plugin_id = "c985bcfd-992f-4a16-a583-258014d98d75"
 
 # Target definitions ordered from highest to lowest ABI
 targets = [
-    ("12.0.0", "net10.0", f"{release_base}.3"),
-    ("10.11.0", "net9.0", f"{release_base}.2"),
-    ("10.10.7", "net8.0", f"{release_base}.1"),
+    ("12.0.0", "net10.0"),
+    ("10.11.0", "net9.0"),
+    ("10.10.7", "net8.0"),
 ]
 
 # Ensure client script is built
@@ -28,6 +28,9 @@ client_hash = hashlib.sha256(client_script.read_bytes()).hexdigest()
 
 releases_dir = root / 'dist/releases'
 releases_dir.mkdir(parents=True, exist_ok=True)
+# Clean old release archives in dist/releases
+for old_f in releases_dir.glob("*.zip*"):
+    old_f.unlink()
 
 packages_dir = root / 'packages'
 packages_dir.mkdir(parents=True, exist_ok=True)
@@ -37,21 +40,21 @@ for old_f in packages_dir.glob("*.zip*"):
 
 versions_manifest = []
 
-for jellyfin_version, framework, plugin_version in targets:
-    print(f"\n--- Building for Jellyfin {jellyfin_version} ({framework}) - Plugin v{plugin_version} ---")
+for jellyfin_version, framework in targets:
+    print(f"\n--- Building for Jellyfin {jellyfin_version} ({framework}) - Plugin v{release_version} ---")
     cmd = [
         "dotnet", "build", str(project),
         "--configuration", "Release",
         "--nologo",
         f"-p:JellyfinVersion={jellyfin_version}",
-        f"-p:ReleaseVersion={release_base}"
+        f"-p:ReleaseVersion={release_version}"
     ]
     subprocess.run(cmd, cwd=str(root), check=True)
 
     assembly = root / f"server/bin/Release/{framework}/Jellyfin.Plugin.TvItemLayout.dll"
     assert assembly.exists(), f"Assembly not found: {assembly}"
 
-    archive = releases_dir / f"TvItemLayout_{plugin_version}_jellyfin-{jellyfin_version}.zip"
+    archive = releases_dir / f"TvItemLayout_{release_version}_jellyfin-{jellyfin_version}.zip"
     print(f"Packaging {archive.name}...")
     with ZipFile(archive, 'w', ZIP_DEFLATED) as zip_out:
         zip_out.write(assembly, assembly.name)
@@ -67,7 +70,7 @@ for jellyfin_version, framework, plugin_version in targets:
         zip_out.writestr('build-info.json', json.dumps({
             'name': 'ScreenHarbour Brasil',
             'id': plugin_id,
-            'version': plugin_version,
+            'version': release_version,
             'jellyfinVersion': jellyfin_version,
             'clientSha256': client_hash,
         }, indent=2) + '\n')
@@ -82,8 +85,8 @@ for jellyfin_version, framework, plugin_version in targets:
     shutil.copy2(archive.with_suffix('.zip.sha256'), packages_dir / f"{archive.name}.sha256")
 
     versions_manifest.append({
-        'version': plugin_version,
-        'changelog': f'Lançamento do ScreenHarbour Brasil v{plugin_version} para Jellyfin {jellyfin_version}. Hard fork independente com interface cinematográfica totalmente em português (pt-BR), fileiras dinâmicas de filmes e séries Em Alta via TMDB cruzadas com o catálogo local, novos presets de streaming brasileiros e melhorias de navegação.',
+        'version': release_version,
+        'changelog': f'Lançamento inicial do ScreenHarbour Brasil v{release_version} para Jellyfin {jellyfin_version}. Hard fork independente com interface cinematográfica totalmente em português (pt-BR), configurações centralizadas no Painel de Controle (Padrão Global e personalização por usuário), fileiras dinâmicas de filmes e séries Em Alta via TMDB cruzadas com o catálogo local, novos presets de streaming brasileiros e melhorias de navegação.',
         'targetAbi': jellyfin_version,
         'sourceUrl': f'https://raw.githubusercontent.com/Shillooh/HabourBRVer/main/packages/{archive.name}',
         'checksum': md5_hash,
@@ -105,11 +108,19 @@ manifest_path = root / 'manifest.json'
 manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
 print(f"\nGenerated {manifest_path.name} with updated checksums and GUID {plugin_id}.")
 
-# Copy to C:\Users\litin\Downloads\pruu
-pruu_dir = Path(r"C:\Users\litin\Downloads\pruu")
+# Copy to local downloads/pruu directory if present
+pruu_env = os.environ.get("PRUU_DIR")
+pruu_dir = Path(pruu_env) if pruu_env else (Path.home() / "Downloads" / "pruu")
 pruu_dir.mkdir(parents=True, exist_ok=True)
 
-for jellyfin_version, framework, plugin_version in targets:
+# Clean legacy versions from pruu_dir
+for old_pruu in pruu_dir.glob("TvItemLayout_1.0.0.[123]*"):
+    try:
+        old_pruu.unlink()
+    except Exception:
+        pass
+
+for jellyfin_version, framework in targets:
     src_dll = root / f"server/bin/Release/{framework}/Jellyfin.Plugin.TvItemLayout.dll"
     dest_dll = pruu_dir / f"Jellyfin.Plugin.TvItemLayout_jellyfin-{jellyfin_version}.dll"
     shutil.copy2(src_dll, dest_dll)
@@ -123,3 +134,4 @@ print(f"Copied default net9.0 Jellyfin.Plugin.TvItemLayout.dll to {pruu_dir}")
 for archive in releases_dir.glob("*.zip*"):
     shutil.copy2(archive, pruu_dir / archive.name)
     print(f"Copied release archive {archive.name} to {pruu_dir}")
+

@@ -92,8 +92,40 @@ input[type=radio] { accent-color:#e50914 !important; }
 .emby-toggle:checked + span + .toggleButtonSlider,
 .emby-toggle:checked + .toggleButtonSlider { background-color:#e50914 !important; }
 
+.headerTabs,
+.header-tabs,
+.app-header,
+.nav-bar { pointer-events:none; }
+.nav-bar,
+.app-header { background:linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%) !important; }
+.headerTabs button,
+.headerTabs a,
+.headerTabs .emby-tab-button,
+.headerTabs .tab-button,
+.headerTabs .nav-item,
+.header-tabs button,
+.header-tabs a,
+.header-tabs .tab-button,
+.header-tabs .nav-item,
+.app-header button,
+.app-header a,
+.nav-bar button,
+.nav-bar a,
+.nav-bar .nav-item { pointer-events:auto; }
+
 .emby-tab-button.emby-tab-button-active,
-.emby-tab-button[aria-selected="true"] { color:#ffffff !important; background-color:#e50914 !important; }
+.emby-tab-button[aria-selected="true"],
+.tab-button.active,
+.tab-button.emby-tab-button-active { color:#ffffff !important; background-color:#e50914 !important; }
+.emby-tab-button:hover:not(.emby-tab-button-active):not([aria-selected="true"]):not(.active),
+.tab-button:hover:not(.active):not(.emby-tab-button-active):not([aria-selected="true"]),
+.headerTabs .emby-tab-button:hover:not(.emby-tab-button-active):not([aria-selected="true"]),
+.headerTabs .tab-button:hover:not(.active),
+.nav-item:hover:not(.active) { background-color:rgba(229,9,20,0.8) !important; background-image:none !important; color:#ffffff !important; }
+.emby-tab-button.emby-tab-button-active:hover,
+.emby-tab-button[aria-selected="true"]:hover,
+.tab-button.active:hover,
+.headerTabs .emby-tab-button-active:hover { background-color:#b20710 !important; background-image:none !important; color:#ffffff !important; }
 
 @media(max-width:1000px) {
   .tvl-native-settings #myPreferencesMenuPage .readOnlyContent { display:block; }

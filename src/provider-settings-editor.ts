@@ -5,14 +5,14 @@ import { providerBrand, providerBrands } from './provider-brands';
 import { cloneProviderHomes, defaultProviderConfig, defaultCustomProvider, maxProviders, maxProviderRows, type ProviderId, type ProviderHomeConfig, type ProviderHomesSettings, type ProviderRow, type ProviderRowSource, type ProviderItemSort } from './provider-settings';
 import { providerAppearance, providerLogo } from './provider-appearance';
 import { providerHomeRow } from './provider-home';
-import { createProviderHomesStore, ProviderHomesSyncError, type ProviderHomesStore } from './provider-settings-store';
+import { createProviderHomesStore, boundedProviderHomes, ProviderHomesSyncError, type ProviderHomesStore } from './provider-settings-store';
 import { cachedHomeRows, nativeHomeRows, type HomeAnchor } from './home-row-placement';
 import { homeCollectionKey } from './home-collection-settings';
 import { homeRowCard } from './home-row-card';
 import type { Item, MediaApi, ProviderDirectory } from './types';
 import { providerServiceChoices, type ProviderSourceKey } from './provider-service-choices';
 
-type Options = { onBack: () => void; loadPreview: (provider: ProviderHomeConfig, row: ProviderRow) => Promise<Item[]>; providerId?: ProviderId };
+type Options = { onBack: () => void; loadPreview: (provider: ProviderHomeConfig, row: ProviderRow) => Promise<Item[]>; providerId?: ProviderId; scope?: 'user' | 'global'; targetUserId?: string };
 const sources: [ProviderRowSource, string][] = [['movies', 'Filmes'], ['shows', 'Séries'], ['trending-movies', 'Filmes em Alta'], ['trending-shows', 'Séries em Alta'], ['collection', 'Coleção'], ['watchlist', 'Minha Lista']];
 const sorts: [ProviderItemSort, string][] = [['collection', 'Ordem original'], ['title', 'Título A–Z'], ['title-desc', 'Título Z–A'], ['newest', 'Mais recentes primeiro'], ['oldest', 'Mais antigos primeiro']];
 
@@ -25,6 +25,7 @@ export class ProviderSettingsEditor {
   private reloadButton: HTMLButtonElement;
   private saveButton: HTMLButtonElement;
   private cancelButton: HTMLButtonElement;
+  private restoreGlobalButton?: HTMLButtonElement;
   private store: ProviderHomesStore;
   private draft: ProviderHomesSettings;
   private saved: ProviderHomesSettings;
@@ -48,11 +49,26 @@ export class ProviderSettingsEditor {
   private generation = 0;
   private previewGeneration = 0;
   private removeRemote: () => void;
+  private targetUserId?: string;
+  private targetUserName?: string;
+  private users: { Id: string; Name: string }[] = [];
+  private banner?: HTMLElement;
+  private bannerHeader?: HTMLElement;
+  private bannerText?: HTMLElement;
+  private targetStatusBadge?: HTMLElement;
+  private targetSelect?: HTMLSelectElement;
+  private copyButton?: HTMLButtonElement;
+  private resetAllButton?: HTMLButtonElement;
+  private headingTitle?: HTMLElement;
+  private headingEyebrow?: HTMLElement;
 
   constructor(private api: MediaApi, private options: Options) {
-    this.store = createProviderHomesStore(api); this.draft = this.store.cached; this.saved = cloneProviderHomes(this.draft);
+    this.targetUserId = options.targetUserId;
+    const isGlobal = options.scope === 'global' || !!this.targetUserId;
+    this.store = createProviderHomesStore(api, this.targetUserId ? 'user' : (options.scope || 'user'), this.targetUserId);
+    this.draft = this.store.cached; this.saved = cloneProviderHomes(this.draft);
     this.selected = options.providerId || 'home';
-    this.element.setAttribute('aria-label', 'Configurações dos serviços de streaming');
+    this.element.setAttribute('aria-label', isGlobal ? 'Configurações Globais dos serviços de streaming' : 'Configurações dos serviços de streaming');
     this.sidebar.setAttribute('aria-label', 'Páginas dos serviços de streaming');
     this.status.setAttribute('role', 'status');
     const home = document.querySelector<HTMLElement>('#indexPage #homeTab, #homeTab');
@@ -64,16 +80,67 @@ export class ProviderSettingsEditor {
     this.anchors = Array.from(unique.values());
     const panel = el('div', 'tvl-provider-settings-panel');
     const header = el('header', 'tvl-provider-settings-header');
-    const heading = el('div'); heading.append(brandLabel('p', 'tvl-provider-settings-eyebrow', 'PERSONALIZAR '), el('h1', '', 'Serviços de Streaming'));
+    const heading = el('div');
+    this.headingEyebrow = brandLabel('p', 'tvl-provider-settings-eyebrow', isGlobal ? 'PADRÃO GLOBAL · ' : 'PERSONALIZAR ');
+    this.headingTitle = el('h1', '', isGlobal ? 'Serviços de Streaming (Padrão Global)' : 'Serviços de Streaming');
+    if (isGlobal) {
+      heading.append(el('span', 'tvl-admin-badge', 'HabourBR Admin'), this.headingEyebrow, this.headingTitle);
+    } else {
+      heading.append(this.headingEyebrow, this.headingTitle);
+    }
     const actions = el('div', 'tvl-provider-settings-actions');
     actions.append(this.control(options.providerId ? 'Voltar ao serviço' : 'Voltar às configurações', 'back', () => this.options.onBack(), 'back'));
+    if (isGlobal) {
+      this.copyButton = this.control('Copiar da minha conta', 'copy-admin', () => { void this.copyFromAdmin(); }, '', 'tvl-button-copy');
+      this.resetAllButton = this.control('Forçar em todos os usuários', 'reset-all', () => { void this.resetAllUsers(); }, '', 'tvl-button-danger');
+      this.restoreGlobalButton = this.control('Restaurar para o Padrão Global', 'restore-global', () => { void this.restoreGlobal(); }, '', 'tvl-button-secondary');
+      this.restoreGlobalButton.hidden = !this.targetUserId;
+      if (this.targetUserId) this.resetAllButton.hidden = true;
+      actions.append(this.copyButton, this.resetAllButton, this.restoreGlobalButton);
+    } else {
+      this.restoreGlobalButton = this.control('Usar Padrão do Servidor', 'restore-global', () => { void this.restoreGlobal(); }, '', 'tvl-button-secondary');
+      this.restoreGlobalButton.hidden = true;
+      actions.append(this.restoreGlobalButton);
+    }
     this.cancelButton = this.control('Cancelar alterações', 'cancel', () => this.cancel()); this.cancelButton.disabled = true; actions.append(this.cancelButton);
-    this.saveButton = this.control('Salvar alterações', 'save', () => { void this.save(); }, 'check', 'tvl-primary');
+    this.saveButton = this.control(isGlobal ? (this.targetUserId ? 'Salvar para Usuário' : 'Salvar Padrão Global') : 'Salvar alterações', 'save', () => { void this.save(); }, 'check', 'tvl-primary');
     this.saveButton.disabled = true; actions.append(this.saveButton); header.append(heading, actions);
     this.reloadButton = this.control('Recarregar configurações salvas', 'reload', () => { void this.load(); }); this.reloadButton.hidden = true;
     const message = el('div', 'tvl-provider-settings-message'); message.append(this.status, this.reloadButton);
     const layout = el('div', 'tvl-provider-settings-layout'); layout.append(this.sidebar, this.workspace);
-    panel.append(header, el('p', 'tvl-provider-settings-intro', this.store.synced ? 'Suas escolhas acompanham esta conta do Jellyfin em todos os seus dispositivos.' : 'Esta prévia salva as escolhas neste dispositivo.'), message, layout);
+    const introText = isGlobal
+      ? 'Você está definindo o padrão global de streaming do HabourBR para todos os usuários do servidor.'
+      : (this.store.synced ? 'Suas escolhas acompanham esta conta do Jellyfin em todos os seus dispositivos.' : 'Esta prévia salva as escolhas neste dispositivo.');
+    panel.append(header);
+    if (isGlobal) {
+      this.banner = el('div', 'tvl-admin-banner');
+      this.bannerHeader = el('div', 'tvl-admin-banner-header');
+      this.bannerHeader.innerHTML = '<span class="material-icons">shield</span><strong>MODO ADMINISTRADOR</strong>';
+      this.bannerText = el('p', '', 'Você está editando o Padrão Global do HabourBR. As alterações aqui definirão o catálogo inicial de todos os usuários do servidor.');
+      this.banner.append(this.bannerHeader, this.bannerText);
+
+      const selectorWrap = el('div', 'tvl-target-selector');
+      const selectLabel = el('label');
+      selectLabel.innerHTML = '<span class="material-icons">account_circle</span> Alvo da Edição:';
+      this.targetSelect = el('select', 'tvl-target-select') as HTMLSelectElement;
+      this.targetSelect.dataset.providerSettingsFocus = 'target-user';
+      const defaultOpt = el('option', '', '🌐 Padrão Global (Todos os Usuários)');
+      defaultOpt.value = '';
+      this.targetSelect.append(defaultOpt);
+      this.targetSelect.addEventListener('change', () => {
+        const selectedId = this.targetSelect?.value || undefined;
+        const norm = selectedId ? this.normalizeId(selectedId) : '';
+        const user = this.users.find(u => this.normalizeId(u.Id) === norm);
+        this.switchTarget(selectedId, user?.Name);
+      });
+      this.targetStatusBadge = el('span', 'tvl-target-override-status');
+      this.targetStatusBadge.hidden = true;
+      selectorWrap.append(selectLabel, this.targetSelect, this.targetStatusBadge);
+      this.banner.append(selectorWrap);
+      panel.append(this.banner);
+      void this.loadUsers();
+    }
+    panel.append(el('p', 'tvl-provider-settings-intro', introText), message, layout);
     this.element.append(panel);
     // Native selects need their Up/Down and Enter behaviour. Register before the
     // shared remote listener so choosing an option cannot leave the field.
@@ -130,25 +197,62 @@ export class ProviderSettingsEditor {
       const [settings, collections] = await Promise.allSettled([this.store.load(), this.api.getCollectionList()]);
       if (this.disposed || generation !== this.generation) return;
       if (settings.status === 'rejected') throw settings.reason;
-      this.draft = settings.value; this.saved = cloneProviderHomes(this.draft); this.ready = true;
+      if (this.targetUserId && this.targetStatusBadge) {
+        if (this.store.hasUserOverride) {
+          this.targetStatusBadge.textContent = 'Personalização própria ativa';
+          this.targetStatusBadge.className = 'tvl-target-override-status has-override';
+          this.targetStatusBadge.hidden = false;
+          if (this.restoreGlobalButton) {
+            this.restoreGlobalButton.disabled = false;
+            this.restoreGlobalButton.hidden = false;
+          }
+        } else {
+          this.targetStatusBadge.textContent = 'Herdando Padrão Global do servidor';
+          this.targetStatusBadge.className = 'tvl-target-override-status inherits-global';
+          this.targetStatusBadge.hidden = false;
+          if (this.restoreGlobalButton) {
+            this.restoreGlobalButton.disabled = true;
+            this.restoreGlobalButton.hidden = false;
+          }
+        }
+      } else if (this.restoreGlobalButton) {
+        this.restoreGlobalButton.hidden = !this.store.hasUserOverride;
+      }
       this.collections = collections.status === 'fulfilled' ? collections.value : [];
       this.collectionsFailed = collections.status === 'rejected';
       this.status.textContent = collections.status === 'rejected' ? 'Não foi possível carregar as opções de coleção. As fileiras automáticas de filmes e séries continuam disponíveis.' : '';
+      this.draft = cloneProviderHomes(settings.value);
+      this.saved = cloneProviderHomes(this.draft);
+      this.ready = true;
+      this.loading = false;
+      this.reloadButton.hidden = true;
       if (this.selected !== 'home' && !this.draft.providers.some(provider => provider.id === this.selected)) this.selected = 'home';
-      this.previewItems.clear(); this.render();
+      this.previewItems.clear();
+      this.render();
       if (!this.directory && !this.directoryLoading) void this.loadDirectory();
     } catch (error) {
       if (this.disposed || generation !== this.generation) return;
       this.status.textContent = error instanceof ProviderHomesSyncError ? error.message : 'Não foi possível carregar os serviços de streaming salvos. Verifique sua conexão e tente novamente.';
       this.reloadButton.hidden = false;
     } finally {
-      if (!this.disposed && generation === this.generation) { this.loading = false; this.saveButton.disabled = !this.ready; this.cancelButton.disabled = !this.ready; this.setControlsDisabled(!this.ready); }
+      if (!this.disposed && generation === this.generation) {
+        this.loading = false;
+        this.saveButton.disabled = !this.ready;
+        this.cancelButton.disabled = !this.ready;
+        this.setControlsDisabled(!this.ready);
+      }
     }
   }
   private setControlsDisabled(disabled: boolean): void {
     for (const region of [this.sidebar, this.workspace]) region.querySelectorAll<HTMLButtonElement | HTMLInputElement | HTMLSelectElement>('button, input, select').forEach(control => {
-      if (disabled) { control.dataset.providerDisabled = String(control.disabled); control.disabled = true; }
-      else if (control.dataset.providerDisabled !== undefined) { control.disabled = control.dataset.providerDisabled === 'true'; delete control.dataset.providerDisabled; }
+      if (disabled) {
+        if (control.dataset.providerDisabled === undefined) control.dataset.providerDisabled = String(control.disabled);
+        control.disabled = true;
+      } else {
+        const wasDisabled = control.dataset.providerDisabled === 'true';
+        delete control.dataset.providerDisabled;
+        control.disabled = wasDisabled;
+      }
     });
   }
   private changed(): void { this.status.textContent = 'Alterações não salvas'; }
@@ -596,7 +700,23 @@ export class ProviderSettingsEditor {
     this.saving = true; this.saveButton.disabled = true; this.cancelButton.disabled = true; this.setControlsDisabled(true); this.status.textContent = 'Salvando serviços de streaming…';
     try {
       const saved = await this.store.save(cloneProviderHomes(this.draft)); if (this.disposed) return;
-      this.draft = saved; this.saved = cloneProviderHomes(saved); this.render(); this.status.textContent = this.store.synced ? 'Salvo na sua conta do Jellyfin.' : 'Salvo neste dispositivo.';
+      this.draft = saved; this.saved = cloneProviderHomes(saved); this.render();
+      if (this.targetUserId) {
+        this.status.textContent = `Configurações salvas com sucesso para ${this.targetUserName || 'o perfil'}.`;
+        if (this.targetStatusBadge) {
+          this.targetStatusBadge.textContent = 'Personalização própria ativa';
+          this.targetStatusBadge.className = 'tvl-target-override-status has-override';
+          this.targetStatusBadge.hidden = false;
+        }
+        if (this.restoreGlobalButton) {
+          this.restoreGlobalButton.disabled = false;
+          this.restoreGlobalButton.hidden = false;
+        }
+      } else {
+        const isGlobal = this.options.scope === 'global';
+        this.status.textContent = isGlobal ? 'Padrão Global salvo com sucesso no servidor!' : (this.store.synced ? 'Salvo na sua conta do Jellyfin.' : 'Salvo neste dispositivo.');
+        if (this.restoreGlobalButton && !isGlobal) this.restoreGlobalButton.hidden = false;
+      }
       this.reloadButton.hidden = true;
       window.dispatchEvent(new CustomEvent('tvl-provider-settings-changed', { detail: { serverId: this.api.serverId, userId: this.api.userId } }));
     } catch (error) {
@@ -605,6 +725,192 @@ export class ProviderSettingsEditor {
       if (error instanceof ProviderHomesSyncError && (error.kind === 'conflict' || error.kind === 'stale')) {
         this.ready = false; this.reloadButton.hidden = error.kind === 'stale';
       }
+    } finally {
+      if (!this.disposed) { this.saving = false; this.saveButton.disabled = !this.ready; this.cancelButton.disabled = !this.ready; this.setControlsDisabled(false); }
+    }
+  }
+  private normalizeId(id: string): string {
+    return id.replace(/-/g, '').toLowerCase();
+  }
+  private async loadUsers(): Promise<void> {
+    const client = (window as unknown as {
+      ApiClient?: {
+        getUrl(p: string): string;
+        getJSON(u: string): Promise<unknown>;
+        getUsers?(): Promise<unknown>;
+      };
+    }).ApiClient;
+    if (!client || !this.targetSelect) return;
+
+    const parseUsers = (raw: unknown): { Id: string; Name: string }[] => {
+      if (!Array.isArray(raw)) return [];
+      return raw.map((u: Record<string, unknown>) => {
+        const rawId = (u.Id || u.id || '') as string;
+        const normId = rawId ? this.normalizeId(String(rawId)) : '';
+        const name = (u.Name || u.name || u.Username || u.username || normId) as string;
+        return { Id: normId, Name: name };
+      }).filter(u => u.Id && u.Name);
+    };
+
+    try {
+      let usersList: { Id: string; Name: string }[] = [];
+      try {
+        const list = await client.getJSON(client.getUrl('TvItemLayout/ProviderHomes/Users'));
+        usersList = parseUsers(list);
+      } catch { /* Try native fallback */ }
+
+      if (usersList.length === 0) {
+        try {
+          if (typeof client.getUsers === 'function') {
+            const nativeUsers = await client.getUsers();
+            usersList = parseUsers(nativeUsers);
+          } else {
+            const nativeUsers = await client.getJSON(client.getUrl('Users'));
+            usersList = parseUsers(nativeUsers);
+          }
+        } catch { /* Native fallback failed */ }
+      }
+
+      if (usersList.length > 0) {
+        this.users = usersList;
+        this.populateUserSelect();
+        if (this.targetUserId) {
+          const normTarget = this.normalizeId(this.targetUserId);
+          const u = this.users.find(u => this.normalizeId(u.Id) === normTarget);
+          if (u) {
+            this.targetUserId = u.Id;
+            this.targetUserName = u.Name;
+            this.updateAdminHeader();
+          }
+        }
+      }
+    } catch { /* User listing not available */ }
+  }
+  private populateUserSelect(): void {
+    if (!this.targetSelect) return;
+    replace(this.targetSelect);
+    const globalOpt = el('option', '', '🌐 Padrão Global (Todos os Usuários)');
+    globalOpt.value = '';
+    this.targetSelect.append(globalOpt);
+    for (const u of this.users) {
+      const opt = el('option', '', `👤 ${u.Name}`);
+      opt.value = u.Id;
+      this.targetSelect.append(opt);
+    }
+    const normTarget = this.targetUserId ? this.normalizeId(this.targetUserId) : '';
+    this.targetSelect.value = normTarget ? (this.users.find(u => this.normalizeId(u.Id) === normTarget)?.Id || normTarget) : '';
+  }
+  private switchTarget(targetUserId?: string, targetUserName?: string): void {
+    const normTarget = targetUserId ? this.normalizeId(targetUserId) : undefined;
+    this.targetUserId = normTarget;
+    this.targetUserName = targetUserName;
+    const params = new URLSearchParams(location.hash.split('?')[1] || '');
+    if (normTarget) {
+      params.set('targetUserId', normTarget);
+      params.set('cinemaGlobal', '1');
+    } else {
+      params.delete('targetUserId');
+      params.set('cinemaGlobal', '1');
+    }
+    const cleanBase = location.hash.split('?')[0].replace(/^#/, '');
+    history.replaceState(history.state, '', `#${cleanBase}?${params.toString()}`);
+    this.store.destroy();
+    this.store = createProviderHomesStore(this.api, normTarget ? 'user' : 'global', normTarget);
+    this.updateAdminHeader();
+    void this.load();
+  }
+  private updateAdminHeader(): void {
+    if (!this.banner) return;
+    if (this.targetUserId) {
+      const name = this.targetUserName || 'Usuário';
+      if (this.headingTitle) this.headingTitle.textContent = `Serviços de Streaming (${name})`;
+      if (this.headingEyebrow) this.headingEyebrow.textContent = `PERFIL · ${name.toUpperCase()}`;
+      if (this.saveButton) this.saveButton.textContent = `Salvar para ${name}`;
+      if (this.bannerHeader) this.bannerHeader.innerHTML = '<span class="material-icons">person</span><strong>MODO ADMINISTRADOR · PERFIL DE USUÁRIO</strong>';
+      if (this.bannerText) this.bannerText.innerHTML = `Você está visualizando e editando as configurações de <strong>${name}</strong>. As alterações salvas serão aplicadas exclusivamente para esta conta.`;
+      if (this.copyButton) this.copyButton.hidden = false;
+      if (this.resetAllButton) this.resetAllButton.hidden = true;
+      if (this.restoreGlobalButton) {
+        this.restoreGlobalButton.textContent = 'Restaurar para o Padrão Global';
+        this.restoreGlobalButton.hidden = false;
+      }
+    } else {
+      if (this.headingTitle) this.headingTitle.textContent = 'Serviços de Streaming (Padrão Global)';
+      if (this.headingEyebrow) this.headingEyebrow.textContent = 'PADRÃO GLOBAL · ';
+      if (this.saveButton) this.saveButton.textContent = 'Salvar Padrão Global';
+      if (this.bannerHeader) this.bannerHeader.innerHTML = '<span class="material-icons">shield</span><strong>MODO ADMINISTRADOR</strong>';
+      if (this.bannerText) this.bannerText.innerHTML = 'Você está editando o <strong>Padrão Global</strong> do HabourBR. As alterações aqui definirão o catálogo inicial de todos os usuários do servidor.';
+      if (this.copyButton) this.copyButton.hidden = false;
+      if (this.resetAllButton) this.resetAllButton.hidden = false;
+      if (this.restoreGlobalButton) this.restoreGlobalButton.hidden = true;
+      if (this.targetStatusBadge) this.targetStatusBadge.hidden = true;
+    }
+  }
+  private async copyFromAdmin(): Promise<void> {
+    const client = (window as unknown as { ApiClient?: { getUrl(p: string): string; getJSON(u: string): Promise<unknown> } }).ApiClient;
+    if (!client) return;
+    try {
+      this.status.textContent = 'Carregando configurações da sua conta pessoal…';
+      const personal = await client.getJSON(client.getUrl('TvItemLayout/ProviderHomes')) as Record<string, unknown> | null;
+      const rawSettings = personal?.Settings || personal?.settings;
+      if (rawSettings) {
+        this.draft = boundedProviderHomes(rawSettings);
+        this.saved = cloneProviderHomes(this.draft);
+        this.ready = true;
+        this.loading = false;
+        this.saving = false;
+        this.reloadButton.hidden = true;
+        this.store.allowSave();
+        this.selected = 'home';
+        this.previewItems.clear();
+        this.render();
+        this.saveButton.disabled = false;
+        this.cancelButton.disabled = false;
+        this.setControlsDisabled(false);
+        const targetLabel = this.targetUserId ? `Salvar para ${this.targetUserName || 'Usuário'}` : 'Salvar Padrão Global';
+        this.status.textContent = `Configurações da sua conta pessoal copiadas! Clique em "${targetLabel}" para confirmar.`;
+      } else {
+        this.status.textContent = 'Sua conta pessoal não possui configurações customizadas salvas.';
+      }
+    } catch {
+      this.status.textContent = 'Não foi possível carregar as configurações pessoais.';
+    }
+  }
+  private async resetAllUsers(): Promise<void> {
+    if (!confirm('Atenção: Deseja apagar as customizações de serviços de streaming de TODOS os usuários do servidor e forçar o Padrão Global do HabourBR?')) return;
+    try {
+      this.status.textContent = 'Aplicando padrão global a todos os usuários…';
+      await this.store.resetAllUsers();
+      this.status.textContent = 'Padrão global aplicado com sucesso a todos os usuários!';
+    } catch {
+      this.status.textContent = 'Erro ao resetar personalizações dos usuários.';
+    }
+  }
+  private async restoreGlobal(): Promise<void> {
+    const name = this.targetUserName || 'este usuário';
+    const msg = this.targetUserId
+      ? `Deseja remover as personalizações de ${name} e fazê-lo voltar a herdar o Padrão Global do HabourBR?`
+      : 'Deseja descartar suas personalizações individuais e voltar a usar o Padrão Global do HabourBR definido pelo administrador?';
+    if (!confirm(msg)) return;
+    this.saving = true; this.saveButton.disabled = true; this.cancelButton.disabled = true; this.setControlsDisabled(true);
+    this.status.textContent = 'Restaurando padrão global do servidor…';
+    try {
+      const fresh = await this.store.resetUserOverride();
+      this.draft = fresh; this.saved = cloneProviderHomes(fresh);
+      if (this.targetUserId && this.targetStatusBadge) {
+        this.targetStatusBadge.textContent = 'Herdando Padrão Global do servidor';
+        this.targetStatusBadge.className = 'tvl-target-override-status inherits-global';
+        this.targetStatusBadge.hidden = false;
+        if (this.restoreGlobalButton) this.restoreGlobalButton.disabled = true;
+      } else if (this.restoreGlobalButton && !this.targetUserId) {
+        this.restoreGlobalButton.hidden = !this.store.hasUserOverride;
+      }
+      this.render();
+      this.status.textContent = this.targetUserId
+        ? `Padrão global restaurado com sucesso para ${name}!`
+        : 'Padrão global do servidor restaurado com sucesso!';
+    } catch {
+      this.status.textContent = 'Não foi possível restaurar o padrão global.';
     } finally {
       if (!this.disposed) { this.saving = false; this.saveButton.disabled = !this.ready; this.cancelButton.disabled = !this.ready; this.setControlsDisabled(false); }
     }

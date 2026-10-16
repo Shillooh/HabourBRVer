@@ -3,13 +3,16 @@ import { HomeCollectionSyncError, boundedHomeSettings, homeCollectionSnapshot, t
 type Client = {
   getUrl(path: string): string;
   getJSON(url: string): Promise<unknown>;
-  ajax(options: { type: 'PUT'; url: string; data: string; contentType: 'application/json'; dataType: 'json'; headers: Record<string, string> }): Promise<unknown>;
+  ajax(options: { type: 'PUT' | 'POST' | 'DELETE'; url: string; data?: string; contentType?: 'application/json'; dataType?: 'json'; headers?: Record<string, string> }): Promise<unknown>;
 };
 
 /** The current native client alone supplies authentication. No user ID is sent
  * to the endpoint: the server resolves the owner from the authenticated session. */
-export function createHomeCollectionTransport(client: Client, isCurrent: () => boolean): HomeCollectionTransport {
+export function createHomeCollectionTransport(client: Client, isCurrent: () => boolean, scope: 'user' | 'global' = 'user', targetUserId?: string): HomeCollectionTransport {
   const current = () => { if (!isCurrent()) throw new HomeCollectionSyncError('stale', 'Your Jellyfin account changed. Reopen collection rows for the current account.'); };
+  const basePath = targetUserId
+    ? `TvItemLayout/HomeCollections/User/${encodeURIComponent(targetUserId)}`
+    : (scope === 'global' ? 'TvItemLayout/HomeCollections/Global' : 'TvItemLayout/HomeCollections');
   const request = async (operation: () => Promise<unknown>) => {
     current();
     try { const result = await operation(); current(); return homeCollectionSnapshot(result); }
@@ -25,10 +28,17 @@ export function createHomeCollectionTransport(client: Client, isCurrent: () => b
       throw new HomeCollectionSyncError('unavailable', 'Collection rows could not sync with Jellyfin. Check your connection and try again. Your changes have not been saved.');
     }
   };
-  return { isCurrent,
-    load: () => request(() => client.getJSON(client.getUrl('TvItemLayout/HomeCollections'))),
-    save: (settings, revision) => request(() => client.ajax({ type: 'PUT', url: client.getUrl('TvItemLayout/HomeCollections'),
+  return {
+    isCurrent,
+    load: () => request(() => client.getJSON(client.getUrl(basePath))),
+    save: (settings, revision) => request(() => client.ajax({ type: 'PUT', url: client.getUrl(basePath),
       data: JSON.stringify({ Revision: revision, Settings: boundedHomeSettings(settings) }), contentType: 'application/json', dataType: 'json',
-      headers: { 'X-ScreenHarbour-Home-Rows': '6' } }))
+      headers: { 'X-ScreenHarbour-Home-Rows': '6' } })),
+    resetUserOverride: () => request(() => client.ajax({
+      type: 'DELETE',
+      url: client.getUrl(targetUserId ? `TvItemLayout/HomeCollections/User/${encodeURIComponent(targetUserId)}` : 'TvItemLayout/HomeCollections/User'),
+      contentType: 'application/json', dataType: 'json'
+    })),
+    resetAllUsers: () => client.ajax({ type: 'POST', url: client.getUrl('TvItemLayout/HomeCollections/ResetAllUsers') }).then(() => {})
   };
 }

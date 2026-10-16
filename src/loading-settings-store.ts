@@ -1,11 +1,18 @@
 import { defaultLoadingScreen, parseLoadingScreen, loadingScreenKey, maxLoadingSettingsBytes, type LoadingScreenSettings } from './loading-settings';
 import type { MediaApi } from './types';
 
-export type LoadingScreenSnapshot = { Revision: string | null; Settings: LoadingScreenSettings | null };
+export type LoadingScreenSnapshot = {
+  Revision: string | null;
+  Settings: LoadingScreenSettings | null;
+  HasUserOverride?: boolean;
+  GlobalRevision?: string | null;
+};
 export type LoadingScreenTransport = {
   isCurrent(): boolean;
   load(): Promise<LoadingScreenSnapshot>;
   save(settings: LoadingScreenSettings, revision: string | null): Promise<LoadingScreenSnapshot>;
+  resetUserOverride?(): Promise<LoadingScreenSnapshot>;
+  resetAllUsers?(): Promise<void>;
 };
 type StorageLike = Pick<Storage, 'getItem' | 'setItem'>;
 type LoadingScreenListener = (store: LoadingScreenStore, settings: LoadingScreenSettings) => void;
@@ -20,7 +27,7 @@ function changed(store: LoadingScreenStore): void {
 type Client = {
   getUrl(path: string): string;
   getJSON(url: string): Promise<unknown>;
-  ajax(options: { type: 'PUT'; url: string; data: string; contentType: 'application/json'; dataType: 'json' }): Promise<unknown>;
+  ajax(options: { type: 'PUT' | 'POST' | 'DELETE'; url: string; data?: string; contentType?: 'application/json'; dataType?: 'json' }): Promise<unknown>;
 };
 export class LoadingScreenSyncError extends Error {
   constructor(readonly kind: 'conflict' | 'unavailable' | 'stale' | 'invalid', message: string) { super(message); }
@@ -31,18 +38,42 @@ export function boundedLoadingScreen(value: unknown): LoadingScreenSettings {
   catch { throw new LoadingScreenSyncError('invalid', 'Jellyfin returned invalid loading-screen settings. Try again.'); }
 }
 export function loadingScreenSnapshot(value: unknown): LoadingScreenSnapshot {
-  if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length !== 2 || !('Revision' in value) || !('Settings' in value))
+  if (!value || typeof value !== 'object' || Array.isArray(value))
     throw new LoadingScreenSyncError('invalid', 'Jellyfin returned invalid loading-screen settings. Try again.');
-  if (value.Revision === null && value.Settings === null) return { Revision: null, Settings: null };
-  if (typeof value.Revision !== 'string' || !value.Revision || value.Revision.length > 100)
+  const val = value as Record<string, unknown>;
+  const hasPascal = 'Revision' in val && 'Settings' in val;
+  const hasCamel = 'revision' in val && 'settings' in val;
+  if (!hasPascal && !hasCamel)
     throw new LoadingScreenSyncError('invalid', 'Jellyfin returned invalid loading-screen settings. Try again.');
-  return { Revision: value.Revision, Settings: boundedLoadingScreen(value.Settings) };
+  const allowedKeys = new Set(['Revision', 'Settings', 'revision', 'settings', 'HasUserOverride', 'hasUserOverride', 'GlobalRevision', 'globalRevision']);
+  for (const k of Object.keys(val)) {
+    if (!allowedKeys.has(k)) throw new LoadingScreenSyncError('invalid', 'Jellyfin returned invalid loading-screen settings. Try again.');
+  }
+  const revision = (hasPascal ? val.Revision : val.revision) as string | null;
+  const settings = hasPascal ? val.Settings : val.settings;
+  const hasUserOverride = val.HasUserOverride !== undefined ? Boolean(val.HasUserOverride) : val.hasUserOverride !== undefined ? Boolean(val.hasUserOverride) : undefined;
+  const globalRevision = ((hasPascal ? val.GlobalRevision : val.globalRevision) as string | null) ?? null;
+  if (revision === null && settings === null) {
+    const res: LoadingScreenSnapshot = { Revision: null, Settings: null };
+    if (hasUserOverride !== undefined) res.HasUserOverride = hasUserOverride;
+    if (globalRevision !== null) res.GlobalRevision = globalRevision;
+    return res;
+  }
+  if (typeof revision !== 'string' || !revision || revision.length > 100)
+    throw new LoadingScreenSyncError('invalid', 'Jellyfin returned invalid loading-screen settings. Try again.');
+  const res: LoadingScreenSnapshot = { Revision: revision, Settings: boundedLoadingScreen(settings) };
+  if (hasUserOverride !== undefined) res.HasUserOverride = hasUserOverride;
+  if (globalRevision !== null) res.GlobalRevision = globalRevision;
+  return res;
 }
 
 /** Authentication belongs to Jellyfin's native client. The authenticated server
  * session chooses the owner; there is no user-id parameter to impersonate. */
-export function createLoadingScreenTransport(client: Client, isCurrent: () => boolean): LoadingScreenTransport {
+export function createLoadingScreenTransport(client: Client, isCurrent: () => boolean, scope: 'user' | 'global' = 'user', targetUserId?: string): LoadingScreenTransport {
   const current = () => { if (!isCurrent()) throw stale(); };
+  const basePath = targetUserId
+    ? `TvItemLayout/LoadingScreen/User/${encodeURIComponent(targetUserId)}`
+    : (scope === 'global' ? 'TvItemLayout/LoadingScreen/Global' : 'TvItemLayout/LoadingScreen');
   const request = async (operation: () => Promise<unknown>) => {
     current();
     try { const result = await operation(); current(); return loadingScreenSnapshot(result); }
@@ -58,15 +89,28 @@ export function createLoadingScreenTransport(client: Client, isCurrent: () => bo
       throw new LoadingScreenSyncError('unavailable', 'Loading screen could not sync with Jellyfin. Check your connection and try again. Your changes have not been saved.');
     }
   };
-  return { isCurrent, load: () => request(() => client.getJSON(client.getUrl('TvItemLayout/LoadingScreen'))),
-    save: (settings, revision) => request(() => client.ajax({ type: 'PUT', url: client.getUrl('TvItemLayout/LoadingScreen'),
-      data: JSON.stringify({ Revision: revision, Settings: boundedLoadingScreen(settings) }), contentType: 'application/json', dataType: 'json' })) };
+  return {
+    isCurrent,
+    load: () => request(() => client.getJSON(client.getUrl(basePath))),
+    save: (settings, revision) => request(() => client.ajax({ type: 'PUT', url: client.getUrl(basePath),
+      data: JSON.stringify({ Revision: revision, Settings: boundedLoadingScreen(settings) }), contentType: 'application/json', dataType: 'json' })),
+    resetUserOverride: () => request(() => client.ajax({
+      type: 'DELETE',
+      url: client.getUrl(targetUserId ? `TvItemLayout/LoadingScreen/User/${encodeURIComponent(targetUserId)}` : 'TvItemLayout/LoadingScreen/User'),
+      contentType: 'application/json', dataType: 'json'
+    })),
+    resetAllUsers: () => client.ajax({ type: 'POST', url: client.getUrl('TvItemLayout/LoadingScreen/ResetAllUsers') }).then(() => {})
+  };
 }
 
-export function createLoadingScreenStore(api: MediaApi & { loadingScreen?: LoadingScreenTransport }): LoadingScreenStore {
-  const user = api.userId || (window.TvItemLayoutDemo ? 'demo' : 'anonymous');
+export function createLoadingScreenStore(api: MediaApi & { loadingScreen?: LoadingScreenTransport }, scope: 'user' | 'global' = 'user', targetUserId?: string): LoadingScreenStore {
+  const user = targetUserId ? `target_${targetUserId}` : (scope === 'global' ? '_global' : (api.userId || (window.TvItemLayoutDemo ? 'demo' : 'anonymous')));
+  const client = (window as unknown as { ApiClient?: Client }).ApiClient;
+  const transport = ((scope === 'global' || targetUserId) && client)
+    ? createLoadingScreenTransport(client, () => true, scope, targetUserId)
+    : api.loadingScreen;
   return new LoadingScreenStore(loadingScreenKey(api.serverId || location.origin, user),
-    { getItem: key => localStorage.getItem(key), setItem: (key, value) => localStorage.setItem(key, value) }, api.loadingScreen);
+    { getItem: key => localStorage.getItem(key), setItem: (key, value) => localStorage.setItem(key, value) }, transport);
 }
 
 /** Local storage is an account-scoped offline cache. A new server snapshot
@@ -77,10 +121,15 @@ export class LoadingScreenStore {
   private disposed = false;
   private generation = 0;
   private writing = false;
+  hasUserOverride = false;
+  globalRevision: string | null = null;
   readonly synced: boolean;
 
   constructor(readonly key: string, private storage: StorageLike, private transport?: LoadingScreenTransport) {
     this.synced = !!transport; this.value = this.readLocal();
+  }
+  allowSave(): void {
+    if (this.revision === undefined) this.revision = null;
   }
   get cached(): LoadingScreenSettings { return boundedLoadingScreen(this.value); }
   private cachedText(): string | null | undefined {
@@ -96,9 +145,17 @@ export class LoadingScreenStore {
     if (this.disposed || generation !== this.generation || this.transport && !this.transport.isCurrent()) throw stale();
   }
   private remember(snapshot: LoadingScreenSnapshot): LoadingScreenSettings {
-    this.revision = snapshot.Revision; this.value = snapshot.Settings || defaultLoadingScreen();
+    this.revision = snapshot.Revision;
+    this.hasUserOverride = snapshot.HasUserOverride ?? true;
+    this.globalRevision = snapshot.GlobalRevision ?? null;
+    const settings = snapshot.Settings || defaultLoadingScreen();
+    if (settings.brandText === 'KiKoTV') settings.brandText = 'HabourBR';
+    this.value = settings;
     // The server read or save already succeeded even when device storage is full.
-    try { this.storage.setItem(this.key, JSON.stringify(this.value)); } catch { /* Server remains authoritative. */ }
+    try {
+      this.storage.setItem(this.key, JSON.stringify(this.value));
+      if (this.globalRevision) this.storage.setItem(`${this.key}:globalRevision`, this.globalRevision);
+    } catch { /* Server remains authoritative. */ }
     changed(this);
     return this.cached;
   }
@@ -140,6 +197,20 @@ export class LoadingScreenStore {
       if (error instanceof LoadingScreenSyncError && error.kind === 'conflict') this.revision = undefined;
       throw error;
     } finally { this.writing = false; }
+  }
+  async resetUserOverride(): Promise<LoadingScreenSettings> {
+    if (this.writing) throw new LoadingScreenSyncError('unavailable', 'Loading screen are still saving. Please wait.');
+    const generation = ++this.generation; this.current(generation);
+    if (!this.transport?.resetUserOverride) throw new LoadingScreenSyncError('unavailable', 'Reset is not supported on this connection.');
+    this.writing = true;
+    try {
+      const snapshot = await this.transport.resetUserOverride(); this.current(generation);
+      return this.remember(loadingScreenSnapshot(snapshot));
+    } finally { this.writing = false; }
+  }
+  async resetAllUsers(): Promise<void> {
+    if (!this.transport?.resetAllUsers) throw new LoadingScreenSyncError('unavailable', 'Reset is not supported on this connection.');
+    await this.transport.resetAllUsers();
   }
   destroy(): void { this.disposed = true; this.generation++; }
 }

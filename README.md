@@ -2,7 +2,7 @@
 
 **Uma interface cinematográfica premium para Jellyfin, 100% localizada em português e feita para o público brasileiro.**
 
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-v1.0.0-E50914?style=for-the-badge)](https://github.com/Shillooh/HabourBRVer)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-v1.0.0.0-E50914?style=for-the-badge)](https://github.com/Shillooh/HabourBRVer)
 [![Jellyfin](https://img.shields.io/badge/Jellyfin-10.10.7%20%7C%2010.11.x%20%7C%2012.x-00A4DC?style=for-the-badge&logo=jellyfin&logoColor=white)](https://jellyfin.org)
 [![Idioma](https://img.shields.io/badge/Idioma-pt--BR-009c3b?style=for-the-badge)](README.md)
 [![Licença](https://img.shields.io/badge/Licen%C3%A7a-MIT-yellow?style=for-the-badge)](LICENSE.md)
@@ -38,6 +38,15 @@ A lista de serviços de streaming foi totalmente reestruturada para o mercado na
 * **Arrastar e Soltar:** Suporte total a arrastar com o mouse ou toque para rolar carrosséis de mídia de forma ultra suave.
 * **Restauração Perfeita de Posição:** Ao assistir a um trailer ou abrir os detalhes de um filme e voltar, o foco e a posição exata da tela são preservados instantaneamente.
 
+### 👑 5. Painel de Controle Administrativo & Padrão Global (Todos os Usuários)
+* **Página de Configuração no Dashboard:** Acesse diretamente pelo menu administrativo em **Painel de Controle** → **Plugins** → **ScreenHarbour Brasil**.
+* **Padrão Global do Servidor:** Defina uma única vez as configurações globais de **Serviços de Streaming**, **Fileiras da Página Inicial** e **Tela de Carregamento**. Todos os usuários do servidor herdam automaticamente esse catálogo inicial.
+* **Gerenciamento Individual de Perfis:** Pelo seletor **Alvo da Edição**, o administrador pode alternar entre o **Padrão Global** ou qualquer conta de usuário do servidor para inspecionar e personalizar configurações específicas.
+* **Ações Administrativas em Lote:**
+  * **Copiar da minha conta:** Promova as configurações da sua conta pessoal diretamente para o Padrão Global com um clique.
+  * **Forçar em todos os usuários:** Resete personalizações individuais caso queira padronizar o catálogo de toda a família.
+  * **Restaurar para o Padrão Global:** Reverte o perfil de um usuário específico para voltar a herdar a configuração do servidor.
+
 ---
 
 ## 📸 Recursos em Destaque
@@ -69,7 +78,7 @@ A lista de serviços de streaming foi totalmente reestruturada para o mercado na
 
 ### 2. Instalar os Plugins
 1. Vá até a aba **Catálogo** no Jellyfin.
-2. Localize e instale o **ScreenHarbour Brasil** (o Jellyfin selecionará automaticamente a versão adequada para o seu servidor: `1.0.0.3` para v12, `1.0.0.2` para v10.11 ou `1.0.0.1` para v10.10).
+2. Localize e instale o **ScreenHarbour Brasil** (versão `1.0.0.0`). O Jellyfin selecionará automaticamente o pacote compilado exato para o seu servidor.
 3. Instale também o plugin **File Transformation**.
 4. **Reinicie o servidor Jellyfin**.
 
@@ -85,14 +94,13 @@ A lista de serviços de streaming foi totalmente reestruturada para o mercado na
 
 ## 🛠️ Compatibilidade de Versões
 
-O Jellyfin gerencia a compatibilidade de plugins pelo **Target ABI** e runtime do .NET. O repositório seleciona automaticamente a compilação exata para o seu servidor:
+O Jellyfin gerencia a compatibilidade de plugins pelo **Target ABI** e runtime do .NET. O repositório unifica a versão do plugin em **`1.0.0.0`** para todos os ambientes e entrega o pacote nativo para o seu servidor:
 
 | Versão do Jellyfin | Versão do Plugin | Target ABI | Target Framework | Pacote Gerado |
 | :---: | :---: | :---: | :---: | :---: |
-| **12.x / 12.0.0+** | `1.0.0.3` | `12.0.0` | .NET 10.0 | `TvItemLayout_1.0.0.3_jellyfin-12.0.0.zip` |
-| **10.11.x** | `1.0.0.2` | `10.11.0` | .NET 9.0 | `TvItemLayout_1.0.0.2_jellyfin-10.11.0.zip` |
-| **10.10.x / 10.10.7** | `1.0.0.1` | `10.10.7` | .NET 8.0 | `TvItemLayout_1.0.0.1_jellyfin-10.10.7.zip` |
-
+| **12.x / 12.0.0+** | `1.0.0.0` | `12.0.0` | .NET 10.0 | `TvItemLayout_1.0.0.0_jellyfin-12.0.0.zip` |
+| **10.11.x** | `1.0.0.0` | `10.11.0` | .NET 9.0 | `TvItemLayout_1.0.0.0_jellyfin-10.11.0.zip` |
+| **10.10.x / 10.10.7** | `1.0.0.0` | `10.10.7` | .NET 8.0 | `TvItemLayout_1.0.0.0_jellyfin-10.10.7.zip` |
 
 ---
 
@@ -124,8 +132,8 @@ npm run dev
 npm run typecheck
 npm test
 
-# 6. Empacote o plugin do servidor C# (todas as versões)
-bash scripts/package-plugin.sh all
+# 6. Empacote as versões do plugin do servidor C# (.NET 8, 9 e 10)
+python scripts/build-and-package.py
 ```
 
 ---

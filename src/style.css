@@ -271,3 +271,146 @@ body.tvl-open { overflow: hidden !important; }
 .tvl-collection-picker-message:empty { display:none; }
 .tvl-collection-picker-empty { padding:.7em 0; color:#bdc7cb; }
 @media (max-width:550px) { .tvl-collection-picker-panel { padding:1em; } .tvl-collection-picker-header h2 { font-size:1.1em; } }
+
+/* HabourBR Global Admin Styling */
+.tvl-admin-badge {
+  display: inline-block;
+  background: #e50914;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+.tvl-admin-banner {
+  background: linear-gradient(90deg, rgba(229, 9, 20, 0.22) 0%, rgba(20, 22, 25, 0.95) 100%);
+  border-left: 4px solid #e50914;
+  border-radius: 6px;
+  padding: 1rem 1.4rem;
+  margin: 1rem 0 1.5rem;
+}
+.tvl-admin-banner-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #e50914;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+.tvl-admin-banner p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #d2d5d8;
+  line-height: 1.5;
+}
+.tvl-button-danger {
+  background: rgba(229, 9, 20, 0.15) !important;
+  color: #ff5252 !important;
+  border: 1px solid #e50914 !important;
+}
+.tvl-button-danger:hover {
+  background: #e50914 !important;
+  color: #ffffff !important;
+}
+.tvl-button-copy {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+}
+.tvl-button-copy:hover {
+  background: rgba(255, 255, 255, 0.16) !important;
+}
+.tvl-button-secondary {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #dcdedb !important;
+}
+.tvl-button-secondary:hover {
+  background: rgba(255, 255, 255, 0.14) !important;
+  color: #ffffff !important;
+}
+.tvl-target-selector {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  padding: 0.6rem 0.9rem;
+  margin: 0.8rem 0 0.5rem;
+}
+.tvl-target-selector label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+.tvl-target-select {
+  flex: 1;
+  min-width: 260px;
+  max-width: 420px;
+  background: #181b20 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  border-radius: 4px;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+}
+.tvl-target-select:focus {
+  border-color: #e50914 !important;
+  box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.25);
+}
+.tvl-target-override-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-top: 0.45rem;
+}
+.tvl-target-override-status.has-override {
+  background: rgba(229, 9, 20, 0.2);
+  color: #ff6b6b;
+  border: 1px solid rgba(229, 9, 20, 0.4);
+}
+.tvl-target-override-status.inherits-global {
+  background: rgba(46, 204, 113, 0.15);
+  color: #2ecc71;
+  border: 1px solid rgba(46, 204, 113, 0.35);
+}
+.tvl-banner-admin-actions {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+.tvl-banner-admin-actions button {
+  padding: 0.4rem 0.8rem !important;
+  font-size: 0.82rem !important;
+  border-radius: 5px !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  white-space: nowrap;
+}
+@media (max-width: 900px) {
+  .tvl-banner-admin-actions {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 0.4rem;
+  }
+}
+

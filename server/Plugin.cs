@@ -1,4 +1,4 @@
-// Integration adapted from InPlayerEpisodePreview-TV (MIT); see LICENSE.InPlayerEpisodePreview.md.
+using System.Collections.Generic;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Controller.Configuration;
@@ -7,7 +7,7 @@ using MediaBrowser.Model.Serialization;
 
 namespace Jellyfin.Plugin.TvItemLayout;
 
-public sealed class Plugin : BasePlugin<BasePluginConfiguration>
+public sealed class Plugin : BasePlugin<BasePluginConfiguration>, IHasWebPages
 {
     public const string PluginId = "c985bcfd-992f-4a16-a583-258014d98d75";
 
@@ -25,9 +25,35 @@ public sealed class Plugin : BasePlugin<BasePluginConfiguration>
 
     internal IServerConfigurationManager ConfigurationManager { get; }
 
-    public override string Name => "ScreenHarbour Brasil";
+    public override string Name => "HabourBR";
 
     public override Guid Id => Guid.Parse(PluginId);
 
-    public override string Description => "Interface cinematográfica para Jellyfin, com fileiras personalizadas de coleções e serviços de streaming, guia de TV ao vivo e navegação in-player.";
+    public override string Description => "Interface cinematográfica para Jellyfin com HabourBR, incluindo fileiras personalizadas de coleções e serviços de streaming, guia de TV ao vivo e navegação in-player.";
+
+    public IEnumerable<PluginPageInfo> GetPages()
+    {
+        return new[]
+        {
+            new PluginPageInfo
+            {
+                Name = "habourbr",
+                EmbeddedResourcePath = $"{GetType().Namespace}.Configuration.configPage.html",
+                EnableInMainMenu = true
+            },
+            new PluginPageInfo
+            {
+                Name = "kikotv",
+                EmbeddedResourcePath = $"{GetType().Namespace}.Configuration.configPage.html",
+                EnableInMainMenu = false
+            },
+            new PluginPageInfo
+            {
+                Name = "ScreenHarbour Brasil",
+                EmbeddedResourcePath = $"{GetType().Namespace}.Configuration.configPage.html",
+                EnableInMainMenu = false
+            }
+        };
+    }
 }
+

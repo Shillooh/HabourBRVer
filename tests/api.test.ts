@@ -396,8 +396,8 @@ test('movie suggestions preserve native recommendation categories, recent items 
   });
   const sections = await api.getMovieSuggestions('library');
   assert.deepEqual(sections.map(section => section.title), [
-    'Continue watching', 'Recently added', 'Because you watched The Shore', 'Because you like The Trail',
-    'Directed by Ada Voss', 'Starring Romy Bell', 'Recommended for you'
+    'Continuar assistindo', 'Adicionados recentemente', 'Porque você assistiu The Shore', 'Porque você curtiu The Trail',
+    'Dirigido por Ada Voss', 'Estrelando Romy Bell', 'Recomendado para você'
   ]);
   assert.equal(sections[0].items[0].UserData?.PlaybackPositionTicks, 600);
   assert.equal(resumeQuery.ParentId, 'library');
@@ -504,7 +504,7 @@ test('TV suggestions use native scoped progress, next-up and latest episode sour
   });
   const sections = await api.getShowSuggestions('tv-library');
   assert.deepEqual(sections.map(section => [section.title, section.items.map(item => item.Id)]), [
-    ['Continue watching', ['resume']], ['Next up', ['next']], ['Recently added', ['grouped', 'latest']]
+    ['Continuar assistindo', ['resume']], ['A seguir', ['next']], ['Adicionados recentemente', ['grouped', 'latest']]
   ]);
   assert.equal(sections[0].items[0].UserData?.PlaybackPositionTicks, 123);
   assert.equal(sections[1].items[0].SeriesId, 'show');

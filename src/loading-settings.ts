@@ -10,7 +10,7 @@ export type LoadingAnimation = typeof loadingAnimations[number]['id'];
 export type LoadingScreenSettings = { version: 1; animation: LoadingAnimation; brandText: string; message: string };
 export const maxLoadingSettingsBytes = 7 * 1024;
 export function defaultLoadingScreen(): LoadingScreenSettings {
-  return { version: 1, animation: 'projector', brandText: 'HarbourBR', message: 'Preparando sua Página Inicial' };
+  return { version: 1, animation: 'projector', brandText: 'HabourBR', message: 'Preparando sua Página Inicial' };
 }
 export function loadingScreenKey(server: string, user: string): string {
   return `jellyfin-cinema.loading-screen.v1:${encodeURIComponent(server)}:${encodeURIComponent(user)}`;
@@ -23,5 +23,6 @@ export function parseLoadingScreen(value: unknown): LoadingScreenSettings {
     && value.length <= length && !/[\u0000-\u001f\u007f-\u009f]/.test(value);
   if (Object.keys(data).length !== 4 || data.version !== 1 || !loadingAnimations.some(option => option.id === data.animation)
     || !text(data.brandText, 60) || !text(data.message, 120)) throw invalid();
-  return { version: 1, animation: data.animation as LoadingAnimation, brandText: data.brandText, message: data.message };
+  const brandText = data.brandText === 'KiKoTV' ? 'HabourBR' : data.brandText;
+  return { version: 1, animation: data.animation as LoadingAnimation, brandText, message: data.message };
 }

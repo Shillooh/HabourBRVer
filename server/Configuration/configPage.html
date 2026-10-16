@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <title>HabourBR</title>
+</head>
+<body>
+    <div id="HabourBrConfigurationPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-button,emby-input,emby-select">
+        <style>
+            .habourbr-admin-container {
+                max-width: 900px;
+                margin: 0 auto;
+                padding: 1.5rem 1rem 3rem;
+                font-family: inherit;
+                color: #f5f5f2;
+            }
+            .habourbr-admin-header {
+                display: flex;
+                align-items: center;
+                gap: 1.2rem;
+                margin-bottom: 2rem;
+                padding-bottom: 1.2rem;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            }
+            .habourbr-admin-badge {
+                background: #e50914;
+                color: #ffffff;
+                font-size: 0.75rem;
+                font-weight: 700;
+                letter-spacing: 0.1em;
+                padding: 0.35rem 0.75rem;
+                border-radius: 4px;
+                text-transform: uppercase;
+            }
+            .habourbr-admin-title {
+                margin: 0;
+                font-size: 1.8rem;
+                font-weight: 700;
+                color: #ffffff;
+            }
+            .habourbr-admin-subtitle {
+                margin: 0.3rem 0 0;
+                color: #b8c0bb;
+                font-size: 0.92rem;
+            }
+            .habourbr-admin-banner {
+                background: linear-gradient(90deg, rgba(229, 9, 20, 0.22) 0%, rgba(20, 22, 25, 0.95) 100%);
+                border-left: 4px solid #e50914;
+                border-radius: 6px;
+                padding: 1.1rem 1.4rem;
+                margin-bottom: 2.2rem;
+            }
+            .habourbr-admin-banner h3 {
+                margin: 0 0 0.4rem;
+                font-size: 1.05rem;
+                color: #ffffff;
+            }
+            .habourbr-admin-banner p {
+                margin: 0;
+                font-size: 0.88rem;
+                color: #d2d5d8;
+                line-height: 1.5;
+            }
+            .habourbr-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+                gap: 1.5rem;
+                margin-bottom: 2.5rem;
+            }
+            .habourbr-card {
+                background: #16181b;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 10px;
+                padding: 1.5rem;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                transition: transform 0.2s, border-color 0.2s;
+            }
+            .habourbr-card:hover {
+                transform: translateY(-2px);
+                border-color: rgba(229, 9, 20, 0.5);
+            }
+            .habourbr-card-icon {
+                font-size: 2rem;
+                color: #e50914;
+                margin-bottom: 0.8rem;
+            }
+            .habourbr-card h4 {
+                margin: 0 0 0.5rem;
+                font-size: 1.15rem;
+                color: #ffffff;
+            }
+            .habourbr-card p {
+                margin: 0 0 1.4rem;
+                font-size: 0.85rem;
+                color: #a0a6a2;
+                line-height: 1.5;
+                flex-grow: 1;
+            }
+            .habourbr-btn-primary {
+                background: #e50914 !important;
+                color: #ffffff !important;
+                border: none !important;
+                border-radius: 6px !important;
+                font-weight: 600 !important;
+                padding: 0.65rem 1.2rem !important;
+                cursor: pointer;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                transition: background-color 0.2s;
+            }
+            .habourbr-btn-primary:hover {
+                background: #b20710 !important;
+            }
+            .habourbr-danger-zone {
+                background: #141518;
+                border: 1px solid rgba(229, 9, 20, 0.35);
+                border-radius: 10px;
+                padding: 1.5rem;
+            }
+            .habourbr-danger-zone h4 {
+                margin: 0 0 0.5rem;
+                color: #ff5252;
+                font-size: 1.1rem;
+            }
+            .habourbr-danger-zone p {
+                margin: 0 0 1.2rem;
+                color: #b8c0bb;
+                font-size: 0.86rem;
+                line-height: 1.5;
+            }
+            .habourbr-btn-danger {
+                background: rgba(229, 9, 20, 0.15) !important;
+                color: #ff5252 !important;
+                border: 1px solid #e50914 !important;
+                border-radius: 6px !important;
+                padding: 0.65rem 1.2rem !important;
+                font-weight: 600 !important;
+                cursor: pointer;
+                transition: background-color 0.2s;
+            }
+            .habourbr-btn-danger:hover {
+                background: #e50914 !important;
+                color: #ffffff !important;
+            }
+        </style>
+
+        <div data-role="content">
+            <div class="content-primary habourbr-admin-container">
+                <div class="habourbr-admin-header">
+                    <div>
+                        <span class="habourbr-admin-badge">HabourBR Admin</span>
+                        <h2 class="habourbr-admin-title">Configurações Globais do Servidor</h2>
+                        <p class="habourbr-admin-subtitle">Defina os padrões de streaming, coleções da Home e tela de carregamento para todos os usuários.</p>
+                    </div>
+                </div>
+
+                <div class="habourbr-admin-banner">
+                    <h3>🛡️ Hierarquia de Configuração Ativa</h3>
+                    <p>
+                        As configurações salvas nesta área tornam-se o <strong>Padrão Global</strong> para todos os perfis do servidor. Usuários novos ou que não personalizaram seus perfis herdam diretamente essas escolhas. Caso um usuário customize sua própria conta, seu layout individual prevalecerá.
+                    </p>
+                </div>
+
+                <div style="background:#16181b;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:2rem;">
+                    <div style="display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap;">
+                        <label for="habourbrTargetSelect" style="font-weight:700;color:#ffffff;font-size:1rem;">Alvo da Edição:</label>
+                        <select id="habourbrTargetSelect" style="background:#1f2227;color:#ffffff;border:1px solid rgba(229,9,20,0.5);border-radius:6px;padding:0.6rem 1rem;font-size:0.95rem;min-width:320px;cursor:pointer;outline:none;">
+                            <option value="">🌐 Padrão Global (Todos os Usuários)</option>
+                        </select>
+                    </div>
+                    <p id="habourbrTargetDesc" style="margin:0.7rem 0 0;font-size:0.86rem;color:#b8c0bb;">
+                        Você está configurando o <strong>Padrão Global</strong> do HabourBR. As edições serão herdadas por todos os usuários do servidor.
+                    </p>
+                </div>
+
+                <div class="habourbr-grid">
+                    <div class="habourbr-card">
+                        <div>
+                            <div class="habourbr-card-icon"><span class="material-icons">video_library</span></div>
+                            <h4>Serviços de Streaming</h4>
+                            <p>Configure os catálogos de serviços (Netflix, Prime Video, Max, etc.), logos personalizados e coleções vinculadas no acervo.</p>
+                        </div>
+                        <a id="linkProviders" href="#/mypreferencesmenu?cinemaProviders=1&cinemaGlobal=1" class="habourbr-btn-primary">Abrir Editor Global</a>
+                    </div>
+
+                    <div class="habourbr-card">
+                        <div>
+                            <div class="habourbr-card-icon"><span class="material-icons">collections_bookmark</span></div>
+                            <h4>Fileiras de Coleções</h4>
+                            <p>Personalize as prateleiras da Página Inicial, ordem de exibição, fileiras sazonais (Halloween, Natal) e temas visuais.</p>
+                        </div>
+                        <a id="linkCollections" href="#/mypreferencesmenu?cinemaCollections=1&cinemaGlobal=1" class="habourbr-btn-primary">Abrir Editor Global</a>
+                    </div>
+
+                    <div class="habourbr-card">
+                        <div>
+                            <div class="habourbr-card-icon"><span class="material-icons">movie</span></div>
+                            <h4>Tela de Carregamento</h4>
+                            <p>Ajuste a animação de introdução (Projetor, Claquete, Refletores), nome de marca exibido e mensagem de boas-vindas.</p>
+                        </div>
+                        <a id="linkLoading" href="#/mypreferencesmenu?cinemaLoading=1&cinemaGlobal=1" class="habourbr-btn-primary">Abrir Editor Global</a>
+                    </div>
+                </div>
+
+                <div class="habourbr-danger-zone">
+                    <h4>Redefinir Personalizações de Usuários</h4>
+                    <p>
+                        Esta ação remove os arquivos de customização individual de todos os usuários do servidor, fazendo com que todos voltem a utilizar estritamente o layout e as coleções padrão definidas pelo administrador.
+                    </p>
+                    <button id="btnResetAllUsers" class="habourbr-btn-danger">Forçar Padrão Global em Todos os Usuários</button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            (function () {
+                var select = document.querySelector('#habourbrTargetSelect') || document.querySelector('#kikotvTargetSelect');
+                var desc = document.querySelector('#habourbrTargetDesc') || document.querySelector('#kikotvTargetDesc');
+                var linkProviders = document.querySelector('#linkProviders');
+                var linkCollections = document.querySelector('#linkCollections');
+                var linkLoading = document.querySelector('#linkLoading');
+                var btn = document.querySelector('#btnResetAllUsers');
+
+                function updateLinks() {
+                    var targetId = select.value;
+                    var selectedText = select.options[select.selectedIndex]?.text || '';
+                    if (!targetId) {
+                        linkProviders.href = '#/mypreferencesmenu?cinemaProviders=1&cinemaGlobal=1';
+                        linkCollections.href = '#/mypreferencesmenu?cinemaCollections=1&cinemaGlobal=1';
+                        linkLoading.href = '#/mypreferencesmenu?cinemaLoading=1&cinemaGlobal=1';
+                        linkProviders.textContent = 'Abrir Editor Global';
+                        linkCollections.textContent = 'Abrir Editor Global';
+                        linkLoading.textContent = 'Abrir Editor Global';
+                        desc.innerHTML = 'Você está configurando o <strong>Padrão Global</strong> do HabourBR. As edições serão herdadas por todos os usuários do servidor.';
+                    } else {
+                        var encoded = encodeURIComponent(targetId);
+                        linkProviders.href = '#/mypreferencesmenu?cinemaProviders=1&cinemaGlobal=1&targetUserId=' + encoded;
+                        linkCollections.href = '#/mypreferencesmenu?cinemaCollections=1&cinemaGlobal=1&targetUserId=' + encoded;
+                        linkLoading.href = '#/mypreferencesmenu?cinemaLoading=1&cinemaGlobal=1&targetUserId=' + encoded;
+                        var btnLabel = 'Editar para ' + selectedText.replace(/^[^\w\s]+\s*/, '');
+                        linkProviders.textContent = btnLabel;
+                        linkCollections.textContent = btnLabel;
+                        linkLoading.textContent = btnLabel;
+                        desc.innerHTML = 'Você está visualizando e editando as configurações exclusivas de <strong>' + selectedText + '</strong>.';
+                    }
+                }
+
+                function populateUsers(users) {
+                    if (!Array.isArray(users) || users.length === 0) return false;
+                    var added = 0;
+                    users.forEach(function (user) {
+                        if (!user) return;
+                        var rawId = user.Id || user.id;
+                        if (!rawId) return;
+                        var id = String(rawId).replace(/-/g, '').toLowerCase();
+                        var name = user.Name || user.name || user.Username || user.username || id;
+                        var exists = Array.from(select.options).some(function (o) {
+                            return o.value.toLowerCase() === id;
+                        });
+                        if (!exists) {
+                            var opt = document.createElement('option');
+                            opt.value = id;
+                            opt.textContent = '👤 ' + name;
+                            select.appendChild(opt);
+                            added++;
+                        }
+                    });
+                    return added > 0;
+                }
+
+                function fetchUsersWithFallback() {
+                    if (!window.ApiClient) return;
+                    var pluginUrl = ApiClient.getUrl('TvItemLayout/ProviderHomes/Users');
+                    var nativeUrl = ApiClient.getUrl('Users');
+
+                    function tryNative() {
+                        if (typeof ApiClient.getUsers === 'function') {
+                            ApiClient.getUsers().then(function (users) {
+                                populateUsers(users);
+                            }).catch(function () {
+                                ApiClient.getJSON(nativeUrl).then(populateUsers).catch(function () {});
+                            });
+                        } else {
+                            ApiClient.getJSON(nativeUrl).then(populateUsers).catch(function () {});
+                        }
+                    }
+
+                    ApiClient.getJSON(pluginUrl).then(function (users) {
+                        if (!populateUsers(users)) {
+                            tryNative();
+                        }
+                    }).catch(function () {
+                        tryNative();
+                    });
+                }
+
+                if (select) {
+                    select.addEventListener('change', updateLinks);
+                    fetchUsersWithFallback();
+                }
+
+                if (btn) {
+                    btn.addEventListener('click', function () {
+                        if (confirm('Atenção: Deseja realmente apagar as customizações de TODOS os usuários do servidor e forçar o Padrão Global do HabourBR? Esta ação não pode ser desfeita.')) {
+                            btn.disabled = true;
+                            btn.textContent = 'Aplicando...';
+                            Promise.all([
+                                ApiClient.ajax({ type: 'POST', url: ApiClient.getUrl('TvItemLayout/ProviderHomes/ResetAllUsers') }),
+                                ApiClient.ajax({ type: 'POST', url: ApiClient.getUrl('TvItemLayout/HomeCollections/ResetAllUsers') }),
+                                ApiClient.ajax({ type: 'POST', url: ApiClient.getUrl('TvItemLayout/LoadingScreen/ResetAllUsers') })
+                            ]).then(function () {
+                                alert('Padrão Global aplicado a todos os usuários com sucesso!');
+                                btn.disabled = false;
+                                btn.textContent = 'Forçar Padrão Global em Todos os Usuários';
+                            }).catch(function (err) {
+                                alert('Erro ao redefinir configurações dos usuários: ' + (err.message || 'Verifique sua conexão.'));
+                                btn.disabled = false;
+                                btn.textContent = 'Forçar Padrão Global em Todos os Usuários';
+                            });
+                        }
+                    });
+                }
+            })();
+        </script>
+    </div>
+</body>
+</html>

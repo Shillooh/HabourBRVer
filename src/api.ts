@@ -115,13 +115,13 @@ function movieItems(result: ItemResult, label: string): Item[] {
 
 function recommendationTitle(category: Recommendation): string {
   const name = typeof category.BaselineItemName === 'string' ? category.BaselineItemName.trim() : '';
-  if (!name) return 'Recommended for you';
+  if (!name) return 'Recomendado para você';
   switch (category.RecommendationType) {
-    case 'SimilarToRecentlyPlayed': return `Because you watched ${name}`;
-    case 'SimilarToLikedItem': return `Because you like ${name}`;
-    case 'HasDirectorFromRecentlyPlayed': case 'HasLikedDirector': return `Directed by ${name}`;
-    case 'HasActorFromRecentlyPlayed': case 'HasLikedActor': return `Starring ${name}`;
-    default: return 'Recommended for you';
+    case 'SimilarToRecentlyPlayed': return `Porque você assistiu ${name}`;
+    case 'SimilarToLikedItem': return `Porque você curtiu ${name}`;
+    case 'HasDirectorFromRecentlyPlayed': case 'HasLikedDirector': return `Dirigido por ${name}`;
+    case 'HasActorFromRecentlyPlayed': case 'HasLikedActor': return `Estrelando ${name}`;
+    default: return 'Recomendado para você';
   }
 }
 
@@ -477,9 +477,9 @@ export function createJellyfinApi(): MediaApi | null {
       const episodes = (result: ItemResult, label: string) => itemsFrom(result, label)
         .filter(item => item.Type === 'Episode' && !!item.SeriesId && available(item));
       const sections: SuggestionSection[] = [
-        { title: 'Continue watching', items: episodes(resume, 'resumable episode').slice(0, 12) },
-        { title: 'Next up', items: episodes(next, 'next episode').slice(0, 24) },
-        { title: 'Recently added', items: itemsFrom({ Items: latest }, 'latest TV show')
+        { title: 'Continuar assistindo', items: episodes(resume, 'resumable episode').slice(0, 12) },
+        { title: 'A seguir', items: episodes(next, 'next episode').slice(0, 24) },
+        { title: 'Adicionados recentemente', items: itemsFrom({ Items: latest }, 'latest TV show')
           .filter(item => available(item) && (item.Type === 'Series' || item.Type === 'Episode' && !!item.SeriesId)).slice(0, 30) }
       ];
       return sections.filter(section => section.items.length > 0);
@@ -506,8 +506,8 @@ export function createJellyfinApi(): MediaApi | null {
         throw new Error('Jellyfin returned invalid movie suggestions. Try again.');
       }
       const sections: SuggestionSection[] = [
-        { title: 'Continue watching', items: movieItems(resume, 'resumable movie').slice(0, 12) },
-        { title: 'Recently added', items: movieItems({ Items: latest }, 'latest movie').slice(0, 18) }
+        { title: 'Continuar assistindo', items: movieItems(resume, 'resumable movie').slice(0, 12) },
+        { title: 'Adicionados recentemente', items: movieItems({ Items: latest }, 'latest movie').slice(0, 18) }
       ];
       for (const value of recommendations.slice(0, 6)) {
         if (!value || typeof value !== 'object') throw new Error('Jellyfin returned invalid movie recommendations. Try again.');

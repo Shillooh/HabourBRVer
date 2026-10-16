@@ -16,34 +16,63 @@
 /* TV navigation uses one accent ring around the artwork, including on hover. */
 .layout-tv .tvl-provider-tile:focus .tvl-provider-tile-mark { outline-color:var(--provider-accent,#e50914);border-color:transparent; }
 .tvl-provider-home { display:flex;flex-direction:column; }
-.tvl-provider-header { flex-shrink:0;position:relative;z-index:2;padding:1rem 4.5vw .9rem;background:#101112;border-bottom:1px solid #ffffff18; }
+.tvl-provider-header { position:absolute;top:0;left:0;right:0;z-index:999;padding:1rem 4.5vw 1.2rem;background:linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%) !important;border-bottom:none !important;pointer-events:none; }
+.tvl-provider-header .tvl-button,
+.tvl-provider-header .tvl-back,
+.tvl-provider-header .tvl-provider-edit,
+.tvl-provider-nav .tvl-button,
+.tvl-provider-nav .tab-button,
+.tvl-provider-nav .nav-item,
+.tvl-provider-header button,
+.tvl-provider-header button *,
+.tvl-provider-header a,
+.tvl-provider-header a *,
+.tvl-provider-header [role="button"],
+.tvl-provider-header [role="button"] *,
+.tvl-provider-header .tvl-button *,
+.tvl-provider-nav button,
+.tvl-provider-nav button * { pointer-events:auto; }
 .tvl-provider-header>.tvl-back { position:absolute;left:4.5vw;top:1.2rem; }
 .tvl-provider-header>.tvl-provider-edit { position:absolute;right:4.5vw;top:1.2rem;font-size:.8em;border-color:#8f9c93; }
 .tvl-provider-editable .tvl-provider-identity { padding-right:9rem; }
-.tvl-provider-identity { display:flex;justify-content:center;align-items:center;min-height:3.5rem;padding:0 7rem; }
+.tvl-provider-identity { display:flex;justify-content:center;align-items:center;min-height:3.5rem;padding:0 7rem;pointer-events:none; }
 .tvl-provider-identity>div { min-width:0; }
 .tvl-provider-header-logo { flex-shrink:0;width:8rem;height:2.7rem;margin-right:1.3rem; }
 .tvl-provider-identity h1 { display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:break-word;word-break:break-word;font-size:1.15em;line-height:1.2; }
 .tvl-provider-identity p { font-size:.62em;line-height:1.6;color:#b8c0bb; }
-.tvl-provider-nav { display:flex;justify-content:center;flex-wrap:wrap;margin-top:.8rem; }
-.tvl-provider-nav .tvl-button { border-radius:999px;margin:.15rem .3rem;padding:.4rem 1rem;min-height:2.3em;font-size:.72em;color:#c4ccc7; }
-.tvl-provider-nav .tvl-button[aria-current=page] { color:#ffffff;background:#e50914;font-weight:600; }
+.tvl-provider-nav { display:flex;justify-content:center;flex-wrap:wrap;margin-top:.8rem;pointer-events:none; }
+.tvl-provider-nav .tvl-button { border-radius:999px;margin:.15rem .3rem;padding:.4rem 1rem;min-height:2.3em;font-size:.72em;color:#c4ccc7;transition:background-color .16s, color .16s;pointer-events:auto; }
+.tvl-provider-nav .tvl-button[aria-current=page],
+.tvl-provider-nav .tvl-button.active,
+.tvl-provider-nav .tab-button.active { color:#ffffff !important;background-color:#e50914 !important;font-weight:600; }
+.tvl-provider-nav .tvl-button:hover:not([aria-current=page]):not(.active),
+.tvl-provider-nav .tvl-button:not([aria-current=page]):not(.active):hover,
+.tvl-provider-nav button:hover:not([aria-current=page]):not(.active),
+.tvl-provider-nav button:not([aria-current=page]):not(.active):hover,
+.tvl-provider-nav .tab-button:not(.active):hover,
+.tvl-provider-nav .tab-button:hover:not(.active),
+.tvl-provider-nav .nav-item:hover { background-color:rgba(229,9,20,0.8) !important;background-image:none !important;color:#ffffff !important; }
+.tvl-provider-nav .tvl-button[aria-current=page]:hover,
+.tvl-provider-nav .tvl-button.active:hover,
+.tvl-provider-nav .tab-button.active:hover,
+.tvl-provider-nav button[aria-current=page]:hover { background-color:#b20710 !important;background-image:none !important;color:#ffffff !important; }
 .tvl-provider-nav .tvl-button[hidden] { display:none; }
 .tvl-provider-home .tvl-button:focus { outline:2px solid #e50914;outline-offset:3px; }
 .tvl-provider-content { overflow:auto;overflow-x:hidden;flex:1;min-height:0;scrollbar-width:none; }
 .tvl-provider-content::-webkit-scrollbar { width:0;display:none; }
-.tvl-provider-hero { position:relative;min-height:24rem;display:flex;flex-direction:column;justify-content:center;padding:3rem 5.5vw;isolation:isolate;background:radial-gradient(ellipse at 75% 30%,#351418,#101112 80%); }
+.tvl-provider-hero { position:relative;overflow:hidden;min-height:25rem;display:flex;flex-direction:column;justify-content:flex-start;padding:9.5rem 5.5vw 2rem;isolation:isolate;background:transparent; }
 .tvl-provider-hero[hidden] { display:none; }
+.tvl-provider-library .tvl-provider-rows { padding-top:9.5rem; }
 .tvl-provider-eyebrow { font-size:.64em;letter-spacing:.15em;color:#c8d6cd;margin-bottom:.85rem!important; }
 .tvl-provider-welcome { font-size:2.5em; }
-.tvl-provider-feature-backdrop { position:absolute;z-index:-2;left:0;right:0;top:0;bottom:0; }
-.tvl-provider-feature-backdrop img { width:100%;height:100%;object-fit:cover;object-position:70% 40%; }
-.tvl-provider-feature-backdrop::after { content:'';position:absolute;left:0;right:0;top:0;bottom:0;background:linear-gradient(90deg,#101112 0%,#101112e6 26%,#10111233 85%),linear-gradient(0deg,#101112,transparent 45%); }
-.tvl-provider-feature-copy { width:50%;max-width:42rem; }
+.tvl-provider-feature-backdrop, .tvl-provider-hero .hero-backdrop, .tvl-provider-hero .backdropImage { position:absolute;z-index:-1;left:0;right:0;top:0;bottom:0;width:100%;height:100%;pointer-events:none;background:radial-gradient(ellipse at 75% 30%,#351418,#101112 80%); }
+.tvl-provider-feature-backdrop img, .tvl-provider-hero .hero-backdrop img, .tvl-provider-hero .backdropImage img { position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:70% 35%; }
+.tvl-provider-feature-backdrop::after, .tvl-provider-hero .hero-backdrop::after, .tvl-provider-hero .backdropImage::after { content:'';position:absolute;inset:0;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,#101112 0%,#101112e6 26%,#10111233 85%),linear-gradient(0deg,#101112,transparent 45%); }
+.tvl-provider-feature-copy { position:relative;z-index:2;width:50%;max-width:42rem; }
 .tvl-provider-feature-title { font-size:2.5em;line-height:1.08;letter-spacing:-.035em; }
 .tvl-provider-feature-description { color:#d2d4d8;font-size:.82em;line-height:1.6;margin:1rem 0 1.2rem!important;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden; }
 .tvl-provider-feature-copy .tvl-primary { font-size:.8em;margin-top:1rem; }
-.tvl-provider-rows { padding:2rem 5.5vw 0; }
+.tvl-provider-rows { padding:1.2rem 5.5vw 0; }
 .tvl-provider-row { margin:0 0 2.6rem;min-width:0; }
 .tvl-provider-row-heading { display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem; }
 .tvl-provider-row-heading .tvl-home-row-title { margin:0; }
@@ -59,5 +88,5 @@
 .tvl-provider-more { margin-top:1.5rem;border:1px solid #ffffff40; }
 .tvl-provider-more[hidden] { display:none; }
 .tvl-provider-message { padding:2rem 0;color:#b8c5bb; }
-@media(max-width:800px){.tvl-provider-header-logo{width:5rem;margin-right:.7rem}.tvl-provider-identity{justify-content:flex-end;padding:0 0 0 6rem}.tvl-provider-identity h1{font-size:1em}.tvl-provider-hero{min-height:20rem}.tvl-provider-feature-copy{width:70%}.tvl-provider-feature-title{font-size:2em}.tvl-provider-rows{padding-top:1.2rem}.tvl-provider-grid{grid-template-columns:repeat(auto-fill,minmax(9rem,1fr))}.tvl-provider-tile{width:calc(12rem * var(--provider-tile-scale,1))}.tvl-provider-tile-mark{height:calc(7rem * var(--provider-tile-scale,1))}}
+@media(max-width:800px){.tvl-provider-header-logo{width:5rem;margin-right:.7rem}.tvl-provider-identity{justify-content:flex-end;padding:0 0 0 6rem}.tvl-provider-identity h1{font-size:1em}.tvl-provider-hero{min-height:20rem;padding-top:9rem;padding-bottom:1.5rem}.tvl-provider-library .tvl-provider-rows{padding-top:9rem}.tvl-provider-feature-copy{width:70%}.tvl-provider-feature-title{font-size:2em}.tvl-provider-rows{padding-top:1rem}.tvl-provider-grid{grid-template-columns:repeat(auto-fill,minmax(9rem,1fr))}.tvl-provider-tile{width:calc(12rem * var(--provider-tile-scale,1))}.tvl-provider-tile-mark{height:calc(7rem * var(--provider-tile-scale,1))}}
 @media(max-width:800px){.tvl-provider-editable .tvl-provider-identity{justify-content:flex-start;padding:3.8rem 0 0}}

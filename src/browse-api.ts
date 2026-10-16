@@ -115,9 +115,9 @@ export function createBrowseApi(client: BrowseClient, userId: string, read: Read
         read(() => client.getItems(userId, { ...options, SortBy: 'PlayCount' }))
       ]);
       return [
-        { title: 'Recently added', items: recent.filter(item => musicTypes.includes(item.Type || '')) },
-        { title: 'Recently played', items: items(played, 'recently played').filter(item => item.Type === 'Audio' && available(item)) },
-        { title: 'Frequently played', items: items(frequent, 'frequently played').filter(item => item.Type === 'Audio' && available(item)) }
+        { title: 'Adicionados recentemente', items: recent.filter(item => musicTypes.includes(item.Type || '')) },
+        { title: 'Tocadas recentemente', items: items(played, 'recently played').filter(item => item.Type === 'Audio' && available(item)) },
+        { title: 'Mais tocadas', items: items(frequent, 'frequently played').filter(item => item.Type === 'Audio' && available(item)) }
       ].filter(section => section.items.length);
     }),
     isRecordingFolder: id => read(async () => {

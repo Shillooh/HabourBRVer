@@ -56,26 +56,91 @@ export class HomeCollectionEditor {
   private removeRemote: () => void;
   private removeWatchlist: () => void;
   private watchlistRevision = 0;
+  private restoreGlobalButton?: HTMLButtonElement;
+  private targetUserName?: string;
+  private users: { Id: string; Name: string }[] = [];
+  private banner?: HTMLElement;
+  private bannerHeader?: HTMLElement;
+  private bannerText?: HTMLElement;
+  private targetStatusBadge?: HTMLElement;
+  private targetSelect?: HTMLSelectElement;
+  private copyButton?: HTMLButtonElement;
+  private resetAllButton?: HTMLButtonElement;
+  private headingTitle?: HTMLElement;
+  private headingEyebrow?: HTMLElement;
 
-  constructor(private api: MediaApi, private onClose: (restore: boolean) => void) {
-    this.store = createHomeCollectionStore(api); this.key = this.store.key; this.draft = this.store.cached;
+  constructor(private api: MediaApi, private onClose: (restore: boolean) => void, private scope: 'user' | 'global' = 'user', private targetUserId?: string) {
+    const isGlobal = scope === 'global' || !!targetUserId;
+    this.store = createHomeCollectionStore(api, targetUserId ? 'user' : scope, targetUserId); this.key = this.store.key; this.draft = this.store.cached;
     const home = document.querySelector<HTMLElement>('#indexPage #homeTab, #homeTab');
     const native = home ? nativeHomeRows(home) : [];
     this.anchors = native.length ? native.map(({ key, label }) => ({ key, label })) : cachedHomeRows(this.key);
     this.selectedId = this.draft.rows[0]?.id || '';
     this.element.setAttribute('role', 'dialog'); this.element.setAttribute('aria-modal', 'true');
-    this.element.setAttribute('aria-label', 'Personalizar fileiras da Página Inicial');
-    this.sidebar.setAttribute('aria-label', 'Suas fileiras da Página Inicial');
+    this.element.setAttribute('aria-label', isGlobal ? 'Configurações Globais das fileiras da Página Inicial' : 'Personalizar fileiras da Página Inicial');
+    this.sidebar.setAttribute('aria-label', isGlobal ? 'Padrão Global das fileiras da Página Inicial' : 'Suas fileiras da Página Inicial');
     const panel = el('div', 'tvl-home-editor-panel');
     const header = el('header', 'tvl-home-editor-header');
-    const title = el('div'); title.append(el('p', 'tvl-home-editor-eyebrow', 'PERSONALIZAR PÁGINA INICIAL'), el('h1', '', 'Suas fileiras da Página Inicial'));
+    const title = el('div');
+    this.headingEyebrow = el('p', 'tvl-home-editor-eyebrow', isGlobal ? 'PADRÃO GLOBAL · ' : 'PERSONALIZAR PÁGINA INICIAL');
+    this.headingTitle = el('h1', '', isGlobal ? 'Fileiras de Coleções (Padrão Global)' : 'Suas fileiras da Página Inicial');
+    if (isGlobal) {
+      title.append(el('span', 'tvl-admin-badge', 'HabourBR Admin'), this.headingEyebrow, this.headingTitle);
+    } else {
+      title.append(this.headingEyebrow, this.headingTitle);
+    }
     const actions = el('div', 'tvl-home-editor-actions');
     const cancel = button('Cancelar', 'close', '', () => this.close()); cancel.dataset.editorFocus = 'cancel';
-    this.saveButton = button('Salvar fileiras', 'check', 'tvl-primary', () => { void this.save(); }); this.saveButton.disabled = true; this.saveButton.dataset.editorFocus = 'save';
+    if (isGlobal) {
+      this.copyButton = button('Copiar da minha conta', '', 'tvl-button-copy', () => { void this.copyFromAdmin(); });
+      this.resetAllButton = button('Forçar em todos os usuários', '', 'tvl-button-danger', () => { void this.resetAllUsers(); });
+      this.restoreGlobalButton = button('Restaurar para o Padrão Global', '', 'tvl-button-secondary', () => { void this.restoreGlobal(); });
+      this.restoreGlobalButton.hidden = !this.targetUserId;
+      if (this.targetUserId) this.resetAllButton.hidden = true;
+      actions.append(this.copyButton, this.resetAllButton, this.restoreGlobalButton);
+    } else {
+      this.restoreGlobalButton = button('Usar Padrão do Servidor', '', 'tvl-button-secondary', () => { void this.restoreGlobal(); });
+      this.restoreGlobalButton.hidden = true;
+      actions.append(this.restoreGlobalButton);
+    }
+    this.saveButton = button(isGlobal ? (this.targetUserId ? 'Salvar para Usuário' : 'Salvar Padrão Global') : 'Salvar fileiras', 'check', 'tvl-primary', () => { void this.save(); });
+    this.saveButton.disabled = true; this.saveButton.dataset.editorFocus = 'save';
     actions.append(cancel, this.saveButton); header.append(title, actions);
     this.status.setAttribute('role', 'status'); this.status.textContent = 'Carregando coleções…';
     const layout = el('div', 'tvl-home-editor-layout'); layout.append(this.sidebar, this.workspace);
-    panel.append(header, el('p', 'tvl-home-editor-intro', this.store.synced ? 'As fileiras salvas acompanham esta conta do Jellyfin em todos os seus dispositivos.' : 'Esta pré-visualização salva as opções neste dispositivo.'), this.status, layout);
+    const introText = isGlobal
+      ? 'Você está definindo o padrão global de coleções do HabourBR na Página Inicial para todos os usuários do servidor.'
+      : (this.store.synced ? 'As fileiras salvas acompanham esta conta do Jellyfin em todos os seus dispositivos.' : 'Esta pré-visualização salva as opções neste dispositivo.');
+    panel.append(header);
+    if (isGlobal) {
+      this.banner = el('div', 'tvl-admin-banner');
+      this.bannerHeader = el('div', 'tvl-admin-banner-header');
+      this.bannerHeader.innerHTML = '<span class="material-icons">shield</span><strong>MODO ADMINISTRADOR</strong>';
+      this.bannerText = el('p', '', 'Você está editando o Padrão Global de coleções do HabourBR para a Página Inicial. Todos os usuários sem personalização própria receberão este catálogo.');
+      this.banner.append(this.bannerHeader, this.bannerText);
+
+      const selectorWrap = el('div', 'tvl-target-selector');
+      const selectLabel = el('label');
+      selectLabel.innerHTML = '<span class="material-icons">account_circle</span> Alvo da Edição:';
+      this.targetSelect = el('select', 'tvl-target-select') as HTMLSelectElement;
+      this.targetSelect.dataset.editorFocus = 'target-user';
+      const defaultOpt = el('option', '', '🌐 Padrão Global (Todos os Usuários)');
+      defaultOpt.value = '';
+      this.targetSelect.append(defaultOpt);
+      this.targetSelect.addEventListener('change', () => {
+        const selectedId = this.targetSelect?.value || undefined;
+        const norm = selectedId ? this.normalizeId(selectedId) : '';
+        const user = this.users.find(u => this.normalizeId(u.Id) === norm);
+        this.switchTarget(selectedId, user?.Name);
+      });
+      this.targetStatusBadge = el('span', 'tvl-target-override-status');
+      this.targetStatusBadge.hidden = true;
+      selectorWrap.append(selectLabel, this.targetSelect, this.targetStatusBadge);
+      this.banner.append(selectorWrap);
+      panel.append(this.banner);
+      void this.loadUsers();
+    }
+    panel.append(el('p', 'tvl-home-editor-intro', introText), this.status, layout);
     this.element.append(panel);
     this.removeRemote = attachRemote(this.element, () => this.close());
     this.removeWatchlist = subscribeWatchlist(api, () => {
@@ -96,6 +161,27 @@ export class HomeCollectionEditor {
     try {
       const [collections, settings] = await Promise.all([this.api.getCollectionList(), this.store.load()]); if (this.disposed) return;
       this.draft = settings; this.selectedId = this.draft.rows[0]?.id || '';
+      if (this.targetUserId && this.targetStatusBadge) {
+        if (this.store.hasUserOverride) {
+          this.targetStatusBadge.textContent = 'Personalização própria ativa';
+          this.targetStatusBadge.className = 'tvl-target-override-status has-override';
+          this.targetStatusBadge.hidden = false;
+          if (this.restoreGlobalButton) {
+            this.restoreGlobalButton.disabled = false;
+            this.restoreGlobalButton.hidden = false;
+          }
+        } else {
+          this.targetStatusBadge.textContent = 'Herdando Padrão Global do servidor';
+          this.targetStatusBadge.className = 'tvl-target-override-status inherits-global';
+          this.targetStatusBadge.hidden = false;
+          if (this.restoreGlobalButton) {
+            this.restoreGlobalButton.disabled = true;
+            this.restoreGlobalButton.hidden = false;
+          }
+        }
+      } else if (this.restoreGlobalButton) {
+        this.restoreGlobalButton.hidden = !this.store.hasUserOverride;
+      }
       this.collections = collections; this.ready = true; this.saveButton.disabled = false;
       this.status.textContent = collections.length ? '' : 'Nenhuma coleção disponível para esta conta ainda.'; this.redraw();
     } catch (error) {
@@ -647,8 +733,26 @@ export class HomeCollectionEditor {
     const controls = Array.from(this.element.querySelectorAll<HTMLInputElement | HTMLButtonElement>('input,button,select,textarea'))
       .map(control => ({ control, disabled: control.disabled }));
     controls.forEach(({ control }) => { control.disabled = true; });
-    try { await this.store.save(next); this.saving = false; if (!this.disposed) this.close(); }
-    catch (error) {
+    try {
+      await this.store.save(next);
+      this.saving = false;
+      if (!this.disposed) {
+        if (this.targetUserId) {
+          this.status.textContent = `Fileiras salvas com sucesso para ${this.targetUserName || 'o perfil'}.`;
+          if (this.targetStatusBadge) {
+            this.targetStatusBadge.textContent = 'Personalização própria ativa';
+            this.targetStatusBadge.className = 'tvl-target-override-status has-override';
+            this.targetStatusBadge.hidden = false;
+          }
+          if (this.restoreGlobalButton) {
+            this.restoreGlobalButton.disabled = false;
+            this.restoreGlobalButton.hidden = false;
+          }
+        } else {
+          this.close();
+        }
+      }
+    } catch (error) {
       if (this.disposed) return;
       this.status.textContent = error instanceof Error ? error.message : 'Não foi possível salvar as fileiras da Página Inicial. Tente novamente.';
       if (error instanceof HomeCollectionSyncError && error.kind === 'conflict') {
@@ -666,6 +770,188 @@ export class HomeCollectionEditor {
     if (this.disposed || this.saving && restore) return;
     this.disposed = true; this.disposePreviewAppearance?.(); this.disposePreviewAppearance = undefined;
     this.store.destroy(); this.removeRemote(); this.removeWatchlist(); this.element.remove(); this.onClose(restore);
+  }
+  private normalizeId(id: string): string {
+    return id.replace(/-/g, '').toLowerCase();
+  }
+  private async loadUsers(): Promise<void> {
+    const client = (window as unknown as {
+      ApiClient?: {
+        getUrl(p: string): string;
+        getJSON(u: string): Promise<unknown>;
+        getUsers?(): Promise<unknown>;
+      };
+    }).ApiClient;
+    if (!client || !this.targetSelect) return;
+
+    const parseUsers = (raw: unknown): { Id: string; Name: string }[] => {
+      if (!Array.isArray(raw)) return [];
+      return raw.map((u: Record<string, unknown>) => {
+        const rawId = (u.Id || u.id || '') as string;
+        const normId = rawId ? this.normalizeId(String(rawId)) : '';
+        const name = (u.Name || u.name || u.Username || u.username || normId) as string;
+        return { Id: normId, Name: name };
+      }).filter(u => u.Id && u.Name);
+    };
+
+    try {
+      let usersList: { Id: string; Name: string }[] = [];
+      try {
+        const list = await client.getJSON(client.getUrl('TvItemLayout/HomeCollections/Users'));
+        usersList = parseUsers(list);
+      } catch { /* Try native fallback */ }
+
+      if (usersList.length === 0) {
+        try {
+          if (typeof client.getUsers === 'function') {
+            const nativeUsers = await client.getUsers();
+            usersList = parseUsers(nativeUsers);
+          } else {
+            const nativeUsers = await client.getJSON(client.getUrl('Users'));
+            usersList = parseUsers(nativeUsers);
+          }
+        } catch { /* Native fallback failed */ }
+      }
+
+      if (usersList.length > 0) {
+        this.users = usersList;
+        this.populateUserSelect();
+        if (this.targetUserId) {
+          const normTarget = this.normalizeId(this.targetUserId);
+          const u = this.users.find(u => this.normalizeId(u.Id) === normTarget);
+          if (u) {
+            this.targetUserId = u.Id;
+            this.targetUserName = u.Name;
+            this.updateAdminHeader();
+          }
+        }
+      }
+    } catch { /* User listing not available */ }
+  }
+  private populateUserSelect(): void {
+    if (!this.targetSelect) return;
+    replace(this.targetSelect);
+    const globalOpt = el('option', '', '🌐 Padrão Global (Todos os Usuários)');
+    globalOpt.value = '';
+    this.targetSelect.append(globalOpt);
+    for (const u of this.users) {
+      const opt = el('option', '', `👤 ${u.Name}`);
+      opt.value = u.Id;
+      this.targetSelect.append(opt);
+    }
+    const normTarget = this.targetUserId ? this.normalizeId(this.targetUserId) : '';
+    this.targetSelect.value = normTarget ? (this.users.find(u => this.normalizeId(u.Id) === normTarget)?.Id || normTarget) : '';
+  }
+  private switchTarget(targetUserId?: string, targetUserName?: string): void {
+    const normTarget = targetUserId ? this.normalizeId(targetUserId) : undefined;
+    this.targetUserId = normTarget;
+    this.targetUserName = targetUserName;
+    const params = new URLSearchParams(location.hash.split('?')[1] || '');
+    if (normTarget) {
+      params.set('targetUserId', normTarget);
+      params.set('cinemaGlobal', '1');
+    } else {
+      params.delete('targetUserId');
+      params.set('cinemaGlobal', '1');
+    }
+    const cleanBase = location.hash.split('?')[0].replace(/^#/, '');
+    history.replaceState(history.state, '', `#${cleanBase}?${params.toString()}`);
+    this.store.destroy();
+    this.store = createHomeCollectionStore(this.api, normTarget ? 'user' : 'global', normTarget);
+    this.key = this.store.key;
+    this.updateAdminHeader();
+    void this.loadCollections();
+  }
+  private updateAdminHeader(): void {
+    if (!this.banner) return;
+    if (this.targetUserId) {
+      const name = this.targetUserName || 'Usuário';
+      if (this.headingTitle) this.headingTitle.textContent = `Fileiras de Coleções (${name})`;
+      if (this.headingEyebrow) this.headingEyebrow.textContent = `PERFIL · ${name.toUpperCase()}`;
+      if (this.saveButton) this.saveButton.textContent = `Salvar para ${name}`;
+      if (this.bannerHeader) this.bannerHeader.innerHTML = '<span class="material-icons">person</span><strong>MODO ADMINISTRADOR · PERFIL DE USUÁRIO</strong>';
+      if (this.bannerText) this.bannerText.innerHTML = `Você está visualizando e editando as configurações de <strong>${name}</strong>. As alterações salvas serão aplicadas exclusivamente para esta conta.`;
+      if (this.copyButton) this.copyButton.hidden = false;
+      if (this.resetAllButton) this.resetAllButton.hidden = true;
+      if (this.restoreGlobalButton) {
+        this.restoreGlobalButton.textContent = 'Restaurar para o Padrão Global';
+        this.restoreGlobalButton.hidden = false;
+      }
+    } else {
+      if (this.headingTitle) this.headingTitle.textContent = 'Fileiras de Coleções (Padrão Global)';
+      if (this.headingEyebrow) this.headingEyebrow.textContent = 'PADRÃO GLOBAL · ';
+      if (this.saveButton) this.saveButton.textContent = 'Salvar Padrão Global';
+      if (this.bannerHeader) this.bannerHeader.innerHTML = '<span class="material-icons">shield</span><strong>MODO ADMINISTRADOR</strong>';
+      if (this.bannerText) this.bannerText.innerHTML = 'Você está editando o <strong>Padrão Global</strong> de coleções do HabourBR para a Página Inicial. Todos os usuários sem personalização própria receberão este catálogo.';
+      if (this.copyButton) this.copyButton.hidden = false;
+      if (this.resetAllButton) this.resetAllButton.hidden = false;
+      if (this.restoreGlobalButton) this.restoreGlobalButton.hidden = true;
+      if (this.targetStatusBadge) this.targetStatusBadge.hidden = true;
+    }
+  }
+  private async copyFromAdmin(): Promise<void> {
+    const client = (window as unknown as { ApiClient?: { getUrl(p: string): string; getJSON(u: string): Promise<unknown> } }).ApiClient;
+    if (!client) return;
+    try {
+      this.status.textContent = 'Carregando coleções da sua conta pessoal…';
+      const personal = await client.getJSON(client.getUrl('TvItemLayout/HomeCollections')) as Record<string, unknown> | null;
+      const rawSettings = personal?.Settings || personal?.settings;
+      if (rawSettings) {
+        this.draft = parseHomeCollections(rawSettings);
+        this.selectedId = this.draft.rows[0]?.id || '';
+        this.ready = true;
+        this.loadingSettings = false;
+        this.saving = false;
+        this.store.allowSave();
+        this.saveButton.disabled = false;
+        this.redraw();
+        const targetLabel = this.targetUserId ? `Salvar para ${this.targetUserName || 'Usuário'}` : 'Salvar Padrão Global';
+        this.status.textContent = `Configurações de coleções da sua conta pessoal copiadas! Clique em "${targetLabel}" para confirmar.`;
+      } else {
+        this.status.textContent = 'Sua conta pessoal não possui configurações de coleções customizadas.';
+      }
+    } catch {
+      this.status.textContent = 'Não foi possível carregar as configurações pessoais.';
+    }
+  }
+  private async resetAllUsers(): Promise<void> {
+    if (!confirm('Atenção: Deseja apagar as customizações de fileiras de TODOS os usuários do servidor e forçar o Padrão Global do HabourBR?')) return;
+    try {
+      this.status.textContent = 'Aplicando padrão global a todos os usuários…';
+      await this.store.resetAllUsers();
+      this.status.textContent = 'Padrão global aplicado com sucesso a todos os usuários!';
+    } catch {
+      this.status.textContent = 'Erro ao resetar personalizações dos usuários.';
+    }
+  }
+  private async restoreGlobal(): Promise<void> {
+    const name = this.targetUserName || 'este usuário';
+    const msg = this.targetUserId
+      ? `Deseja remover as personalizações de ${name} e fazê-lo voltar a herdar o Padrão Global do HabourBR?`
+      : 'Deseja descartar suas personalizações individuais e voltar a usar o Padrão Global do HabourBR definido pelo administrador?';
+    if (!confirm(msg)) return;
+    this.saving = true; this.saveButton.disabled = true;
+    this.status.textContent = 'Restaurando padrão global do servidor…';
+    try {
+      const fresh = await this.store.resetUserOverride();
+      this.draft = fresh; this.selectedId = this.draft.rows[0]?.id || '';
+      if (this.targetUserId && this.targetStatusBadge) {
+        this.targetStatusBadge.textContent = 'Herdando Padrão Global do servidor';
+        this.targetStatusBadge.className = 'tvl-target-override-status inherits-global';
+        this.targetStatusBadge.hidden = false;
+        if (this.restoreGlobalButton) this.restoreGlobalButton.disabled = true;
+      } else if (this.restoreGlobalButton && !this.targetUserId) {
+        this.restoreGlobalButton.hidden = !this.store.hasUserOverride;
+      }
+      this.redraw();
+      this.status.textContent = this.targetUserId
+        ? `Padrão global restaurado com sucesso para ${name}!`
+        : 'Padrão global do servidor restaurado com sucesso!';
+    } catch {
+      this.status.textContent = 'Não foi possível restaurar o padrão global.';
+    } finally {
+      this.saving = false; this.saveButton.disabled = !this.ready;
+    }
   }
   destroy(): void { this.close(false); }
 }

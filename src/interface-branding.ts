@@ -13,6 +13,7 @@ function readLoginTitle(server: string): string {
   try {
     const raw = localStorage.getItem(loginKey(server));
     const title: unknown = raw && raw.length <= 400 ? JSON.parse(raw) : null;
+    if (title === 'KiKoTV') return defaultTitle;
     return validTitle(title) ? title : defaultTitle;
   } catch { return defaultTitle; }
 }
@@ -32,9 +33,10 @@ function selectedServer(): string {
   } catch { return location.origin; }
 }
 function renderLabel(node: HTMLElement, title: string): void {
-  const value = title ? `${node.dataset.tvlBrand || ''}${title}` : '';
+  const effective = title === 'KiKoTV' ? defaultTitle : title;
+  const value = effective ? `${node.dataset.tvlBrand || ''}${effective}` : '';
   if (node.textContent !== value) node.textContent = value;
-  if (node.hidden !== !title) node.hidden = !title;
+  if (node.hidden !== !effective) node.hidden = !effective;
 }
 
 /** Explicit wordmark nodes only: media titles, form inputs and product errors
@@ -104,7 +106,11 @@ export class InterfaceBranding {
     this.render();
   }
 
-  private apply(title: string): void { currentTitle = title; this.render(); }
+  private apply(title: string): void {
+    const effective = (title === 'KiKoTV' || !title) ? defaultTitle : title;
+    currentTitle = effective;
+    this.render();
+  }
   private render(): void {
     if (this.disposed) return;
     for (const node of Array.from(document.querySelectorAll<HTMLElement>('[data-tvl-brand]'))) renderLabel(node, currentTitle);

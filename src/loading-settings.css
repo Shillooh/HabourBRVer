@@ -1,6 +1,6 @@
 .tvl-loading-settings { display:flex;flex-direction:column; }
 .tvl-loading-settings .tvl-header { flex-shrink:0; }
-.tvl-loading-settings-content { flex:1;overflow:auto;padding:0 5vw 2rem;scroll-padding:1rem; }
+.tvl-loading-settings-content { flex:1;overflow:auto;padding:0 5vw 140px;scroll-padding:1rem; }
 .tvl-loading-settings h1 { font-size:2rem;font-weight:600;margin:.4rem 0; }
 .tvl-loading-settings h2 { font-size:1.05rem;font-weight:600;margin:1.5rem 0 .8rem; }
 .tvl-loading-settings-intro,.tvl-loading-settings-help { color:#b9bcbf;line-height:1.5;font-size:.85rem; }
@@ -15,9 +15,10 @@
 .tvl-loading-choice[aria-pressed=true] { border-color:#e50914;box-shadow:inset 0 0 0 1px #e50914;background:#2b1215; }
 .tvl-loading-choice .tvl-loading-preview { width:100%;height:6.5rem;min-height:0;padding:0;overflow:hidden;pointer-events:none;font-size:.4rem; }
 .tvl-loading-choice .tvl-loading-preview .tvl-home-loading-copy,.tvl-loading-choice .tvl-loading-preview .tvl-home-loading-dots { display:none; }
-.tvl-loading-settings-footer { flex-shrink:0;padding:1rem 5vw;background:#141518;border-top:1px solid #ffffff20;display:flex;align-items:center;justify-content:space-between;gap:1rem; }
+.tvl-loading-settings-footer { flex-shrink:0;padding:.75rem 5vw;background:#141518;border-top:1px solid #ffffff20;display:flex;align-items:center;justify-content:space-between;gap:1rem; }
 .tvl-loading-settings-status { margin:0;color:#b9bcbf;font-size:.8rem; }
-.tvl-loading-settings-actions { display:flex;flex-wrap:wrap;justify-content:flex-end;gap:.7rem; }
+.tvl-loading-settings-actions { display:flex;flex-wrap:nowrap;justify-content:flex-end;align-items:center;gap:.6rem; }
+.tvl-loading-settings-actions button { padding:6px 14px !important;font-size:13px !important;white-space:nowrap; }
 .tvl-loading-settings [hidden] { display:none!important; }
 @media(max-width:1000px) { .tvl-loading-choices { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 @media(max-width:700px) { .tvl-loading-settings-layout { grid-template-columns:1fr;gap:.5rem; }.tvl-loading-settings-footer { flex-wrap:wrap; }.tvl-loading-settings-preview,.tvl-loading-settings-preview .tvl-loading-preview { min-height:16rem; } }

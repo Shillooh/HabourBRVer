@@ -84,6 +84,7 @@ export class ProviderHomeView {
     }
     this.content.append(this.hero, this.rowsHost);
     this.element.append(this.header, this.content);
+    this.header.addEventListener('wheel', this.onHeaderWheel, { passive: true });
     this.rowsHost.append(el('p', 'tvl-provider-message', 'Carregando…'));
     window.addEventListener('keydown', this.onInput, true); window.addEventListener('command', this.onInput, true);
     document.addEventListener('pointerdown', this.onInput, true);
@@ -158,7 +159,10 @@ export class ProviderHomeView {
       this.content.scrollTop = scrollTop;
       const target = focusId ? this.findFocus(focusId) : undefined;
       if (target) { target.focus({ preventScroll: true }); target.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
-      else if (focusId || !this.element.contains(document.activeElement)) this.findFocus('provider-back')?.focus({ preventScroll: true });
+      else if (focusId || !this.element.contains(document.activeElement)) {
+        const activeNav = this.options.rowId ? this.findFocus(`provider-section:${this.options.rowId}`) : this.findFocus('provider-home');
+        (activeNav || this.findFocus('provider-back'))?.focus({ preventScroll: true });
+      }
     }
     this.focusPending = undefined;
   }
@@ -274,9 +278,9 @@ export class ProviderHomeView {
     this.featureId = item.Id;
     const backdrop = picture(this.api.image(item, 'backdrop'), 'tvl-provider-feature-backdrop');
     const copy = el('div', 'tvl-provider-feature-copy');
-    copy.append(el('p', 'tvl-provider-eyebrow', `${this.config!.name.toLocaleUpperCase()} · IN YOUR LIBRARY`), el('h2', 'tvl-provider-feature-title', item.Name));
+    copy.append(el('p', 'tvl-provider-eyebrow', `${this.config!.name.toLocaleUpperCase()} · NA SUA BIBLIOTECA`), el('h2', 'tvl-provider-feature-title', item.Name));
     if (item.Overview) copy.append(el('p', 'tvl-provider-feature-description', plainText(item.Overview)));
-    const details = button('Details', 'info', 'tvl-primary', () => this.options.navigate(item.Id)); details.dataset.focusId = 'provider-feature'; copy.append(details);
+    const details = button('Detalhes', 'info', 'tvl-primary', () => this.options.navigate(item.Id)); details.dataset.focusId = 'provider-feature'; copy.append(details);
     replace(this.hero, backdrop, copy);
   }
   private findFocus(id: string): HTMLElement | undefined {
@@ -377,6 +381,10 @@ export class ProviderHomeView {
     // a save arriving during that read cannot leave the old Watchlist mounted.
     this.data.invalidate(); void this.refreshRows();
   }
+  private onHeaderWheel = (event: WheelEvent): void => {
+    this.content.scrollTop += event.deltaY;
+    this.content.scrollLeft += event.deltaX;
+  };
   private onInput = (): void => { this.inputRevision++; this.focusPending = undefined; };
   private onVisible = (): void => {
     if (!this.disposed && !this.initializing && !this.refreshing && document.visibilityState !== 'hidden') {
@@ -389,6 +397,7 @@ export class ProviderHomeView {
   destroy(): void {
     this.options.onState?.({ loadedCount: this.options.rowId ? this.states.find(row => !row.navigationOnly)?.items.length || 60 : 40, scrollTop: this.content.scrollTop });
     this.disposed = true; this.generation++; this.detach(); this.detachWatchlist(); this.store.destroy(); this.data.destroy(); this.element.remove();
+    this.header.removeEventListener('wheel', this.onHeaderWheel);
     window.clearTimeout(this.refreshTimer); window.removeEventListener('focus', this.onVisible); document.removeEventListener('visibilitychange', this.onVisible);
     window.removeEventListener('keydown', this.onInput, true); window.removeEventListener('command', this.onInput, true);
     document.removeEventListener('pointerdown', this.onInput, true);

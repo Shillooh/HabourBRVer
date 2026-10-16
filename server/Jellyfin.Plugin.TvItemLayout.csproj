@@ -6,13 +6,10 @@
     <TargetFramework Condition="$([System.String]::Copy('$(JellyfinVersion)').StartsWith('12.'))">net10.0</TargetFramework>
     <DefineConstants Condition="'$(JellyfinVersion)' == '10.10.7'">$(DefineConstants);JELLYFIN_1010</DefineConstants>
     <DefineConstants Condition="$([System.String]::Copy('$(JellyfinVersion)').StartsWith('12.'))">$(DefineConstants);JELLYFIN_12</DefineConstants>
-    <ReleaseVersion>1.0.0</ReleaseVersion>
-    <PluginVersion Condition="'$(JellyfinVersion)' == '10.10.7'">$(ReleaseVersion).1</PluginVersion>
-    <PluginVersion Condition="$([System.String]::Copy('$(JellyfinVersion)').StartsWith('10.11.'))">$(ReleaseVersion).2</PluginVersion>
-    <PluginVersion Condition="$([System.String]::Copy('$(JellyfinVersion)').StartsWith('12.'))">$(ReleaseVersion).3</PluginVersion>
-    <AssemblyVersion>$(PluginVersion)</AssemblyVersion>
-    <FileVersion>$(PluginVersion)</FileVersion>
-    <Version>$(PluginVersion)</Version>
+    <ReleaseVersion Condition="'$(ReleaseVersion)' == ''">1.0.0.0</ReleaseVersion>
+    <AssemblyVersion>$(ReleaseVersion)</AssemblyVersion>
+    <FileVersion>$(ReleaseVersion)</FileVersion>
+    <Version>$(ReleaseVersion)</Version>
     <LangVersion>12</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -29,6 +26,7 @@
     <EmbeddedResource Include="../assets/seasonal/*.webp" LogicalName="Jellyfin.Plugin.TvItemLayout.SeasonalAssets.%(Filename)%(Extension)" />
     <EmbeddedResource Include="../assets/seasonal-fonts/*.woff2" LogicalName="Jellyfin.Plugin.TvItemLayout.SeasonalFonts.%(Filename)%(Extension)" />
     <EmbeddedResource Include="../assets/seasonal-fonts/*-OFL.txt" LogicalName="Jellyfin.Plugin.TvItemLayout.SeasonalFonts.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Configuration/configPage.html" LogicalName="Jellyfin.Plugin.TvItemLayout.Configuration.configPage.html" />
     <EmbeddedResource Include="../dist/jellyfin-tv-layout.js" LogicalName="Jellyfin.Plugin.TvItemLayout.ClientScript.js" />
   </ItemGroup>
 

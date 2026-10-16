@@ -91,7 +91,7 @@ let stopThemeVideo: (() => void) | undefined;
 const nativePages='.itemDetailPage, #itemDetailPage, .liveTvPage, #liveTvSuggestedPage, .mainAnimatedPage, #boxsetsPage, #moviesPage, #tvRecommendedPage, #indexPage, #musicRecommendedPage';
 type CollectionRoute = {kind:'collections';parentId?:string;scope:'list'|'boxsets'|'movies';verifyParent?:boolean};
 type BrowseRoute = ({kind:'home'}|{kind:'music'}|{kind:'recordings'}) & {parentId?:string;tab?:BrowseTab;scope?:'list'|'livetv'|'playlists'};
-type Route = {kind:'collection-settings'}|{kind:'loading-settings'}|{kind:'detail';id:string}|{kind:'guide'}|{kind:'provider';provider:ProviderId;rowId?:string}|{kind:'provider-settings';providerId?:ProviderId}|{kind:'movies';parentId?:string;tab:LibraryTab}|{kind:'shows';parentId?:string;tab:LibraryTab}|CollectionRoute|BrowseRoute;
+type Route = {kind:'collection-settings';scope?:'user'|'global';targetUserId?:string}|{kind:'loading-settings';scope?:'user'|'global';targetUserId?:string}|{kind:'detail';id:string}|{kind:'guide'}|{kind:'provider';provider:ProviderId;rowId?:string}|{kind:'provider-settings';providerId?:ProviderId;scope?:'user'|'global';targetUserId?:string}|{kind:'movies';parentId?:string;tab:LibraryTab}|{kind:'shows';parentId?:string;tab:LibraryTab}|CollectionRoute|BrowseRoute;
 function close(restore=true,destroyHome=false):void{
   // Jellyfin keeps its native Home mounted during detail/playback navigation.
   // Keep our rows alongside it so Back can reuse their artwork and controls.
@@ -123,12 +123,15 @@ function parseRouteInfo():{path:string;params:URLSearchParams}{
 function currentRoute():Route|null{
   const {path,params}=parseRouteInfo();
   if(/^mypreferencesmenu\/?$/i.test(path)&&params.get('cinemaCollections')==='1'
-    &&onlyParams(params,['cinemaCollections','serverId'])&&isDesktopLayout())return {kind:'collection-settings'};
+    &&onlyParams(params,['cinemaCollections','serverId','cinemaGlobal','targetUserId'])&&isDesktopLayout())
+    return {kind:'collection-settings',scope:params.get('cinemaGlobal')==='1'?'global':'user',targetUserId:params.get('targetUserId')||undefined};
   if(/^mypreferencesmenu\/?$/i.test(path)&&params.get('cinemaLoading')==='1'
-    &&onlyParams(params,['cinemaLoading','serverId']))return {kind:'loading-settings'};
+    &&onlyParams(params,['cinemaLoading','serverId','cinemaGlobal','targetUserId']))
+    return {kind:'loading-settings',scope:params.get('cinemaGlobal')==='1'?'global':'user',targetUserId:params.get('targetUserId')||undefined};
   if(/^mypreferencesmenu\/?$/i.test(path)&&params.get('cinemaProviders')==='1'
-    &&onlyParams(params,['cinemaProviders','cinemaService','serverId'])
-    &&(!params.has('cinemaService')||validProviderId(params.get('cinemaService'))))return {kind:'provider-settings',providerId:params.get('cinemaService')||undefined};
+    &&onlyParams(params,['cinemaProviders','cinemaService','serverId','cinemaGlobal','targetUserId'])
+    &&(!params.has('cinemaService')||validProviderId(params.get('cinemaService'))))
+    return {kind:'provider-settings',providerId:params.get('cinemaService')||undefined,scope:params.get('cinemaGlobal')==='1'?'global':'user',targetUserId:params.get('targetUserId')||undefined};
   if(/^home\/?$/i.test(path)){
     const provider=params.get('cinemaProvider');
     if(provider&&validProviderId(provider)&&onlyParams(params,['serverId','cinemaProvider','cinemaRow']))
@@ -432,9 +435,9 @@ function openRoute(route:Route,api:MediaApi,key:string):void{
   }
   else if(route.kind==='provider-settings'){
     const data=new ProviderData(api);providerPreview=data;
-    view=new ProviderSettingsEditor(api,{onBack:back,providerId:route.providerId,loadPreview:async(provider,row)=>(await data.load(provider,row,0,8,true)).items});
+    view=new ProviderSettingsEditor(api,{onBack:back,providerId:route.providerId,scope:route.scope,targetUserId:route.targetUserId,loadPreview:async(provider,row)=>(await data.load(provider,row,0,8,true)).items});
   }
-  else if(route.kind==='loading-settings')view=new LoadingSettingsEditor(api,{onBack:back});
+  else if(route.kind==='loading-settings')view=new LoadingSettingsEditor(api,{onBack:back,scope:route.scope,targetUserId:route.targetUserId});
   else if(route.kind==='collection-settings'){
     const fromSettings=!!previousFocus?.matches('.tvl-settings-collections-link');
     view=new HomeCollectionEditor(api,restore=>{
@@ -447,7 +450,7 @@ function openRoute(route:Route,api:MediaApi,key:string):void{
       const serverId=new URLSearchParams(location.hash.split('?')[1]||'').get('serverId')||api.serverId;
       if(serverId)params.set('serverId',serverId);
       history.replaceState(history.state,'',`#/mypreferencesmenu${params.toString()?`?${params}`:''}`);refreshNavigation();
-    });
+    },route.scope,route.targetUserId);
   }
   else if(route.kind==='guide')view=new GuideView(api,{back});
   else if(route.kind==='collections')view=new CollectionView(api,{openNative,parentId:route.parentId,back:()=>collectionBack(route),navigate:go,focusId});

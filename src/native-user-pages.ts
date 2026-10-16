@@ -16,6 +16,7 @@ export class NativeUserPages {
   private administrator = false;
   private section?: HTMLElement;
   private providerSection?: HTMLElement;
+  private globalAdminLink?: HTMLAnchorElement;
   private collectionsLink?: HTMLAnchorElement;
   private collectionsReturnScope?: string;
   private activating = false;
@@ -98,7 +99,14 @@ export class NativeUserPages {
           if (revision === this.revision) { this.activating = false; link.removeAttribute('aria-busy'); }
         });
       });
-      this.section.append(link);
+      const globalLink = el('a', 'emby-button show-focus listItem-border tvl-settings-habourbr-global');
+      globalLink.href = '#/configurationpage?name=habourbr';
+      const globalItem = el('div', 'listItem');
+      const globalGlyph = el('span', 'material-icons listItemIcon listItemIcon-transparent', 'settings_suggest'); globalGlyph.setAttribute('aria-hidden', 'true');
+      const globalBody = el('div', 'listItemBody');
+      globalBody.append(el('div', 'listItemBodyText', 'HabourBR - Configurações Globais'), el('div', 'listItemBodyText secondary', 'Padrão do servidor para todos os usuários'));
+      globalItem.append(globalGlyph, globalBody); globalLink.append(globalItem);
+      this.section.append(link, globalLink);
     }
     const before = host.querySelector<HTMLElement>('.userSection');
     if (this.section.parentElement !== host || this.section.nextElementSibling !== before) host.insertBefore(this.section, before);
@@ -140,6 +148,20 @@ export class NativeUserPages {
       if (this.collectionsLink!.getAttribute('href') !== href) this.collectionsLink!.href = href;
       if (!this.collectionsLink!.parentElement) this.providerSection.insertBefore(this.collectionsLink!, this.providerSection.children[1] || null);
     } else this.collectionsLink?.remove();
+    if (this.administrator) {
+      if (!this.globalAdminLink) {
+        this.globalAdminLink = el('a', 'emby-button show-focus listItem-border tvl-settings-admin-link') as HTMLAnchorElement;
+        this.globalAdminLink.href = '#/configurationpage?name=habourbr';
+        const item = el('div', 'listItem');
+        const glyph = el('span', 'material-icons listItemIcon listItemIcon-transparent', 'admin_panel_settings'); glyph.setAttribute('aria-hidden', 'true');
+        const text = el('div', 'listItemBody');
+        text.append(el('div', 'listItemBodyText', 'HabourBR - Padrões Globais'), el('div', 'listItemBodyText secondary', 'Definir streaming, coleções e telas para todos'));
+        item.append(glyph, text); this.globalAdminLink.append(item);
+      }
+      if (!this.globalAdminLink.parentElement) this.providerSection.append(this.globalAdminLink);
+    } else {
+      this.globalAdminLink?.remove();
+    }
     if (this.providerSection.parentElement !== host) host.append(this.providerSection);
     const params = new URLSearchParams(location.hash.split('?')[1] || '');
     if (this.collectionsReturnScope && !params.has('cinemaCollections') && !params.has('cinemaProviders') && !params.has('cinemaLoading')) {
@@ -158,7 +180,9 @@ export class NativeUserPages {
   destroy(): void {
     if (this.disposed) return;
     this.enabled = false; this.scope = null; this.refresh(); this.disposed = true; this.revision++;
-    this.observer.disconnect(); this.removeDashboard(); this.section = undefined; this.providerSection?.remove(); this.providerSection = undefined;
+    this.observer.disconnect(); this.removeDashboard(); this.section = undefined;
+    this.globalAdminLink?.remove(); this.globalAdminLink = undefined;
+    this.providerSection?.remove(); this.providerSection = undefined;
     window.removeEventListener('hashchange', this.onRoute); window.removeEventListener('popstate', this.onRoute);
     document.removeEventListener('viewshow', this.onShow, true);
     window.removeEventListener('keydown', this.cancelReturnFocus, true);
