@@ -8,7 +8,7 @@ import shutil
 
 root = Path(__file__).resolve().parent.parent
 project = root / 'server/Jellyfin.Plugin.TvItemLayout.csproj'
-release_version = "1.0.0.0"
+release_version = "1.5.0.0"
 plugin_id = "c985bcfd-992f-4a16-a583-258014d98d75"
 
 # Target definitions ordered from highest to lowest ABI
@@ -86,11 +86,11 @@ for jellyfin_version, framework in targets:
 
     versions_manifest.append({
         'version': release_version,
-        'changelog': f'Lançamento inicial do ScreenHarbour Brasil v{release_version} para Jellyfin {jellyfin_version}. Hard fork independente com interface cinematográfica totalmente em português (pt-BR), configurações centralizadas no Painel de Controle (Padrão Global e personalização por usuário), fileiras dinâmicas de filmes e séries Em Alta via TMDB cruzadas com o catálogo local, novos presets de streaming brasileiros e melhorias de navegação.',
+        'changelog': f'ScreenHarbour Brasil v{release_version} para Jellyfin {jellyfin_version}. Adicionado reprodutor integrado LiveTV Box com suporte a MPEG-TS e HLS, catálogo horizontal de canais ao vivo com suporte a Premiere isolado, filtragem estrita de canais locais por estado (sem vazamentos regionais), sincronização de configurações globais e por usuário no painel administrativo e diversas otimizações de performance.',
         'targetAbi': jellyfin_version,
         'sourceUrl': f'https://raw.githubusercontent.com/Shillooh/HabourBRVer/main/packages/{archive.name}',
         'checksum': md5_hash,
-        'timestamp': '2026-10-15T12:00:00Z',
+        'timestamp': '2026-10-17T03:00:00Z',
     })
 
 manifest = [{
@@ -126,7 +126,18 @@ for jellyfin_version, framework in targets:
     shutil.copy2(src_dll, dest_dll)
     print(f"Copied {dest_dll.name} to {pruu_dir}")
 
-# Default Jellyfin 10.10.x / 10.11.x DLL
+    # Subpastas dedicadas prontas para uso direto
+    folder_mapping = {
+        "12.0.0": "Jellyfin_12.x_(net10.0)",
+        "10.11.0": "Jellyfin_10.11.x_(net9.0)",
+        "10.10.7": "Jellyfin_10.10.x_(net8.0)",
+    }
+    target_folder = pruu_dir / folder_mapping.get(jellyfin_version, f"Jellyfin_{jellyfin_version}")
+    target_folder.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(src_dll, target_folder / "Jellyfin.Plugin.TvItemLayout.dll")
+    print(f"Copied {src_dll.name} into {target_folder}")
+
+# Default Jellyfin 10.11.x DLL na raiz
 shutil.copy2(root / "server/bin/Release/net9.0/Jellyfin.Plugin.TvItemLayout.dll", pruu_dir / "Jellyfin.Plugin.TvItemLayout.dll")
 print(f"Copied default net9.0 Jellyfin.Plugin.TvItemLayout.dll to {pruu_dir}")
 

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { defaultProviderHomes } from '../src/provider-settings';
 import { defaultLoadingScreen } from '../src/loading-settings';
+import { defaultLiveTvSettings } from '../src/livetv-settings';
 import type { MediaApi } from '../src/types';
 
 // Minimal DOM mock for Node test runner
@@ -261,6 +262,9 @@ function createMockApi(overrides: Record<string, unknown> = {}): MediaApi {
     if (url === 'TvItemLayout/LoadingScreen') {
       return { Revision: 'admin-load-1', Settings: defaultLoadingScreen(), HasUserOverride: true };
     }
+    if (url.includes('TvItemLayout/LiveTv')) {
+      return { Revision: 'admin-livetv-1', Settings: defaultLiveTvSettings() };
+    }
     return null;
   };
   const ajax = async (opts: { type: string; url: string; data?: string }) => {
@@ -269,6 +273,9 @@ function createMockApi(overrides: Record<string, unknown> = {}): MediaApi {
     }
     if (opts.url.includes('LoadingScreen')) {
       return { Revision: 'saved-load-123', Settings: defaultLoadingScreen(), HasUserOverride: true };
+    }
+    if (opts.url.includes('LiveTv')) {
+      return { Revision: 'saved-livetv-123', Settings: defaultLiveTvSettings() };
     }
     return { success: true };
   };
@@ -284,6 +291,7 @@ function createMockApi(overrides: Record<string, unknown> = {}): MediaApi {
   setGlobal('ApiClient', client);
 
   return {
+    client,
     serverId: 'server-1',
     userId: 'admin-user',
     getCollectionList: async () => [],
@@ -414,6 +422,36 @@ test('LoadingSettingsEditor in Global and User target modes: inputs, choices and
     const userSave = userRoot.querySelector('.tvl-primary');
     assert.ok(userSave, 'Save button for target user must exist');
     assert.equal(userSave.disabled, false, 'Save button for target user must not be disabled');
+  } finally {
+    restoreGlobals();
+  }
+});
+
+test('LiveTvSettingsEditor in Global mode: form controls, fallback URLs list and save button are fully interactive', async () => {
+  setupDom();
+  try {
+    const { LiveTvSettingsEditor } = await import('../src/livetv-settings-editor');
+    const api = createMockApi();
+
+    const editor = new LiveTvSettingsEditor(api, {
+      onBack: () => {},
+      scope: 'global'
+    });
+    await editor.load();
+    const root = editor.element as unknown as MockElement;
+
+    const saveButton = root.querySelector('.tvl-primary');
+    assert.ok(saveButton, 'Save button in LiveTv editor must exist');
+    assert.equal(saveButton.disabled, false, 'Save button in LiveTv editor must not be disabled');
+
+    const inputs = root.querySelectorAll('input');
+    assert.ok(inputs.length >= 3, 'Checkbox and text inputs must exist');
+
+    const restoreSenadoBtn = root.querySelector('.tvl-livetv-btn-restore');
+    assert.ok(restoreSenadoBtn, 'Restore TV Senado button must exist');
+
+    const resetDefaultsBtn = root.querySelector('.tvl-danger');
+    assert.ok(resetDefaultsBtn, 'Reset defaults button must exist');
   } finally {
     restoreGlobals();
   }

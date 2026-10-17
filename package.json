@@ -1,6 +1,6 @@
 {
   "name": "screenharbour-brasil",
-  "version": "1.0.0.0",
+  "version": "1.5.0.0",
   "private": true,
   "description": "Interface cinematográfica para Jellyfin (Edição Brasil), com fileiras personalizadas, integração TMDB dinâmica e navegação in-player",
   "author": "Shillooh",
@@ -22,5 +22,9 @@
     "esbuild": "0.25.11",
     "tsx": "4.20.6",
     "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "hls.js": "^1.7.3",
+    "mpegts.js": "^1.8.2"
   }
 }

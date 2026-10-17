@@ -139,6 +139,11 @@ export class NativeUserPages {
       const loadingGlyph = el('span', 'material-icons listItemIcon listItemIcon-transparent', 'movie'); loadingGlyph.setAttribute('aria-hidden', 'true');
       const loadingText = el('div', 'listItemBody'); loadingText.append(el('div', 'listItemBodyText', 'Tela de carregamento'), el('div', 'listItemBodyText secondary', 'Animação e texto personalizado'));
       loadingItem.append(loadingGlyph, loadingText); loading.append(loadingItem); this.providerSection.append(loading);
+      const liveTv = el('a', 'emby-button show-focus listItem-border tvl-settings-livetv-link'); liveTv.href = '#/mypreferencesmenu?cinemaLiveTv=1';
+      const liveTvItem = el('div', 'listItem');
+      const liveTvGlyph = el('span', 'material-icons listItemIcon listItemIcon-transparent', 'live_tv'); liveTvGlyph.setAttribute('aria-hidden', 'true');
+      const liveTvText = el('div', 'listItemBody'); liveTvText.append(el('div', 'listItemBodyText', 'TV Ao Vivo (TV Box)'), el('div', 'listItemBodyText secondary', 'Canal padrão, fallbacks e categorias .m3u'));
+      liveTvItem.append(liveTvGlyph, liveTvText); liveTv.append(liveTvItem); this.providerSection.append(liveTv);
     }
     if (isDesktopLayout()) {
       const params = new URLSearchParams({ cinemaCollections: '1' });
@@ -164,7 +169,7 @@ export class NativeUserPages {
     }
     if (this.providerSection.parentElement !== host) host.append(this.providerSection);
     const params = new URLSearchParams(location.hash.split('?')[1] || '');
-    if (this.collectionsReturnScope && !params.has('cinemaCollections') && !params.has('cinemaProviders') && !params.has('cinemaLoading')) {
+    if (this.collectionsReturnScope && !params.has('cinemaCollections') && !params.has('cinemaProviders') && !params.has('cinemaLoading') && !params.has('cinemaLiveTv')) {
       this.collectionsReturnScope = undefined; this.collectionsLink?.focus({ preventScroll: true });
     }
   }

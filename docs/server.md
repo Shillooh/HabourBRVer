@@ -2,7 +2,7 @@
 
 ScreenHarbour Brasil is an independent server plugin hard fork that loads the bundled client into **Jellyfin Web**. The layout activates in the web client's TV and desktop display modes; mobile retains its native pages. ScreenHarbour Brasil is maintained by **Shillooh** and is not affiliated with or endorsed by Jellyfin.
 
-The current release is **1.0.0.0**, available through the catalogue and manual downloads below. Returning from a movie restores the selected Home item to its previous position on screen. Position restoration follows delayed native scrolling and layout changes, and finds the current scrolling container if Jellyfin has replaced it. The same row, tab, shuffle order and loaded artwork are retained; new navigation stays responsive. All saved settings, seasonal effects and compatibility identifiers remain unchanged.
+The current release is **1.5.0.0**, available through the catalogue and manual downloads below. Returning from a movie restores the selected Home item to its previous position on screen. Position restoration follows delayed native scrolling and layout changes, and finds the current scrolling container if Jellyfin has replaced it. The same row, tab, shuffle order and loaded artwork are retained; new navigation stays responsive. All saved settings, seasonal effects and compatibility identifiers remain unchanged.
 
 The integration is adapted from [InPlayerEpisodePreview-TV](https://github.com/jampez77/InPlayerEpisodePreview-TV) and [ScreenHarbour](https://github.com/jampez77/ScreenHarbour). It has a separate name, assembly, API route, and plugin ID (`1a06b74f-7609-4af9-899d-430c9b5a52b1`), so it can be installed alongside that plugin. The inherited MIT notice is included in every archive. Archives also include the optional Jellyfin loading icon's source SVG, attribution and CC BY-SA 4.0 licence under `assets/loading/`; the icon identifies Jellyfin and is not ScreenHarbour branding. Seasonal title fonts and their SIL Open Font License notices are embedded in the DLL; readable licenses and provenance are also included under `assets/seasonal-fonts/`.
 
@@ -21,19 +21,19 @@ ScreenHarbour Brasil retains the existing plugin ID, `Jellyfin.Plugin.TvItemLayo
 4. Restart Jellyfin. Check Dashboard → Plugins for **ScreenHarbour Brasil**. The server log should contain `ScreenHarbour registered with File Transformation`.
 5. Reload Jellyfin Web, using **Desktop** or **TV** display mode in your user's display settings. Fully close and reopen a web-based TV app to clear its loaded client. Open a movie, series, or Live TV item.
 
-Choose the build from the [v1.0.0.0 release](https://github.com/Shillooh/HabourBRVer/releases/tag/v1.0.0.0) that matches your Jellyfin server:
+Choose the build from the [v1.5.0.0 release](https://github.com/Shillooh/HabourBRVer/releases/tag/v1.5.0.0) that matches your Jellyfin server:
 
 | Jellyfin server | ScreenHarbour Brasil version |
 | --- | --- |
-| 10.10.7 | `1.0.0.0` |
-| 10.11.x | `1.0.0.0` |
-| 12.x | `1.0.0.0` |
+| 10.10.7 | `1.5.0.0` |
+| 10.11.x | `1.5.0.0` |
+| 12.x | `1.5.0.0` |
 
 The repository lists all three targets and Jellyfin filters them by server compatibility.
 
 If a newly published version is missing, Jellyfin 12’s dashboard can reuse its [cached catalogue for 15 minutes](https://github.com/jellyfin/jellyfin-web/blob/v12.0/src/apps/dashboard/features/plugins/api/usePackages.ts#L19-L25), even after a page reload. Leave and reopen **Catalogue** after that interval. To refresh immediately, remove only the **ScreenHarbour Brasil repository entry** from **Repositories**, then add it again using the same catalogue URL above. This refreshes the listing without uninstalling the plugin or clearing your Home row preferences.
 
-If Jellyfin Cinema or TV Item Layout is already installed, open **Dashboard → Plugins → Repositories** and replace its catalogue entry with the ScreenHarbour Brasil URL above. Update the existing plugin to the matching 1.0.0.0 build, restart Jellyfin and fully reopen the client. Do not uninstall it or add a second copy: the unchanged GUID identifies the update. In TV and desktop display modes, **Live TV** opens our guide at `web/#/livetv?collectionType=livetv`, and **Channels & guide** on channel details links to the same page. Mobile layouts retain Jellyfin's normal pages.
+If Jellyfin Cinema or TV Item Layout is already installed, open **Dashboard → Plugins → Repositories** and replace its catalogue entry with the ScreenHarbour Brasil URL above. Update the existing plugin to the matching 1.5.0.0 build, restart Jellyfin and fully reopen the client. Do not uninstall it or add a second copy: the unchanged GUID identifies the update. In TV and desktop display modes, **Live TV** opens our guide at `web/#/livetv?collectionType=livetv`, and **Channels & guide** on channel details links to the same page. Mobile layouts retain Jellyfin's normal pages.
 
 Theme videos use Jellyfin’s existing background player and follow its theme-video preference. If there is no playable theme video, the static backdrop remains. Collections list actual membership and open styled collection pages. The Collections library, explicit BoxSet list, and Movies → Collections tab also use the new layout. The Movies and TV Shows libraries also use the new style, including Jellyfin suggestions, favourites, genres, search and A–Z/# browsing. Native Upcoming, Networks and Episodes TV routes remain available through Jellyfin. Unrelated library lists and unsupported URL filters retain their native pages.
 

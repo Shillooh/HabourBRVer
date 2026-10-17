@@ -12,7 +12,7 @@
 .tvl-browse-eyebrow { color:#e50914; letter-spacing:.18em; font-size:.69em; font-weight:700; margin-bottom:.85em !important; }
 .tvl-browse-hero h1 { font-size:3.5vw; font-size:clamp(34px,3.5vw,70px); line-height:1.08; font-weight:650; letter-spacing:-.035em; margin-bottom:.45em; text-wrap:balance; }
 .tvl-browse-meta { color:#d1d6d3; font-size:.8em; margin:.7em 0 !important; }
-.tvl-browse-overview { color:#c3c8c5; max-width:40em; font-size:.87em; line-height:1.55; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+.tvl-browse-overview { color:#c3c8c5; max-width:40em; font-size:.87em; line-height:1.55; display:-webkit-box; -webkit-line-clamp:3; line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
 .tvl-browse-actions { display:flex; flex-wrap:wrap; gap:.7em; margin-top:1.2em; }
 .tvl-browse-actions .tvl-button { min-width:7em; justify-content:center; }
 .tvl-browse-controls,.tvl-browse-results,.tvl-browse-status { padding:0 4.5vw; }

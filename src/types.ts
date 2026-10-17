@@ -4,6 +4,7 @@ import type { HomeCollectionTransport } from './home-collection-store';
 import type { ProviderHomesTransport } from './provider-settings-store';
 import type { ProviderId, ProviderHomeConfig } from './provider-settings';
 import type { ProviderItemsQuery, ProviderItemsPage } from './provider-data';
+import type { LiveTvTransport } from './livetv-settings-store';
 
 export type ProviderDirectoryEntry = { Id: number; Name: string };
 export type ProviderDirectory = { Region: 'BR'; Movies: ProviderDirectoryEntry[]; Shows: ProviderDirectoryEntry[] };
@@ -71,6 +72,7 @@ export interface MediaApi extends BrowseApi {
   homeCollections?: HomeCollectionTransport;
   providerHomes?: ProviderHomesTransport;
   loadingScreen?: LoadingScreenTransport;
+  liveTv?: LiveTvTransport;
   /** Optional seasonal-calendar preview; omitted by real servers. Never changes the wall clock. */
   getSeasonalDate?(): Date;
   getHomeLibraryExclusions?(): Promise<string[]>;

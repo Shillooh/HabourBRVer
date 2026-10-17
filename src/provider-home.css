@@ -9,7 +9,7 @@
 .tvl-provider-tile[data-provider=bbc] .tvl-provider-logo { height:85%; }
 .tvl-provider-tile[data-provider=netflix] img { width:65%; }
 .tvl-provider-tile[data-provider=apple] img { width:55%; }
-.tvl-provider-tile-name { display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:break-word;word-break:break-word;padding:.7rem .1rem 0;line-height:1.3; }
+.tvl-provider-tile-name { display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;overflow-wrap:break-word;word-break:break-word;padding:.7rem .1rem 0;line-height:1.3; }
 .tvl-provider-tile:focus { outline:none; }
 .tvl-provider-tile:focus .tvl-provider-tile-mark { outline:2px solid #e50914;outline-offset:3px;border-color:var(--provider-accent); }
 .tvl-provider-tile:hover .tvl-provider-tile-mark { background:linear-gradient(135deg,#343840,#1c2025);border-color:var(--provider-accent); }
@@ -38,7 +38,7 @@
 .tvl-provider-identity { display:flex;justify-content:center;align-items:center;min-height:3.5rem;padding:0 7rem;pointer-events:none; }
 .tvl-provider-identity>div { min-width:0; }
 .tvl-provider-header-logo { flex-shrink:0;width:8rem;height:2.7rem;margin-right:1.3rem; }
-.tvl-provider-identity h1 { display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:break-word;word-break:break-word;font-size:1.15em;line-height:1.2; }
+.tvl-provider-identity h1 { display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;overflow-wrap:break-word;word-break:break-word;font-size:1.15em;line-height:1.2; }
 .tvl-provider-identity p { font-size:.62em;line-height:1.6;color:#b8c0bb; }
 .tvl-provider-nav { display:flex;justify-content:center;flex-wrap:wrap;margin-top:.8rem;pointer-events:none; }
 .tvl-provider-nav .tvl-button { border-radius:999px;margin:.15rem .3rem;padding:.4rem 1rem;min-height:2.3em;font-size:.72em;color:#c4ccc7;transition:background-color .16s, color .16s;pointer-events:auto; }
@@ -70,7 +70,7 @@
 .tvl-provider-feature-backdrop::after, .tvl-provider-hero .hero-backdrop::after, .tvl-provider-hero .backdropImage::after { content:'';position:absolute;inset:0;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,#101112 0%,#101112e6 26%,#10111233 85%),linear-gradient(0deg,#101112,transparent 45%); }
 .tvl-provider-feature-copy { position:relative;z-index:2;width:50%;max-width:42rem; }
 .tvl-provider-feature-title { font-size:2.5em;line-height:1.08;letter-spacing:-.035em; }
-.tvl-provider-feature-description { color:#d2d4d8;font-size:.82em;line-height:1.6;margin:1rem 0 1.2rem!important;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden; }
+.tvl-provider-feature-description { color:#d2d4d8;font-size:.82em;line-height:1.6;margin:1rem 0 1.2rem!important;display:-webkit-box;-webkit-line-clamp:3;line-clamp:3;-webkit-box-orient:vertical;overflow:hidden; }
 .tvl-provider-feature-copy .tvl-primary { font-size:.8em;margin-top:1rem; }
 .tvl-provider-rows { padding:1.2rem 5.5vw 0; }
 .tvl-provider-row { margin:0 0 2.6rem;min-width:0; }

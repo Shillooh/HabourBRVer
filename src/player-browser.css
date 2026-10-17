@@ -29,15 +29,15 @@ html.layout-tv #tvl-player-browse,body.layout-tv #tvl-player-browse{display:none
 #tvl-player-browser .tvl-player-position{color:#b1b9b4;font-size:.85em;margin:0 0 .4em}
 #tvl-player-browser .tvl-player-title{font-size:2.55vw;font-size:clamp(25px,2.55vw,44px);line-height:1.15;margin:0 0 .4em;color:inherit}
 #tvl-player-browser .tvl-player-meta,#tvl-player-browser .tvl-player-time{font-size:.85em;color:#c5cec9;margin:0 0 .8em}
-#tvl-player-browser .tvl-player-description{margin:0;color:#d1d9d4;font-size:.95em;line-height:1.5;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+#tvl-player-browser .tvl-player-description{margin:0;color:#d1d9d4;font-size:.95em;line-height:1.5;display:-webkit-box;-webkit-line-clamp:4;line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
 #tvl-player-browser .tvl-player-status{margin:.8em 0;color:#dbe5de;min-height:0}
 #tvl-player-browser .tvl-player-status:empty{display:none}
 #tvl-player-browser .tvl-player-actions{display:flex;align-items:center;justify-content:space-between;margin-top:1.4em}
 #tvl-player-browser .tvl-player-play{background:#f5f5f2;color:#101112;min-width:11em;flex-shrink:0}
 #tvl-player-browser .tvl-player-play:focus{color:#101112;background:#fff}
 #tvl-player-browser .tvl-player-previous,#tvl-player-browser .tvl-player-next{background:transparent;max-width:31%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;font-size:.85em}
-@media(max-width:760px){#tvl-player-browser{padding:18px 22px}#tvl-player-browser .tvl-player-content{grid-gap:20px;gap:20px;grid-template-columns:35% minmax(0,1fr)}#tvl-player-browser .tvl-player-media{height:160px}#tvl-player-browser .tvl-player-description{-webkit-line-clamp:3;font-size:.85em}#tvl-player-browser .tvl-player-actions>button:not([hidden])+button{margin-left:14px}#tvl-player-browser .tvl-player-play{min-width:0}#tvl-player-browser .tvl-player-title{font-size:25px}}
-@media(max-height:560px){#tvl-player-browser{padding-top:12px;padding-bottom:16px}#tvl-player-browser .tvl-player-media{height:145px;min-height:145px}#tvl-player-browser .tvl-player-header{margin-bottom:.5em}#tvl-player-browser .tvl-player-seasons{margin-bottom:.7em}#tvl-player-browser .tvl-player-description{-webkit-line-clamp:2}#tvl-player-browser .tvl-player-actions{margin-top:.8em}}
+@media(max-width:760px){#tvl-player-browser{padding:18px 22px}#tvl-player-browser .tvl-player-content{grid-gap:20px;gap:20px;grid-template-columns:35% minmax(0,1fr)}#tvl-player-browser .tvl-player-media{height:160px}#tvl-player-browser .tvl-player-description{-webkit-line-clamp:3;line-clamp:3;font-size:.85em}#tvl-player-browser .tvl-player-actions>button:not([hidden])+button{margin-left:14px}#tvl-player-browser .tvl-player-play{min-width:0}#tvl-player-browser .tvl-player-title{font-size:25px}}
+@media(max-height:560px){#tvl-player-browser{padding-top:12px;padding-bottom:16px}#tvl-player-browser .tvl-player-media{height:145px;min-height:145px}#tvl-player-browser .tvl-player-header{margin-bottom:.5em}#tvl-player-browser .tvl-player-seasons{margin-bottom:.7em}#tvl-player-browser .tvl-player-description{-webkit-line-clamp:2;line-clamp:2}#tvl-player-browser .tvl-player-actions{margin-top:.8em}}
 
 /* Margins keep remote controls spaced on Chromium 79, before flex gap. */
 #tvl-player-browser button svg{margin-right:.5em}

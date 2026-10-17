@@ -1,4 +1,5 @@
 import { createLoadingScreenTransport } from './loading-settings-store';
+import { createLiveTvTransport } from './livetv-settings-store';
 import type { Item, ItemPage, ItemUserData, LibraryQuery, MediaApi, PlaybackContext, ProviderDirectory, ProviderDirectoryEntry, SuggestionSection, TrailerActionsContext, TrailerDetailsContext, TrailerIdentity, WatchlistState } from './types';
 import { notifyWatchlistChanged } from './watchlist';
 import { createBrowseApi } from './browse-api';
@@ -306,6 +307,7 @@ export function createJellyfinApi(): MediaApi | null {
     homeCollections: createHomeCollectionTransport(client, sessionCurrent),
     providerHomes: createProviderHomesTransport(client, sessionCurrent),
     loadingScreen: createLoadingScreenTransport(client, sessionCurrent),
+    liveTv: createLiveTvTransport(client, sessionCurrent),
     getHomeLibraryExclusions: () => read(async () => {
       // Jellyfin can save a synthetic user-view ID (notably Playlists) while
       // HSS renders the physical folder ID. The server resolves that relationship.

@@ -203,6 +203,15 @@
                         </div>
                         <a id="linkLoading" href="#/mypreferencesmenu?cinemaLoading=1&cinemaGlobal=1" class="habourbr-btn-primary">Abrir Editor Global</a>
                     </div>
+
+                    <div class="habourbr-card">
+                        <div>
+                            <div class="habourbr-card-icon"><span class="material-icons">live_tv</span></div>
+                            <h4>TV Ao Vivo (TV Box)</h4>
+                            <p>Configure o Canal Padrão (TV Senado), URLs de fallback com auto-failover, leitura de categorias .m3u e interface estilo TV Box.</p>
+                        </div>
+                        <a id="linkLiveTv" href="#/mypreferencesmenu?cinemaLiveTv=1&cinemaGlobal=1" class="habourbr-btn-primary">Abrir Editor Global</a>
+                    </div>
                 </div>
 
                 <div class="habourbr-danger-zone">
@@ -222,6 +231,7 @@
                 var linkProviders = document.querySelector('#linkProviders');
                 var linkCollections = document.querySelector('#linkCollections');
                 var linkLoading = document.querySelector('#linkLoading');
+                var linkLiveTv = document.querySelector('#linkLiveTv');
                 var btn = document.querySelector('#btnResetAllUsers');
 
                 function updateLinks() {
@@ -231,19 +241,23 @@
                         linkProviders.href = '#/mypreferencesmenu?cinemaProviders=1&cinemaGlobal=1';
                         linkCollections.href = '#/mypreferencesmenu?cinemaCollections=1&cinemaGlobal=1';
                         linkLoading.href = '#/mypreferencesmenu?cinemaLoading=1&cinemaGlobal=1';
+                        if (linkLiveTv) linkLiveTv.href = '#/mypreferencesmenu?cinemaLiveTv=1&cinemaGlobal=1';
                         linkProviders.textContent = 'Abrir Editor Global';
                         linkCollections.textContent = 'Abrir Editor Global';
                         linkLoading.textContent = 'Abrir Editor Global';
+                        if (linkLiveTv) linkLiveTv.textContent = 'Abrir Editor Global';
                         desc.innerHTML = 'Você está configurando o <strong>Padrão Global</strong> do HabourBR. As edições serão herdadas por todos os usuários do servidor.';
                     } else {
                         var encoded = encodeURIComponent(targetId);
                         linkProviders.href = '#/mypreferencesmenu?cinemaProviders=1&cinemaGlobal=1&targetUserId=' + encoded;
                         linkCollections.href = '#/mypreferencesmenu?cinemaCollections=1&cinemaGlobal=1&targetUserId=' + encoded;
                         linkLoading.href = '#/mypreferencesmenu?cinemaLoading=1&cinemaGlobal=1&targetUserId=' + encoded;
+                        if (linkLiveTv) linkLiveTv.href = '#/mypreferencesmenu?cinemaLiveTv=1&cinemaGlobal=1&targetUserId=' + encoded;
                         var btnLabel = 'Editar para ' + selectedText.replace(/^[^\w\s]+\s*/, '');
                         linkProviders.textContent = btnLabel;
                         linkCollections.textContent = btnLabel;
                         linkLoading.textContent = btnLabel;
+                        if (linkLiveTv) linkLiveTv.textContent = btnLabel;
                         desc.innerHTML = 'Você está visualizando e editando as configurações exclusivas de <strong>' + selectedText + '</strong>.';
                     }
                 }

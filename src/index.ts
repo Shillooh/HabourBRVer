@@ -1,8 +1,12 @@
 import { LoadingSettingsEditor } from './loading-settings-editor';
+import { LiveTvSettingsEditor } from './livetv-settings-editor';
+import { LiveTvBoxView } from './livetv-box';
 import { HomeCollectionEditor } from './home-collection-editor';
 import { InterfaceBranding } from './interface-branding';
 import loadingAnimationStyles from './loading-animation.css';
 import loadingSettingsStyles from './loading-settings.css';
+import liveTvBoxStyles from './livetv-box.css';
+import liveTvSettingsStyles from './livetv-settings.css';
 import adminItemActionStyles from './admin-item-actions.css';
 import styles from './style.css';
 import { isCinemaLayout, isDesktopLayout } from './layout';
@@ -57,8 +61,8 @@ import type { MediaApi, Item } from './types';
 // TV Item Layout uses the remote and local-playback patterns from
 // jampez77/InPlayerEpisodePreview-TV and Namo2/InPlayerEpisodePreview (MIT).
 window.TvItemLayout?.destroy();
-const sheet=document.createElement('style');sheet.dataset.tvItemLayout='';sheet.textContent=styles+guideStyles+themeVideoStyles+collectionStyles+libraryStyles+nativeHostStyles+browseStyles+recordingsStyles+musicPlayerStyles+homeStyles+homeCollectionStyles+seasonalAppearanceStyles+seasonalEditorStyles+pauseStyles+playerStyles+profileMenuStyles+nativeFolderStyles+loginStyles+nativeUserPageStyles+channelZapperStyles+providerHomeStyles+providerSettingsStyles+trailerActionStyles+loadingAnimationStyles+loadingSettingsStyles+adminItemActionStyles;document.head.append(sheet);
-let view:DetailView|GuideView|CollectionView|LibraryView|BrowseView|ProviderHomeView|ProviderSettingsEditor|LoadingSettingsEditor|HomeCollectionEditor|null=null;
+const sheet=document.createElement('style');sheet.dataset.tvItemLayout='';sheet.textContent=styles+guideStyles+themeVideoStyles+collectionStyles+libraryStyles+nativeHostStyles+browseStyles+recordingsStyles+musicPlayerStyles+homeStyles+homeCollectionStyles+seasonalAppearanceStyles+seasonalEditorStyles+pauseStyles+playerStyles+profileMenuStyles+nativeFolderStyles+loginStyles+nativeUserPageStyles+channelZapperStyles+providerHomeStyles+providerSettingsStyles+trailerActionStyles+loadingAnimationStyles+loadingSettingsStyles+liveTvBoxStyles+liveTvSettingsStyles+adminItemActionStyles;document.head.append(sheet);
+let view:DetailView|GuideView|CollectionView|LibraryView|BrowseView|ProviderHomeView|ProviderSettingsEditor|LoadingSettingsEditor|LiveTvSettingsEditor|HomeCollectionEditor|LiveTvBoxView|null=null;
 let providerPreview:ProviderData|undefined;
 let homeCollections:HomeCollections|null=null;
 let homeSessionCurrent:(()=>boolean)|undefined;
@@ -91,7 +95,7 @@ let stopThemeVideo: (() => void) | undefined;
 const nativePages='.itemDetailPage, #itemDetailPage, .liveTvPage, #liveTvSuggestedPage, .mainAnimatedPage, #boxsetsPage, #moviesPage, #tvRecommendedPage, #indexPage, #musicRecommendedPage';
 type CollectionRoute = {kind:'collections';parentId?:string;scope:'list'|'boxsets'|'movies';verifyParent?:boolean};
 type BrowseRoute = ({kind:'home'}|{kind:'music'}|{kind:'recordings'}) & {parentId?:string;tab?:BrowseTab;scope?:'list'|'livetv'|'playlists'};
-type Route = {kind:'collection-settings';scope?:'user'|'global';targetUserId?:string}|{kind:'loading-settings';scope?:'user'|'global';targetUserId?:string}|{kind:'detail';id:string}|{kind:'guide'}|{kind:'provider';provider:ProviderId;rowId?:string}|{kind:'provider-settings';providerId?:ProviderId;scope?:'user'|'global';targetUserId?:string}|{kind:'movies';parentId?:string;tab:LibraryTab}|{kind:'shows';parentId?:string;tab:LibraryTab}|CollectionRoute|BrowseRoute;
+type Route = {kind:'collection-settings';scope?:'user'|'global';targetUserId?:string}|{kind:'loading-settings';scope?:'user'|'global';targetUserId?:string}|{kind:'livetv-settings';scope?:'user'|'global';targetUserId?:string}|{kind:'detail';id:string}|{kind:'guide'}|{kind:'livetv-box'}|{kind:'provider';provider:ProviderId;rowId?:string}|{kind:'provider-settings';providerId?:ProviderId;scope?:'user'|'global';targetUserId?:string}|{kind:'movies';parentId?:string;tab:LibraryTab}|{kind:'shows';parentId?:string;tab:LibraryTab}|CollectionRoute|BrowseRoute;
 function close(restore=true,destroyHome=false):void{
   // Jellyfin keeps its native Home mounted during detail/playback navigation.
   // Keep our rows alongside it so Back can reuse their artwork and controls.
@@ -128,6 +132,9 @@ function currentRoute():Route|null{
   if(/^mypreferencesmenu\/?$/i.test(path)&&params.get('cinemaLoading')==='1'
     &&onlyParams(params,['cinemaLoading','serverId','cinemaGlobal','targetUserId']))
     return {kind:'loading-settings',scope:params.get('cinemaGlobal')==='1'?'global':'user',targetUserId:params.get('targetUserId')||undefined};
+  if(/^mypreferencesmenu\/?$/i.test(path)&&params.get('cinemaLiveTv')==='1'
+    &&onlyParams(params,['cinemaLiveTv','serverId','cinemaGlobal','targetUserId']))
+    return {kind:'livetv-settings',scope:params.get('cinemaGlobal')==='1'?'global':'user',targetUserId:params.get('targetUserId')||undefined};
   if(/^mypreferencesmenu\/?$/i.test(path)&&params.get('cinemaProviders')==='1'
     &&onlyParams(params,['cinemaProviders','cinemaService','serverId','cinemaGlobal','targetUserId'])
     &&(!params.has('cinemaService')||validProviderId(params.get('cinemaService'))))
@@ -159,7 +166,7 @@ function currentRoute():Route|null{
     if(!onlyParams(params,['topParentId','serverId','collectionType','tab']))return null;
     const tab=params.get('tab')||'0';
     if(tab==='3')return {kind:'recordings',scope:'livetv'};
-    return tab==='0'||tab==='1'?{kind:'guide'}:null;
+    return tab==='0'||tab==='1'?{kind:'livetv-box'}:null;
   }
   if(/^boxsets\/?$/i.test(path)){
     if(!onlyParams(params,['topParentId','serverId','collectionType','tab'])||(params.has('tab')&&params.get('tab')!=='0'))return null;
@@ -250,10 +257,10 @@ function ensureProviderVisit(api:MediaApi,provider:ProviderId):void{
 }
 function hideNativeHost(route:Route):void{
   if(route.kind==='home')return;
-  if(route.kind==='provider'||route.kind==='provider-settings'||route.kind==='loading-settings'||route.kind==='collection-settings'){
+  if(route.kind==='provider'||route.kind==='provider-settings'||route.kind==='loading-settings'||route.kind==='livetv-settings'||route.kind==='collection-settings'){
     nativeHostMask.setSelector(route.kind==='provider'?'#indexPage':'#myPreferencesMenuPage');return;
   }
-  const selector=route.kind==='music'&&!route.scope?'#musicRecommendedPage':route.kind==='guide'||route.kind==='recordings'&&route.scope==='livetv'?'.liveTvPage, #liveTvSuggestedPage':route.kind==='detail'?'.itemDetailPage, #itemDetailPage':route.kind==='shows'?'#tvRecommendedPage':route.kind==='movies'||route.kind==='collections'&&route.scope==='movies'?'#moviesPage':route.kind==='collections'&&route.scope==='boxsets'?'#boxsetsPage':'.mainAnimatedPage, [data-role="page"].libraryPage';
+  const selector=route.kind==='music'&&!route.scope?'#musicRecommendedPage':route.kind==='guide'||route.kind==='livetv-box'||route.kind==='recordings'&&route.scope==='livetv'?'.liveTvPage, #liveTvSuggestedPage':route.kind==='detail'?'.itemDetailPage, #itemDetailPage':route.kind==='shows'?'#tvRecommendedPage':route.kind==='movies'||route.kind==='collections'&&route.scope==='movies'?'#moviesPage':route.kind==='collections'&&route.scope==='boxsets'?'#boxsetsPage':'.mainAnimatedPage, [data-role="page"].libraryPage';
   nativeHostMask.setSelector(selector);
 }
 function scopeOf(api:MediaApi|null):string|null{
@@ -438,6 +445,7 @@ function openRoute(route:Route,api:MediaApi,key:string):void{
     view=new ProviderSettingsEditor(api,{onBack:back,providerId:route.providerId,scope:route.scope,targetUserId:route.targetUserId,loadPreview:async(provider,row)=>(await data.load(provider,row,0,8,true)).items});
   }
   else if(route.kind==='loading-settings')view=new LoadingSettingsEditor(api,{onBack:back,scope:route.scope,targetUserId:route.targetUserId});
+  else if(route.kind==='livetv-settings')view=new LiveTvSettingsEditor(api,{onBack:back,scope:route.scope,targetUserId:route.targetUserId});
   else if(route.kind==='collection-settings'){
     const fromSettings=!!previousFocus?.matches('.tvl-settings-collections-link');
     view=new HomeCollectionEditor(api,restore=>{
@@ -453,6 +461,7 @@ function openRoute(route:Route,api:MediaApi,key:string):void{
     },route.scope,route.targetUserId);
   }
   else if(route.kind==='guide')view=new GuideView(api,{back});
+  else if(route.kind==='livetv-box')view=new LiveTvBoxView(api,{back});
   else if(route.kind==='collections')view=new CollectionView(api,{openNative,parentId:route.parentId,back:()=>collectionBack(route),navigate:go,focusId});
   else if(route.kind==='movies'||route.kind==='shows'){
     const hash=location.hash;
