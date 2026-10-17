@@ -992,7 +992,7 @@ export class LiveTvBoxView {
       }
     }
 
-    const serverCats = (catalogData.categories || [])
+    const serverCats: LiveBoxCategory[] = (catalogData.categories || [])
       .filter(cat => {
         if (cat.id === 'all-channels' || cat.name.includes('Todos os Canais')) return false;
         // Categorias tipo "Local - Bahia" ou "Local - ..." são sempre filtradas da lista principal

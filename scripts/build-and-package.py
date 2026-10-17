@@ -8,7 +8,7 @@ import shutil
 
 root = Path(__file__).resolve().parent.parent
 project = root / 'server/Jellyfin.Plugin.TvItemLayout.csproj'
-release_version = "1.5.0.0"
+release_version = "1.5"
 plugin_id = "c985bcfd-992f-4a16-a583-258014d98d75"
 
 # Target definitions ordered from highest to lowest ABI
