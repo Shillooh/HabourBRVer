@@ -40,21 +40,53 @@ A lista de serviços de streaming foi totalmente reestruturada para o mercado na
 
 ### 👑 5. Painel de Controle Administrativo & Padrão Global (Todos os Usuários)
 * **Página de Configuração no Dashboard:** Acesse diretamente pelo menu administrativo em **Painel de Controle** → **Plugins** → **ScreenHarbour Brasil**.
-* **Padrão Global do Servidor:** Defina uma única vez as configurações globais de **Serviços de Streaming**, **Fileiras da Página Inicial** e **Tela de Carregamento**. Todos os usuários do servidor herdam automaticamente esse catálogo inicial.
+* **Padrão Global do Servidor:** Defina uma única vez as configurações globais de **Serviços de Streaming**, **Fileiras da Página Inicial**, **Tela de Carregamento** e **TV Ao Vivo**. Todos os usuários do servidor herdam automaticamente esse catálogo inicial.
 * **Gerenciamento Individual de Perfis:** Pelo seletor **Alvo da Edição**, o administrador pode alternar entre o **Padrão Global** ou qualquer conta de usuário do servidor para inspecionar e personalizar configurações específicas.
 * **Ações Administrativas em Lote:**
   * **Copiar da minha conta:** Promova as configurações da sua conta pessoal diretamente para o Padrão Global com um clique.
   * **Forçar em todos os usuários:** Resete personalizações individuais caso queira padronizar o catálogo de toda a família.
   * **Restaurar para o Padrão Global:** Reverte o perfil de um usuário específico para voltar a herdar a configuração do servidor.
 
+### 📺 6. Novo Módulo de TV Ao Vivo (LiveTV Box) Estilo TV Box
+Inspirado na agilidade e conveniência dos melhores aplicativos de **TV Box** dedicados, o módulo de TV Ao Vivo foi completamente transformado:
+* **Gaveta Lateral Retrátil com Categorias Dinâmicas:** Navegação fluida em duas colunas (Categorias à esquerda e Canais ao centro), exibindo logotipos oficiais, números de canal e barra de pesquisa instantânea. Navegue perfeitamente tanto com controle remoto (D-pad) na TV quanto pelo mouse ou toque no celular e PC.
+* **Player Híbrido com Suporte Nativo a MPEG-TS e HLS:** Reprodução contínua e sem travamentos diretamente pelo navegador. Streams `.ts` contam com um proxy interno com buffer circular e decodificação via `mpegts.js`, enquanto transmissões `.m3u8` são processadas via `Hls.js`.
+* **Filtro Inteligente de Canais Locais por Estado:** Defina seu estado de preferência no Painel de Controle (Bahia, São Paulo, Goiás, Rio de Janeiro, Minas Gerais, etc.). O sistema agrupa e destaca automaticamente a programação regional em `📍 Canais Locais (Seu Estado)`, com isolamento estrito contra vazamento de canais de outras regiões (ex: Paraíba nunca se mistura com Bahia).
+* **Categoria Dedicada "Premiere":** Destaque automático para os canais Premiere nacionais, posicionados com prioridade visual imediatamente acima da seção de Esportes e isolados de canais internacionais de cinema.
+* **Canal de Boas-Vindas com Failover Automático:** Canal inicial integrado (com fallback resiliente para TV Senado em múltiplas URLs) com recuperação instantânea caso algum fluxo fique indisponível.
+
 ---
 
-## 📸 Recursos em Destaque
+## 📸 Galeria de Telas
+
+### 📺 Novo Reprodutor LiveTV Box (Interface Dedicada)
+![LiveTV Box](assets/screenshots/livetv-player.png)
+*Player de TV Ao Vivo integrado estilo TV Box com gaveta lateral retrátil de categorias, números de canal, logotipos, pesquisa instantânea e isolamento inteligente de canais locais.*
+
+### 🎬 Página Inicial Cinematográfica & Hubs de Streaming
+| Página Inicial (Hero Banner & Carrossel de Serviços) | Hub da Plataforma (Filmes em Alta TMDB) |
+| :---: | :---: |
+| ![Homepage](assets/screenshots/homepage.png) | ![Streaming Hub](assets/screenshots/streaming-hub.png) |
+
+### 🍿 Detalhes de Filmes e Séries
+| Página de Filme | Página de Série |
+| :---: | :---: |
+| ![Página de Filme](assets/screenshots/movie-details.png) | ![Página de Série](assets/screenshots/series-details.png) |
+
+### ⚙️ Painel de Controle Administrativo (Padrão Global & TV Box)
+| Painel Central de Configurações | Configuração de Serviços & TMDB |
+| :---: | :---: |
+| ![Painel Admin](assets/screenshots/admin-panel.png) | ![Configuração de Streaming](assets/screenshots/config-streamings.png) |
+
+---
+
+## 🌟 Recursos em Destaque
 
 | Recurso | Descrição |
 | --- | --- |
 | **Página Inicial Cinematográfica** | Pôsteres estilizados, banners com gradientes imersivos, fileiras ordenadas e suporte integrado ao plugin Jellyfin Featured. |
 | **Hubs de Streaming** | Páginas exclusivas para cada plataforma (Globoplay, Netflix, Prime Video, Max, etc.) destacando o acervo do seu servidor pertencente a cada serviço. |
+| **LiveTV Box (TV Ao Vivo)** | Player dedicado estilo TV Box com gaveta lateral retrátil de categorias, suporte a MPEG-TS e HLS, isolamento de canais locais por estado (SP, RJ, BA, GO, MG, etc.), Premiere dedicado e canal padrão com failover automático. |
 | **Guia de TV ao Vivo Horizontal** | Grade de programação horizontal moderna para IPTV/TV ao vivo com proporções visuais elegantes e navegação por controle remoto. |
 | **Navegação In-Player** | Durante a reprodução de um vídeo, pressione a tecla "Para Baixo" ou clique no ícone de navegação para alternar episódios ou ver títulos recomendados sem parar o vídeo. |
 | **Tela de Pausa Personalizada** | Ao pausar, veja logo do título, sinopse, progresso e a estimativa de término (*Termina às hh:mm*). |
