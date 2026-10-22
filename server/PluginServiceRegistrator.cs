@@ -35,6 +35,9 @@ public sealed class PluginServiceRegistrator : IPluginServiceRegistrator
             ConnectTimeout = TimeSpan.FromSeconds(10)
         });
         serviceCollection.AddSingleton<TmdbProviderSource>();
+        serviceCollection.AddSingleton<TmdbLibraryIndex>();
+        serviceCollection.AddSingleton<TrendingPrewarmService>();
+        serviceCollection.AddHostedService(services => services.GetRequiredService<TrendingPrewarmService>());
         serviceCollection.AddSingleton<ProviderAvailabilityService>();
         serviceCollection.AddSingleton<IProviderAvailability>(services => services.GetRequiredService<ProviderAvailabilityService>());
         serviceCollection.AddHostedService(services => services.GetRequiredService<ProviderAvailabilityService>());

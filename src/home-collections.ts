@@ -1009,7 +1009,7 @@ export class HomeCollections {
     this.removeInactiveRows(rows);
     const providerIdentity = JSON.stringify(this.providers);
     const existingProvider = this.sections.find(section => section.row.id === 'provider-homes:brands' && section.identity === providerIdentity);
-    const providerElement = !existingProvider && this.openProvider ? providerHomeRow(this.providers, this.openProvider) : null;
+    const providerElement = !existingProvider && this.openProvider ? providerHomeRow(this.providers, this.openProvider, this.api) : null;
     const providerRows: RenderedRow[] = existingProvider ? [existingProvider] : providerElement ? [{ row: { id: 'provider-homes:brands', placement: this.providers.placement },
       element: providerElement, identity: providerIdentity, reconcileSource: async () => {} }] : [];
     if (!rows.length) { this.staged = { revision, inputRevision, sections: providerRows }; this.attach(); return; }

@@ -2,7 +2,7 @@
 
 **Uma interface cinematográfica premium para Jellyfin, 100% localizada em português e feita para o público brasileiro.**
 
-[![Versão](https://img.shields.io/badge/vers%C3%A3o-v1.5-E50914?style=for-the-badge)](https://github.com/Shillooh/HabourBRVer)
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-v1.5.1-E50914?style=for-the-badge)](https://github.com/Shillooh/HabourBRVer)
 [![Jellyfin](https://img.shields.io/badge/Jellyfin-10.10.7%20%7C%2010.11.x%20%7C%2012.x-00A4DC?style=for-the-badge&logo=jellyfin&logoColor=white)](https://jellyfin.org)
 [![Idioma](https://img.shields.io/badge/Idioma-pt--BR-009c3b?style=for-the-badge)](README.md)
 [![Licença](https://img.shields.io/badge/Licen%C3%A7a-MIT-yellow?style=for-the-badge)](LICENSE.md)
@@ -23,22 +23,28 @@ No projeto original e em outros temas do Jellyfin, para ter fileiras como "Em Al
 * **Automação Nativa no Servidor:** O ScreenHarbour Brasil consulta diretamente a API oficial do **TMDB** (`language=pt-BR`, `region=BR`) todos os dias para identificar as produções em alta no Brasil.
 * **Cruzamento Instantâneo com sua Biblioteca:** O plugin cruza a lista do TMDB com o acervo existente no seu servidor Jellyfin. Se você tem o filme ou série, ele entra instantaneamente na fileira de "Em Alta", com numeração visual de ranking (1 a 10), **sem precisar criar nenhuma coleção manual!**
 
-### 🇧🇷 2. Presets Nacionais de Streaming e Provedores
+### ⚡ 2. Zero-Latency Trending Cache & Pré-Aquecimento em Background (v1.5.1)
+* **Desempenho Instantâneo (< 5ms):** As fileiras de *Filmes em Alta* e *Séries em Alta* em plataformas de streaming (Netflix, Prime Video, Max, Globoplay, etc.) agora abrem instantaneamente, eliminando esperas de 10 a 15 segundos tanto no navegador quanto em TVs (Tizen, webOS, Android TV).
+* **Índice TMDB Invertido em Memória ($O(1)$):** O servidor mapeia todo o acervo local (`TmdbLibraryIndex`) na inicialização por meio de estruturas atômicas (`ConcurrentDictionary`), eliminando varreduras pesadas do acervo a cada clique.
+* **Pré-Aquecimento em Background & Cache em Disco:** O serviço `TrendingPrewarmService` roda em segundo plano sem impactar a inicialização do Jellyfin, consultando o TMDB e mantendo um cache persistido em disco (`trending-cache.json`) com ciclo de revalidação de 6 horas e estratégia *Stale-While-Revalidate*.
+* **Endpoint Unificado em Lote (TrendingBatch):** Busca de filmes e séries em uma única chamada paralela, aliada a cache de sessão no cliente e pré-aquecimento ao passar o mouse ou focar no card do serviço.
+
+### 🇧🇷 3. Presets Nacionais de Streaming e Provedores
 A lista de serviços de streaming foi totalmente reestruturada para o mercado nacional:
 * **Provedores Nacionais e Internacionais:** Telas dedicadas e logotipos em alta resolução para **Globoplay**, **Max**, **Prime Video**, **Netflix**, **Brasil Paralelo**, **Disney+**, **Paramount+**, **Discovery+** e **Rakuten Viki**.
 * **Disponibilidade Brasil:** Os filtros automáticos de catálogo verificam ofertas válidas no Brasil (`Region=BR`).
 * Suporte completo para adicionar seus próprios serviços personalizados nas configurações.
 
-### 🇧🇷 3. Localização 100% em Português do Brasil (pt-BR)
+### 🇧🇷 4. Localização 100% em Português do Brasil (pt-BR)
 * Menus, preferências, telas de configuração, filtros, notificações, status de reprodução e botões traduzidos com linguagem natural e adaptada ao Brasil.
 * Sem termos em inglês ou resíduos do catálogo britânico do fork original.
 
-### 🖱️ 4. Navegação Aperfeiçoada & Rolagem por Arraste (Drag-Scroll)
+### 🖱️ 5. Navegação Aperfeiçoada & Rolagem por Arraste (Drag-Scroll)
 * **Botões de Rolagem (Chevrons):** Setas elegantes nas extremidades das fileiras para rolagem rápida no mouse.
 * **Arrastar e Soltar:** Suporte total a arrastar com o mouse ou toque para rolar carrosséis de mídia de forma ultra suave.
 * **Restauração Perfeita de Posição:** Ao assistir a um trailer ou abrir os detalhes de um filme e voltar, o foco e a posição exata da tela são preservados instantaneamente.
 
-### 👑 5. Painel de Controle Administrativo & Padrão Global (Todos os Usuários)
+### 👑 6. Painel de Controle Administrativo & Padrão Global (Todos os Usuários)
 * **Página de Configuração no Dashboard:** Acesse diretamente pelo menu administrativo em **Painel de Controle** → **Plugins** → **ScreenHarbour Brasil**.
 * **Padrão Global do Servidor:** Defina uma única vez as configurações globais de **Serviços de Streaming**, **Fileiras da Página Inicial**, **Tela de Carregamento** e **TV Ao Vivo**. Todos os usuários do servidor herdam automaticamente esse catálogo inicial.
 * **Gerenciamento Individual de Perfis:** Pelo seletor **Alvo da Edição**, o administrador pode alternar entre o **Padrão Global** ou qualquer conta de usuário do servidor para inspecionar e personalizar configurações específicas.
@@ -47,7 +53,7 @@ A lista de serviços de streaming foi totalmente reestruturada para o mercado na
   * **Forçar em todos os usuários:** Resete personalizações individuais caso queira padronizar o catálogo de toda a família.
   * **Restaurar para o Padrão Global:** Reverte o perfil de um usuário específico para voltar a herdar a configuração do servidor.
 
-### 📺 6. Novo Módulo de TV Ao Vivo (LiveTV Box) Estilo TV Box
+### 📺 7. Novo Módulo de TV Ao Vivo (LiveTV Box) Estilo TV Box
 Inspirado na agilidade e conveniência dos melhores aplicativos de **TV Box** dedicados, o módulo de TV Ao Vivo foi completamente transformado:
 * **Gaveta Lateral Retrátil com Categorias Dinâmicas:** Navegação fluida em duas colunas (Categorias à esquerda e Canais ao centro), exibindo logotipos oficiais, números de canal e barra de pesquisa instantânea. Navegue perfeitamente tanto com controle remoto (D-pad) na TV quanto pelo mouse ou toque no celular e PC.
 * **Player Híbrido com Suporte Nativo a MPEG-TS e HLS:** Reprodução contínua e sem travamentos diretamente pelo navegador. Streams `.ts` contam com um proxy interno com buffer circular e decodificação via `mpegts.js`, enquanto transmissões `.m3u8` são processadas via `Hls.js`.
@@ -110,7 +116,7 @@ Inspirado na agilidade e conveniência dos melhores aplicativos de **TV Box** de
 
 ### 2. Instalar os Plugins
 1. Vá até a aba **Catálogo** no Jellyfin.
-2. Localize e instale o **ScreenHarbour Brasil** (versão `1.5`). O Jellyfin selecionará automaticamente o pacote compilado exato para o seu servidor.
+2. Localize e instale o **ScreenHarbour Brasil** (versão `1.5.1`). O Jellyfin selecionará automaticamente o pacote compilado exato para o seu servidor.
 3. Instale também o plugin **File Transformation**.
 4. **Reinicie o servidor Jellyfin**.
 
@@ -126,13 +132,13 @@ Inspirado na agilidade e conveniência dos melhores aplicativos de **TV Box** de
 
 ## 🛠️ Compatibilidade de Versões
 
-O Jellyfin gerencia a compatibilidade de plugins pelo **Target ABI** e runtime do .NET. O repositório unifica a versão do plugin em **`1.5`** para todos os ambientes e entrega o pacote nativo para o seu servidor:
+O Jellyfin gerencia a compatibilidade de plugins pelo **Target ABI** e runtime do .NET. O repositório unifica a versão do plugin em **`1.5.1`** para todos os ambientes e entrega o pacote nativo para o seu servidor:
 
 | Versão do Jellyfin | Versão do Plugin | Target ABI | Target Framework | Pacote Gerado |
 | :---: | :---: | :---: | :---: | :---: |
-| **12.x / 12.0.0+** | `1.5` | `12.0.0` | .NET 10.0 | `TvItemLayout_1.5_jellyfin-12.0.0.zip` |
-| **10.11.x** | `1.5` | `10.11.0` | .NET 9.0 | `TvItemLayout_1.5_jellyfin-10.11.0.zip` |
-| **10.10.x / 10.10.7** | `1.5` | `10.10.7` | .NET 8.0 | `TvItemLayout_1.5_jellyfin-10.10.7.zip` |
+| **12.x / 12.0.0+** | `1.5.1` | `12.0.0` | .NET 10.0 | `TvItemLayout_1.5.1_jellyfin-12.0.0.zip` |
+| **10.11.x** | `1.5.1` | `10.11.0` | .NET 9.0 | `TvItemLayout_1.5.1_jellyfin-10.11.0.zip` |
+| **10.10.x / 10.10.7** | `1.5.1` | `10.10.7` | .NET 8.0 | `TvItemLayout_1.5.1_jellyfin-10.10.7.zip` |
 
 ---
 

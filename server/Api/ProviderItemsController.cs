@@ -41,7 +41,10 @@ public sealed class ProviderItemsController(
     IDtoService dtoService,
     IProviderAvailability availability,
     IApplicationPaths paths,
-    TmdbProviderSource source, WatchlistService watchlists) : ControllerBase
+    TmdbProviderSource source,
+    WatchlistService watchlists,
+    TmdbLibraryIndex? libraryIndex = null,
+    TrendingPrewarmService? prewarmService = null) : ControllerBase
 {
     private async Task<User?> CurrentUser()
     {
@@ -112,7 +115,25 @@ public sealed class ProviderItemsController(
         var settings = await ProviderHomesController.ReadForUser(paths, user.Id, cancellationToken);
         var configured = ProviderHomesSchema.Resolve(settings.Settings, providerId);
         if (configured is null || !configured.Enabled) return NotFound("This streaming service is not enabled for the current account.");
-        return await TrendingItems(user, configured, type, limit, cancellationToken);
+        return Ok(await TrendingItemsCore(providerId, user, configured, type, limit, cancellationToken));
+    }
+
+    [HttpGet("{providerId}/TrendingBatch")]
+    public async Task<IActionResult> GetProviderTrendingBatch(string providerId, [FromQuery] int limit = 20, CancellationToken cancellationToken = default)
+    {
+        var user = await CurrentUser();
+        if (user is null) return Unauthorized();
+        if (!ProviderHomesSchema.ValidProvider(providerId) || limit is < 1 or > 100)
+            return BadRequest("Invalid provider trending batch query.");
+        var settings = await ProviderHomesController.ReadForUser(paths, user.Id, cancellationToken);
+        var configured = ProviderHomesSchema.Resolve(settings.Settings, providerId);
+        if (configured is null || !configured.Enabled) return NotFound("This streaming service is not enabled for the current account.");
+
+        var moviesTask = TrendingItemsCore(providerId, user, configured, "Movie", limit, cancellationToken);
+        var seriesTask = TrendingItemsCore(providerId, user, configured, "Series", limit, cancellationToken);
+        await Task.WhenAll(moviesTask, seriesTask);
+
+        return Ok(new ProviderTrendingBatchResponse(moviesTask.Result, seriesTask.Result));
     }
 
     [HttpPost("Trending/Preview")]
@@ -128,58 +149,39 @@ public sealed class ProviderItemsController(
             return StatusCode(413, "Provider preview settings are too large.");
         var draft = JsonSerializer.SerializeToElement(new { version = 2, enabled = true, title = "", placement = "start", tileScale = 100, showNames = true, providers = new[] { provider } });
         if (!ProviderHomesSchema.ValidSettings(draft)) return BadRequest("Invalid provider preview settings.");
-        var configured = ProviderHomesSchema.Resolve(draft, provider.GetProperty("id").GetString()!)!;
-        return await TrendingItems(user, configured, mediaType, limit, cancellationToken);
+        var providerId = provider.GetProperty("id").GetString()!;
+        var configured = ProviderHomesSchema.Resolve(draft, providerId)!;
+        return Ok(await TrendingItemsCore(providerId, user, configured, mediaType, limit, cancellationToken));
     }
 
-    private async Task<IActionResult> TrendingItems(User user, ConfiguredProvider configured, string type, int limit, CancellationToken cancellationToken)
+    [HttpPost("TrendingBatch/Preview")]
+    [RequestSizeLimit(ProviderHomesController.MaximumBytes)]
+    public async Task<IActionResult> PreviewProviderTrendingBatch([FromBody] JsonElement provider,
+        [FromQuery] int limit = 20, CancellationToken cancellationToken = default)
+    {
+        var user = await CurrentUser();
+        if (user is null) return Unauthorized();
+        if (limit is < 1 or > 100) return BadRequest("Invalid provider trending preview query.");
+        if (provider.ValueKind == JsonValueKind.Undefined) return BadRequest("Invalid provider preview settings.");
+        if (Encoding.UTF8.GetByteCount(provider.GetRawText()) > ProviderHomesController.MaximumBytes - 1024)
+            return StatusCode(413, "Provider preview settings are too large.");
+        var draft = JsonSerializer.SerializeToElement(new { version = 2, enabled = true, title = "", placement = "start", tileScale = 100, showNames = true, providers = new[] { provider } });
+        if (!ProviderHomesSchema.ValidSettings(draft)) return BadRequest("Invalid provider preview settings.");
+        var providerId = provider.GetProperty("id").GetString()!;
+        var configured = ProviderHomesSchema.Resolve(draft, providerId)!;
+
+        var moviesTask = TrendingItemsCore(providerId, user, configured, "Movie", limit, cancellationToken);
+        var seriesTask = TrendingItemsCore(providerId, user, configured, "Series", limit, cancellationToken);
+        await Task.WhenAll(moviesTask, seriesTask);
+
+        return Ok(new ProviderTrendingBatchResponse(moviesTask.Result, seriesTask.Result));
+    }
+
+    private async Task<ProviderItemsResponse> TrendingItemsCore(string providerId, User user, ConfiguredProvider configured, string type, int limit, CancellationToken cancellationToken)
     {
         var providerIds = type == "Movie" ? configured.MovieProviderIds : configured.ShowProviderIds;
         if (providerIds.Length == 0)
-            return Ok(new ProviderItemsResponse([], 0, 0, 0, DateTimeOffset.UtcNow, "ready", TmdbProviderSource.Region, 0, 0));
-
-        int[] tmdbTrendingIds;
-        try
-        {
-            tmdbTrendingIds = await source.DiscoverTrendingTmdbIdsAsync(type, providerIds, cancellationToken);
-        }
-        catch (ProviderLookupException)
-        {
-            return Ok(new ProviderItemsResponse([], 0, 0, 0, DateTimeOffset.UtcNow, "unavailable", TmdbProviderSource.Region, 0, 0));
-        }
-
-        if (tmdbTrendingIds.Length == 0)
-            return Ok(new ProviderItemsResponse([], 0, 0, 0, DateTimeOffset.UtcNow, "ready", TmdbProviderSource.Region, 0, 0));
-
-        var query = new InternalItemsQuery(user)
-        {
-            IncludeItemTypes = [type == "Movie" ? BaseItemKind.Movie : BaseItemKind.Series],
-            Recursive = true,
-            IsVirtualItem = false,
-            IsMissing = false,
-            EnableTotalRecordCount = false
-        };
-        var permitted = libraryManager.GetItemList(query);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var localByTmdbId = new Dictionary<int, BaseItem>();
-        foreach (var item in permitted)
-        {
-            if (item.ProviderIds.TryGetValue("Tmdb", out var idStr) && int.TryParse(idStr, out var id) && !localByTmdbId.ContainsKey(id))
-            {
-                localByTmdbId[id] = item;
-            }
-        }
-
-        var matched = new List<BaseItem>();
-        foreach (var tmdbId in tmdbTrendingIds)
-        {
-            if (localByTmdbId.TryGetValue(tmdbId, out var localItem))
-            {
-                matched.Add(localItem);
-                if (matched.Count >= limit) break;
-            }
-        }
+            return new ProviderItemsResponse([], 0, 0, 0, DateTimeOffset.UtcNow, "ready", TmdbProviderSource.Region, 0, 0);
 
         var options = new DtoOptions(false)
         {
@@ -188,8 +190,94 @@ public sealed class ProviderItemsController(
             Fields = [ItemFields.Overview, ItemFields.Genres, ItemFields.DateCreated, ItemFields.PrimaryImageAspectRatio, ItemFields.ProviderIds]
         };
 
+        var matched = new List<BaseItem>();
+
+        // Fast path 1: Check precomputed matches from TrendingPrewarmService
+        if (prewarmService is not null && prewarmService.TryGetPrecomputedGuids(providerId, type, out var precomputedGuids))
+        {
+            foreach (var itemId in precomputedGuids)
+            {
+                var item = libraryManager.GetItemById(itemId);
+                if (item is not null && !item.IsVirtualItem && item.IsVisibleStandalone(user))
+                {
+                    matched.Add(item);
+                    if (matched.Count >= limit) break;
+                }
+            }
+
+            if (matched.Count > 0)
+            {
+                var precomputedItems = matched.Select(item => dtoService.GetBaseItemDto(item, options, user)).ToArray();
+                return new ProviderItemsResponse(precomputedItems, precomputedItems.Length, 0, precomputedItems.Length, DateTimeOffset.UtcNow, "ready", TmdbProviderSource.Region, 0, 0);
+            }
+        }
+
+        int[] tmdbTrendingIds;
+        try
+        {
+            tmdbTrendingIds = await source.DiscoverTrendingTmdbIdsAsync(type, providerIds, cancellationToken);
+        }
+        catch (ProviderLookupException)
+        {
+            return new ProviderItemsResponse([], 0, 0, 0, DateTimeOffset.UtcNow, "unavailable", TmdbProviderSource.Region, 0, 0);
+        }
+
+        if (tmdbTrendingIds.Length == 0)
+            return new ProviderItemsResponse([], 0, 0, 0, DateTimeOffset.UtcNow, "ready", TmdbProviderSource.Region, 0, 0);
+
+        var isMovie = type == "Movie";
+
+        if (libraryIndex is not null)
+        {
+            foreach (var tmdbId in tmdbTrendingIds)
+            {
+                Guid itemId;
+                var found = isMovie ? libraryIndex.TryGetMovie(tmdbId, out itemId) : libraryIndex.TryGetSeries(tmdbId, out itemId);
+                if (found)
+                {
+                    var item = libraryManager.GetItemById(itemId);
+                    if (item is not null && !item.IsVirtualItem && item.IsVisibleStandalone(user))
+                    {
+                        matched.Add(item);
+                        if (matched.Count >= limit) break;
+                    }
+                }
+            }
+        }
+        else
+        {
+            var query = new InternalItemsQuery(user)
+            {
+                IncludeItemTypes = [isMovie ? BaseItemKind.Movie : BaseItemKind.Series],
+                Recursive = true,
+                IsVirtualItem = false,
+                IsMissing = false,
+                EnableTotalRecordCount = false
+            };
+            var permitted = libraryManager.GetItemList(query);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var localByTmdbId = new Dictionary<int, BaseItem>();
+            foreach (var item in permitted)
+            {
+                if (item.ProviderIds.TryGetValue("Tmdb", out var idStr) && int.TryParse(idStr, out var id) && !localByTmdbId.ContainsKey(id))
+                {
+                    localByTmdbId[id] = item;
+                }
+            }
+
+            foreach (var tmdbId in tmdbTrendingIds)
+            {
+                if (localByTmdbId.TryGetValue(tmdbId, out var localItem))
+                {
+                    matched.Add(localItem);
+                    if (matched.Count >= limit) break;
+                }
+            }
+        }
+
         var items = matched.Select(item => dtoService.GetBaseItemDto(item, options, user)).ToArray();
-        return Ok(new ProviderItemsResponse(items, items.Length, 0, items.Length, DateTimeOffset.UtcNow, "ready", TmdbProviderSource.Region, 0, 0));
+        return new ProviderItemsResponse(items, items.Length, 0, items.Length, DateTimeOffset.UtcNow, "ready", TmdbProviderSource.Region, 0, 0);
     }
 
     private static bool ValidQuery(string type, int startIndex, int limit, string sort) => type is "Movie" or "Series" or "Mixed"
@@ -262,3 +350,7 @@ public sealed record ProviderItemsResponse(
     [property: JsonPropertyName("Region")] string Region,
     [property: JsonPropertyName("MissingIds")] int MissingIds,
     [property: JsonPropertyName("FailedIds")] int FailedIds);
+
+public sealed record ProviderTrendingBatchResponse(
+    [property: JsonPropertyName("Movies")] ProviderItemsResponse Movies,
+    [property: JsonPropertyName("Series")] ProviderItemsResponse Series);

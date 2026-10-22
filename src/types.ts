@@ -81,6 +81,8 @@ export interface MediaApi extends BrowseApi {
   previewProviderItems?(provider: ProviderHomeConfig, query: ProviderItemsQuery): Promise<ProviderItemsPage>;
   getProviderTrending?(provider: ProviderId, type: 'Movie' | 'Series', limit?: number): Promise<ProviderItemsPage>;
   previewProviderTrending?(provider: ProviderHomeConfig, type: 'Movie' | 'Series', limit?: number): Promise<ProviderItemsPage>;
+  getProviderTrendingBatch?(provider: ProviderId, limit?: number): Promise<{ Movies: ProviderItemsPage; Series: ProviderItemsPage }>;
+  previewProviderTrendingBatch?(provider: ProviderHomeConfig, limit?: number): Promise<{ Movies: ProviderItemsPage; Series: ProviderItemsPage }>;
   getItem(id: string): Promise<Item>;
   getPlaybackContext?(): Promise<PlaybackContext | null>;
   getTrailerDetails?(expected: TrailerIdentity): Promise<TrailerDetailsContext | null>;

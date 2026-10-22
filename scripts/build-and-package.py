@@ -8,7 +8,7 @@ import shutil
 
 root = Path(__file__).resolve().parent.parent
 project = root / 'server/Jellyfin.Plugin.TvItemLayout.csproj'
-release_version = "1.5"
+release_version = "1.5.1"
 plugin_id = "c985bcfd-992f-4a16-a583-258014d98d75"
 
 # Target definitions ordered from highest to lowest ABI
@@ -86,11 +86,11 @@ for jellyfin_version, framework in targets:
 
     versions_manifest.append({
         'version': release_version,
-        'changelog': f'ScreenHarbour Brasil v{release_version} para Jellyfin {jellyfin_version}. Adicionado reprodutor integrado LiveTV Box com suporte a MPEG-TS e HLS, catálogo horizontal de canais ao vivo com suporte a Premiere isolado, filtragem estrita de canais locais por estado (sem vazamentos regionais), sincronização de configurações globais e por usuário no painel administrativo e diversas otimizações de performance.',
+        'changelog': f'ScreenHarbour Brasil v{release_version} para Jellyfin {jellyfin_version}. Otimização extrema de latência nas fileiras Em Alta (Zero-Latency Trending Cache), índice em memória TmdbLibraryIndex O(1) do acervo local, pré-aquecimento em background com persistência em disco e endpoint unificado em lote TrendingBatch.',
         'targetAbi': jellyfin_version,
         'sourceUrl': f'https://raw.githubusercontent.com/Shillooh/HabourBRVer/main/packages/{archive.name}',
         'checksum': md5_hash,
-        'timestamp': '2026-10-17T03:00:00Z',
+        'timestamp': '2026-10-22T19:35:00Z',
     })
 
 manifest = [{

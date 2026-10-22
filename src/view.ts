@@ -590,7 +590,7 @@ export class DetailView {
     }catch{this.announce('Não foi possível atualizar os favoritos. Tente novamente.');}finally{this.favoritePending=false;}
   }
   private watchedButton(item: Item, className: string, label?: string): HTMLButtonElement {
-    const subject = label || (item.Type === 'Movie' ? '' : (item.Type === 'Episode' ? 'episódio' : item.Type === 'Season' ? 'temporada' : (item.Type || '').toLowerCase()));
+    const subject = label || (item.Type === 'Movie' ? '' : (item.Type === 'Episode' ? 'episódio' : item.Type === 'Season' ? 'temporada' : item.Type === 'Series' ? 'série' : (item.Type || '').toLowerCase()));
     const node = button('', 'check', `tvl-watch-toggle ${className}`, () => void this.toggleWatched(item));
     node.dataset.watchedId = item.Id; node.dataset.watchedSubject = subject;
     this.updateWatchedButton(node, item); return node;

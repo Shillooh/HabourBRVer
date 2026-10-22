@@ -6,7 +6,7 @@
     <TargetFramework Condition="$([System.String]::Copy('$(JellyfinVersion)').StartsWith('12.'))">net10.0</TargetFramework>
     <DefineConstants Condition="'$(JellyfinVersion)' == '10.10.7'">$(DefineConstants);JELLYFIN_1010</DefineConstants>
     <DefineConstants Condition="$([System.String]::Copy('$(JellyfinVersion)').StartsWith('12.'))">$(DefineConstants);JELLYFIN_12</DefineConstants>
-    <ReleaseVersion Condition="'$(ReleaseVersion)' == ''">1.5</ReleaseVersion>
+    <ReleaseVersion Condition="'$(ReleaseVersion)' == ''">1.5.1</ReleaseVersion>
     <AssemblyVersion>$(ReleaseVersion)</AssemblyVersion>
     <FileVersion>$(ReleaseVersion)</FileVersion>
     <Version>$(ReleaseVersion)</Version>

@@ -11,7 +11,7 @@ import { plainText } from './utils';
 import { subscribeWatchlist } from './watchlist';
 import { attachRowScrollButtons } from './home-row-scroll';
 
-export function providerHomeRow(settings: ProviderHomesSettings, navigate: (id: ProviderId) => void): HTMLElement | null {
+export function providerHomeRow(settings: ProviderHomesSettings, navigate: (id: ProviderId) => void, api?: MediaApi): HTMLElement | null {
   const providers = settings.providers.filter(provider => provider.enabled);
   if (!settings.enabled || !providers.length) return null;
   const title = settings.title.trim() || 'Serviços de Streaming';
@@ -30,7 +30,19 @@ export function providerHomeRow(settings: ProviderHomesSettings, navigate: (id: 
     const mark = el('span', 'tvl-provider-tile-mark');
     mark.append(providerLogo(provider)); tile.append(mark);
     if (settings.showNames) tile.append(el('span', 'tvl-provider-tile-name', brand.name));
-    tile.addEventListener('click', () => navigate(provider.id)); entry.append(tile); cards.append(entry);
+    tile.addEventListener('click', () => navigate(provider.id));
+    if (api) {
+      const prewarm = () => {
+        const data = new ProviderData(api);
+        const trendingMovieRow = provider.rows?.find(r => r.enabled && r.source === 'trending-movies') || { id: 'trending-movies', title: '', source: 'trending-movies', collectionId: '', enabled: true, ranked: false, itemSort: 'collection' };
+        const trendingShowRow = provider.rows?.find(r => r.enabled && r.source === 'trending-shows') || { id: 'trending-shows', title: '', source: 'trending-shows', collectionId: '', enabled: true, ranked: false, itemSort: 'collection' };
+        void data.load(provider, trendingMovieRow, 0, 40).catch(() => {});
+        void data.load(provider, trendingShowRow, 0, 40).catch(() => {});
+      };
+      tile.addEventListener('pointerenter', prewarm, { once: true, passive: true });
+      tile.addEventListener('focus', prewarm, { once: true });
+    }
+    entry.append(tile); cards.append(entry);
   }
   attachRowScrollButtons(header, cards);
   section.append(header, cards); return section;
@@ -152,6 +164,12 @@ export class ProviderHomeView {
     if (!rows.length) this.rowsHost.append(el('p', 'tvl-provider-message', this.options.rowId ? 'Esta fileira está indisponível.' : 'Nenhuma fileira está ativada para este serviço.'));
     this.focusInitial();
     await Promise.allSettled(this.states.map(row => this.loadRow(row)));
+    if (this.options.rowId && this.config) {
+      const otherRows = this.config.rows.filter(row => row.enabled && row.id !== this.options.rowId && row.source !== 'watchlist');
+      for (const other of otherRows) {
+        void this.data.load(this.config, other, 0, 40).catch(() => {});
+      }
+    }
     if (this.disposed || generation !== this.generation) return;
     this.updateHero(this.states.find(row => row.items.length)?.items[0]);
     if (inputRevision === this.inputRevision) {

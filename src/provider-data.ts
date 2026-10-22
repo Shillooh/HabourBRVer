@@ -23,6 +23,17 @@ export class ProviderDataError extends Error {
 }
 
 const CACHE_MS = 30_000;
+const SESSION_CACHE_MS = 10 * 60 * 1000;
+type SessionCacheEntry = { expires: number; result: ProviderRowResult };
+
+function getSessionCache(api: MediaApi): Map<string, SessionCacheEntry> {
+  const target = api as unknown as { _providerSessionCache?: Map<string, SessionCacheEntry> };
+  if (!target._providerSessionCache) {
+    target._providerSessionCache = new Map();
+  }
+  return target._providerSessionCache;
+}
+
 const count = (value: unknown): value is number => Number.isSafeInteger(value) && (value as number) >= 0;
 const invalid = () => new ProviderDataError('invalid', 'Jellyfin returned invalid provider items. Try again.');
 const itemIdentity = (id: string): string => /^[\da-f]{32}$|^[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/i.test(id) ? id.replace(/-/g, '').toLowerCase() : id;
@@ -50,9 +61,11 @@ export class ProviderData {
   private readonly cache = new Map<string, { expires: number; items: Item[] }>();
   private readonly pending = new Map<string, Promise<Item[]>>();
   private readonly cataloguePending = new Map<string, Promise<ProviderItemsPage>>();
+  private readonly sessionCache: Map<string, SessionCacheEntry>;
 
   constructor(private readonly api: MediaApi) {
     this.serverId = api.serverId; this.userId = api.userId;
+    this.sessionCache = getSessionCache(api);
   }
 
   private current(generation: number): void {
@@ -113,18 +126,59 @@ export class ProviderData {
     if (!collectionId && (row.source === 'trending-movies' || row.source === 'trending-shows')) {
       const sourceLabel = 'Em Alta · Popularidade TMDB (Brasil)';
       const sourceIds = type === 'Movie' ? config.movieProviderIds : config.showProviderIds;
-      if (!sourceIds.length || (preview ? !this.api.previewProviderTrending : !this.api.getProviderTrending)) {
+      if (!sourceIds.length || (preview ? (!this.api.previewProviderTrending && !this.api.previewProviderTrendingBatch) : (!this.api.getProviderTrending && !this.api.getProviderTrendingBatch))) {
         return { items: [], total: 0, pending: 0, totalToCheck: 0, status: 'unavailable', sourceLabel, missingSource: true };
+      }
+      const sessionKey = `${preview ? JSON.stringify(config) : config.id}:${row.source}:${type}:${start}:${size}:${row.itemSort || ''}`;
+      const cachedResult = this.sessionCache.get(sessionKey);
+      if (cachedResult && cachedResult.expires > Date.now()) {
+        return cachedResult.result;
       }
       const sourceUrl = 'https://www.themoviedb.org';
       const key = `trending:${preview ? JSON.stringify(config) : config.id}:${type}:${size}`;
       let promise = this.cataloguePending.get(key);
       if (!promise) {
-        promise = Promise.resolve().then(() => {
-          this.current(generation);
-          return preview ? this.api.previewProviderTrending!(config, type!, size)
-            : this.api.getProviderTrending!(config.id, type!, size);
-        });
+        const useBatch = preview
+          ? (!!this.api.previewProviderTrendingBatch && (!this.api.previewProviderTrending || config.movieProviderIds.length > 0 && config.showProviderIds.length > 0))
+          : (!!this.api.getProviderTrendingBatch && (!this.api.getProviderTrending || config.movieProviderIds.length > 0 && config.showProviderIds.length > 0));
+
+        if (useBatch) {
+          promise = Promise.resolve().then(async () => {
+            this.current(generation);
+            const batch = preview
+              ? await this.api.previewProviderTrendingBatch!(config, size)
+              : await this.api.getProviderTrendingBatch!(config.id, size);
+            const otherType = type === 'Movie' ? 'Series' : 'Movie';
+            const otherRowSource = type === 'Movie' ? 'trending-shows' : 'trending-movies';
+            const otherKey = `${preview ? JSON.stringify(config) : config.id}:${otherRowSource}:${otherType}:${start}:${size}:${row.itemSort || ''}`;
+            const otherPage = type === 'Movie' ? batch?.Series : batch?.Movies;
+            if (otherPage && Array.isArray(otherPage.Items)) {
+              const otherItems = orderHomeItems(playableItems(otherPage.Items, otherType), { itemSort: row.itemSort, itemOrder: [] });
+              this.sessionCache.set(otherKey, {
+                expires: Date.now() + SESSION_CACHE_MS,
+                result: {
+                  items: otherItems,
+                  total: otherPage.TotalRecordCount,
+                  pending: otherPage.Pending,
+                  totalToCheck: otherPage.Total,
+                  status: otherPage.Status,
+                  sourceLabel,
+                  sourceUrl,
+                  updatedAt: otherPage.UpdatedAt,
+                  missingIds: otherPage.MissingIds,
+                  failedIds: otherPage.FailedIds
+                }
+              });
+            }
+            return type === 'Movie' ? batch.Movies : batch.Series;
+          });
+        } else {
+          promise = Promise.resolve().then(() => {
+            this.current(generation);
+            return preview ? this.api.previewProviderTrending!(config, type!, size)
+              : this.api.getProviderTrending!(config.id, type!, size);
+          });
+        }
         this.cataloguePending.set(key, promise);
       }
       let page: ProviderItemsPage;
@@ -135,7 +189,7 @@ export class ProviderData {
         || !['ready', 'refreshing', 'unavailable'].includes(page.Status) || (page.UpdatedAt !== null && typeof page.UpdatedAt !== 'string')
         || page.MissingIds !== undefined && !count(page.MissingIds) || page.FailedIds !== undefined && !count(page.FailedIds)) throw invalid();
       const items = orderHomeItems(playableItems(page.Items, type), { itemSort: row.itemSort, itemOrder: [] });
-      return {
+      const result: ProviderRowResult = {
         items,
         total: page.TotalRecordCount,
         pending: page.Pending,
@@ -147,6 +201,11 @@ export class ProviderData {
         missingIds: page.MissingIds,
         failedIds: page.FailedIds
       };
+      this.sessionCache.set(sessionKey, { expires: Date.now() + SESSION_CACHE_MS, result });
+      if (this.sessionCache.size > 200) {
+        this.sessionCache.delete(this.sessionCache.keys().next().value!);
+      }
+      return result;
     }
 
     const sourceLabel = 'Selected Jellyfin collection';
@@ -162,6 +221,7 @@ export class ProviderData {
 
   invalidate(): void {
     this.generation++; this.cache.clear(); this.pending.clear(); this.cataloguePending.clear();
+    this.sessionCache.clear();
   }
   destroy(): void { this.disposed = true; this.invalidate(); }
 }

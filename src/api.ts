@@ -371,6 +371,26 @@ export function createJellyfinApi(): MediaApi | null {
       }), data: JSON.stringify(config), contentType: 'application/json', dataType: 'json' }) as ProviderItemsPage;
       return providerCatalogue(data, { type });
     }),
+    getProviderTrendingBatch: (provider, limit = 20) => read(async () => {
+      if (!validProviderId(provider)) throw new Error('Unknown streaming provider.');
+      const data = await client.getJSON(client.getUrl(`TvItemLayout/Providers/${encodeURIComponent(provider)}/TrendingBatch`, {
+        limit: Math.max(1, Math.min(100, Math.floor(limit || 20)))
+      })) as { Movies: ProviderItemsPage; Series: ProviderItemsPage };
+      return {
+        Movies: providerCatalogue(data.Movies, { type: 'Movie' }),
+        Series: providerCatalogue(data.Series, { type: 'Series' })
+      };
+    }),
+    previewProviderTrendingBatch: (provider, limit = 20) => read(async () => {
+      const config = parseProviderHomes({ ...defaultProviderHomes(), providers: [provider] }).providers[0];
+      const data = await client.ajax({ type: 'POST', url: client.getUrl('TvItemLayout/Providers/TrendingBatch/Preview', {
+        limit: Math.max(1, Math.min(100, Math.floor(limit || 20)))
+      }), data: JSON.stringify(config), contentType: 'application/json', dataType: 'json' }) as { Movies: ProviderItemsPage; Series: ProviderItemsPage };
+      return {
+        Movies: providerCatalogue(data.Movies, { type: 'Movie' }),
+        Series: providerCatalogue(data.Series, { type: 'Series' })
+      };
+    }),
     getItem: id => read(async () => {
       const item = await client.getItem(userId, id);
       if (!item?.Id || identity(item.Id) !== identity(id)) throw new Error('Jellyfin did not return the requested media.');

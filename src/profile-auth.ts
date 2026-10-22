@@ -16,7 +16,7 @@ type NativeAuthDashboard = {
 };
 export type ProfileSession = { client: NativeAuthClient; dashboard: NativeAuthDashboard; userId: string; serverId: string };
 export type ProfileSwitchPhase = 'checking' | 'signing-out' | 'signing-in' | 'opening';
-export class ProfileLoginRequired extends Error {}
+export class ProfileLoginRequired extends Error { }
 const identity = (id: string) => /^[\da-f]{32}$|^[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/i.test(id) ? id.replace(/-/g, '').toLowerCase() : id;
 const loginRoute = () => /^#\/?(?:login|selectserver)\/?(?:\?|$)/i.test(window.location.hash);
 const abort = () => new DOMException('A troca de perfil foi cancelada.', 'AbortError');
@@ -73,8 +73,10 @@ export async function publicProfiles(session: ProfileSession, signal?: AbortSign
   const eligible = await directProfileIds(session);
   check(session, signal);
   return users.filter(user => typeof user?.Id === 'string' && !!user.Id && typeof user.Name === 'string' && !!user.Name)
-    .map(user => ({ Id: user.Id, Name: user.Name, CanSwitchDirectly: eligible.has(identity(user.Id)),
-      ...(typeof user.PrimaryImageTag === 'string' ? { PrimaryImageTag: user.PrimaryImageTag } : {}) }));
+    .map(user => ({
+      Id: user.Id, Name: user.Name, CanSwitchDirectly: eligible.has(identity(user.Id)),
+      ...(typeof user.PrimaryImageTag === 'string' ? { PrimaryImageTag: user.PrimaryImageTag } : {})
+    }));
 }
 export function profileImage(session: ProfileSession, profile: PublicProfile): string | undefined {
   if (!profile.PrimaryImageTag || !session.client.getUserImageUrl) return;
@@ -90,7 +92,7 @@ type ServerSelectionShell = { selectServer?: (...args: unknown[]) => unknown };
 function keepServerDuringLogout(session: ProfileSession, start: string, signal: AbortSignal, bypassed: () => void, failed: (error: unknown) => void): () => void {
   const host = window as Window & { NativeShell?: ServerSelectionShell };
   const shell = host.NativeShell, original = shell?.selectServer;
-  if (!shell || typeof original !== 'function') return () => {};
+  if (!shell || typeof original !== 'function') return () => { };
   const descriptor = Object.getOwnPropertyDescriptor(shell, 'selectServer');
   let active = true;
   const restore = () => {
@@ -134,7 +136,7 @@ function signOut(session: ProfileSession, signal: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     const start = window.location.hash;
     let arrived = false, invalid = false, finished = false;
-    let restoreServerSelection = () => {};
+    let restoreServerSelection = () => { };
     const cleanup = () => {
       restoreServerSelection();
       window.removeEventListener('hashchange', changed); window.removeEventListener('popstate', changed);
@@ -193,8 +195,10 @@ async function performSwitch(session: ProfileSession, profileId: string, signal:
   // convenience authenticateUserByName method would persist credentials before
   // a cancelled/late response could be checked. The native hook alone owns
   // session persistence; Cinema keeps no passwords or saved-account tokens.
-  const result = await session.client.ajax({ type: 'POST', url: session.client.getUrl('Users/authenticatebyname'),
-    data: JSON.stringify({ Username: profile.Name, Pw: '' }), dataType: 'json', contentType: 'application/json' });
+  const result = await session.client.ajax({
+    type: 'POST', url: session.client.getUrl('Users/authenticatebyname'),
+    data: JSON.stringify({ Username: profile.Name, Pw: '' }), dataType: 'json', contentType: 'application/json'
+  });
   if (signal.aborted || !sameProfileServer(session) || !loginRoute() || session.client.getCurrentUserId()) throw abort();
   if (typeof result?.User?.Id !== 'string' || identity(result.User.Id) !== identity(profile.Id)
     || typeof result.ServerId !== 'string' || identity(result.ServerId) !== identity(session.serverId)

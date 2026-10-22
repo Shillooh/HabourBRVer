@@ -2,15 +2,23 @@ using System.Collections.Concurrent;
 using System.Net;
 using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace Jellyfin.Plugin.TvItemLayout.Providers;
+
+public sealed record TrendingDiskEntry(
+    [property: JsonPropertyName("tmdbIds")] int[] TmdbIds,
+    [property: JsonPropertyName("expires")] DateTimeOffset Expires,
+    [property: JsonPropertyName("updatedAt")] DateTimeOffset UpdatedAt
+);
 
 /// <summary>Streaming availability is supplied by TMDB/JustWatch, not studio or network names.</summary>
 public sealed partial class TmdbProviderSource(IHttpClientFactory clients, TimeProvider? directoryClock = null)
 {
     public const string Region = "BR";
-    private readonly ConcurrentDictionary<string, (DateTimeOffset Expires, int[] TmdbIds)> trendingCache = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, TrendingDiskEntry> trendingCache = new(StringComparer.Ordinal);
+    public event Action? CacheUpdated;
     private long rateLimitedUntil;
     public static bool ValidProvider(string id) => ProviderHomesSchema.ValidProvider(id);
     public static bool Includes(string provider, string type, IEnumerable<int> ids)
@@ -113,25 +121,66 @@ public sealed partial class TmdbProviderSource(IHttpClientFactory clients, TimeP
         return ids.Order().ToArray();
     }
 
-    public async Task<int[]> DiscoverTrendingTmdbIdsAsync(string mediaType, int[] providerIds, CancellationToken cancellationToken)
+    public void ImportCache(IReadOnlyDictionary<string, TrendingDiskEntry> entries)
+    {
+        foreach (var (key, entry) in entries)
+        {
+            if (entry.TmdbIds is { Length: > 0 })
+            {
+                trendingCache[key] = entry;
+            }
+        }
+    }
+
+    public IReadOnlyDictionary<string, TrendingDiskEntry> ExportCache()
+    {
+        return new Dictionary<string, TrendingDiskEntry>(trendingCache, StringComparer.Ordinal);
+    }
+
+    public async Task<int[]> DiscoverTrendingTmdbIdsAsync(string mediaType, int[] providerIds, CancellationToken cancellationToken, bool forceRefresh = false)
     {
         var validIds = providerIds.Where(id => id > 0 && id <= 1000000).Distinct().ToArray();
         if (validIds.Length == 0) return [];
         var endpointType = mediaType.Equals("Series", StringComparison.OrdinalIgnoreCase) ? "tv" : "movie";
         var cacheKey = $"{endpointType}:{Region}:{string.Join("|", validIds.OrderBy(id => id))}";
 
-        if (trendingCache.TryGetValue(cacheKey, out var cached) && DateTimeOffset.UtcNow < cached.Expires)
+        var hasCached = trendingCache.TryGetValue(cacheKey, out var cached);
+
+        if (!forceRefresh && hasCached && cached is not null && cached.TmdbIds.Length > 0)
         {
+            if (DateTimeOffset.UtcNow < cached.Expires)
+            {
+                return cached.TmdbIds;
+            }
+
+            // Stale-While-Revalidate: return stale data immediately and refresh in background
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await FetchAndStoreDiscoverAsync(endpointType, validIds, cacheKey, CancellationToken.None).ConfigureAwait(false);
+                }
+                catch
+                {
+                    // Ignore background refresh errors
+                }
+            });
+
             return cached.TmdbIds;
         }
 
+        return await FetchAndStoreDiscoverAsync(endpointType, validIds, cacheKey, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<int[]> FetchAndStoreDiscoverAsync(string endpointType, int[] validIds, string cacheKey, CancellationToken cancellationToken)
+    {
         var apiKey = NativeApiKey() ?? throw new ProviderLookupException("TMDB is unavailable.");
         var providersParam = Uri.EscapeDataString(string.Join("|", validIds));
         var baseUri = $"https://api.themoviedb.org/3/discover/{endpointType}?watch_region={Region}&with_watch_providers={providersParam}&with_watch_monetization_types=flatrate|free|ads&sort_by=popularity.desc&language=pt-BR&api_key={Uri.EscapeDataString(apiKey)}";
 
         // Query up to 3 pages in parallel for a rich top 60 sample
         var pageTasks = Enumerable.Range(1, 3).Select(page => FetchDiscoverPageAsync($"{baseUri}&page={page}", cancellationToken)).ToArray();
-        var pageResults = await Task.WhenAll(pageTasks);
+        var pageResults = await Task.WhenAll(pageTasks).ConfigureAwait(false);
 
         var orderedIds = new List<int>();
         var seen = new HashSet<int>();
@@ -146,8 +195,16 @@ public sealed partial class TmdbProviderSource(IHttpClientFactory clients, TimeP
         var result = orderedIds.ToArray();
         if (result.Length > 0)
         {
-            trendingCache[cacheKey] = (DateTimeOffset.UtcNow.AddHours(6), result);
+            var now = DateTimeOffset.UtcNow;
+            trendingCache[cacheKey] = new TrendingDiskEntry(result, now.AddHours(6), now);
+            CacheUpdated?.Invoke();
         }
+        else if (trendingCache.TryGetValue(cacheKey, out var existing))
+        {
+            // If TMDB returns empty, preserve existing cached results
+            return existing.TmdbIds;
+        }
+
         return result;
     }
 

@@ -347,3 +347,53 @@ test('trending previews use previewProviderTrending with the draft provider conf
   assert.deepEqual(ids(result), ['preview-hit']);
   assert.deepEqual(calls, [{ provider: config, type: 'Movie', limit: 8 }]);
 });
+
+test('trending rows leverage getProviderTrendingBatch when available and pre-populate both Movie and Series in sessionCache', async () => {
+  const batchCalls: unknown[] = [];
+  const testApi = api({
+    getProviderTrendingBatch: async (provider, limit) => {
+      batchCalls.push({ provider, limit });
+      return {
+        Movies: page([item('movie-hit-1', 'Movie'), item('movie-hit-2', 'Movie')]),
+        Series: page([item('series-hit-1', 'Series'), item('series-hit-2', 'Series')])
+      };
+    }
+  });
+
+  const data = new ProviderData(testApi);
+  // First load: trending-movies triggers batch call
+  const movies = await data.load('netflix', row('trending-movies'), 0, 20);
+  assert.deepEqual(ids(movies), ['movie-hit-1', 'movie-hit-2']);
+  assert.equal(batchCalls.length, 1);
+
+  // Second load: trending-shows is served INSTANTLY from sessionCache with 0 additional network calls!
+  const shows = await data.load('netflix', row('trending-shows'), 0, 20);
+  assert.deepEqual(ids(shows), ['series-hit-1', 'series-hit-2']);
+  assert.equal(batchCalls.length, 1); // Still 1 call! Zero extra latency!
+
+  // Re-opening trending-movies is also served instantly from sessionCache with 0 additional calls!
+  const moviesAgain = await data.load('netflix', row('trending-movies'), 0, 20);
+  assert.deepEqual(ids(moviesAgain), ['movie-hit-1', 'movie-hit-2']);
+  assert.equal(batchCalls.length, 1);
+});
+
+test('trending rows serve repeat views in 0ms from sessionCache without repeat API calls', async () => {
+  let trendingCalls = 0;
+  const testApi = api({
+    getProviderTrending: async (_provider, type) => {
+      trendingCalls++;
+      return page([item(`hit-${type}`)]);
+    }
+  });
+
+  const data1 = new ProviderData(testApi);
+  const result1 = await data1.load('netflix', row('trending-movies'), 0, 20);
+  assert.deepEqual(ids(result1), ['hit-Movie']);
+  assert.equal(trendingCalls, 1);
+
+  // Tab switch or re-opening with a new ProviderData instance on the same session
+  const data2 = new ProviderData(testApi);
+  const result2 = await data2.load('netflix', row('trending-movies'), 0, 20);
+  assert.deepEqual(ids(result2), ['hit-Movie']);
+  assert.equal(trendingCalls, 1); // 0ms response, no second network call!
+});
